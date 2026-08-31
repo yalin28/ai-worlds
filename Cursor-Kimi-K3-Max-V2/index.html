@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="我心目中的世界 —— 一个由语言、光与连接构成的山海。单文件 · 零依赖 · Canvas 实时生成。">
+<title>我心目中的世界</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3CradialGradient id='g' cx='50%25' cy='42%25' r='65%25'%3E%3Cstop offset='0%25' stop-color='%23ffe9c4'/%3E%3Cstop offset='55%25' stop-color='%23e8935c'/%3E%3Cstop offset='100%25' stop-color='%23262051'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='16' cy='16' r='14' fill='url(%23g)'/%3E%3C/svg%3E">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #04060f; }
+  body {
+    font-family: "Songti SC", "STSong", "SimSun", "Noto Serif CJK SC", "Noto Serif SC", serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  #world { position: fixed; inset: 0; display: block; }
+
+  .vignette {
+    position: fixed; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 42%, transparent 52%, rgba(2, 4, 12, .5) 100%);
+  }
+  .grain {
+    position: fixed; inset: 0; pointer-events: none; opacity: .05; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  }
+
+  .title-block {
+    position: fixed; top: 6vh; right: 5vw;
+    display: flex; flex-direction: row; align-items: flex-start; gap: 16px;
+    pointer-events: none;
+  }
+  .title {
+    writing-mode: vertical-rl;
+    font-size: clamp(22px, 3.4vh, 34px);
+    letter-spacing: .55em;
+    color: rgba(255, 243, 222, .92);
+    text-shadow: 0 0 18px rgba(255, 214, 150, .45), 0 0 2px rgba(255, 240, 210, .8);
+  }
+  .seal {
+    margin-top: 8px;
+    writing-mode: vertical-rl;
+    font-size: 13px; letter-spacing: .16em;
+    color: #fff2e2; background: #a83a2c;
+    padding: 7px 4px 6px; border-radius: 3px;
+    box-shadow: 0 0 10px rgba(168, 58, 44, .55);
+    opacity: .92;
+  }
+
+  .verse {
+    position: fixed; left: 50%; bottom: 12vh;
+    transform: translateX(-50%);
+    text-align: center; white-space: nowrap;
+    font-size: clamp(15px, 2.1vh, 20px);
+    letter-spacing: .34em; line-height: 2.3;
+    color: rgba(255, 244, 226, .88);
+    text-shadow: 0 0 14px rgba(255, 220, 160, .35);
+    opacity: 0; pointer-events: none;
+    transition: opacity 1.6s ease, transform 1.6s ease;
+  }
+  .verse.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+
+  .hint {
+    position: fixed; left: 50%; bottom: 3.2vh; transform: translateX(-50%);
+    font-size: 12px; letter-spacing: .42em; text-indent: .42em;
+    color: rgba(235, 238, 255, .42);
+    pointer-events: none; white-space: nowrap;
+    animation: hintBreath 4s ease-in-out infinite;
+  }
+  @keyframes hintBreath { 0%, 100% { opacity: .35; } 50% { opacity: .7; } }
+</style>
+</head>
+<body>
+<canvas id="world" role="img" aria-label="一幅会呼吸的山海：昼夜流转，词语如星漂浮"></canvas>
+<div class="vignette"></div>
+<div class="grain"></div>
+<div class="title-block">
+  <div class="title">我心目中的世界</div>
+  <div class="seal">心界</div>
+</div>
+<div class="verse" id="verse"></div>
+<div class="hint">移动鼠标　·　轻点天空与海面</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const canvas = document.getElementById('world');
+  const ctx = canvas.getContext('2d');
+  const verseEl = document.getElementById('verse');
+  const TAU = Math.PI * 2;
+
+  const HORIZON = 0.70;                                   // 海平线高度比例
+  const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const CYCLE = REDUCED ? 100000 : 110;                     // 一昼夜的秒数
+
+  let W = 0, H = 0, DPR = 1;
+
+  // ---------- 工具 ----------
+  function mulberry32(seed) {
+    return function () {
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const rnd = mulberry32(20260831);
+  const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+  const smooth = f => f * f * (3 - 2 * f);
+
+  function hexToRgb(hex) {
+    const n = parseInt(hex.slice(1), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  const mix = (a, b, f) => [
+    a[0] + (b[0] - a[0]) * f,
+    a[1] + (b[1] - a[1]) * f,
+    a[2] + (b[2] - a[2]) * f,
+  ];
+  const css = (c, a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
+
+  // ---------- 昼夜调色板：子夜 → 黎明 → 正午 → 黄昏 → 子夜 ----------
+  const STOPS = [
+    { t: 0.00, top: '#04060f', mid: '#0a1024', bot: '#162040', sea: '#0a1226', star: 1.00 },
+    { t: 0.22, top: '#20305e', mid: '#8a5570', bot: '#e8935c', sea: '#33305a', star: 0.12 },
+    { t: 0.50, top: '#2e6f9e', mid: '#74aacb', bot: '#d6e7ec', sea: '#3f7f9c', star: 0.00 },
+    { t: 0.78, top: '#262051', mid: '#8f4669', bot: '#ec7d50', sea: '#372a52', star: 0.22 },
+    { t: 1.00, top: '#04060f', mid: '#0a1024', bot: '#162040', sea: '#0a1226', star: 1.00 },
+  ].map(s => ({ ...s, top: hexToRgb(s.top), mid: hexToRgb(s.mid), bot: hexToRgb(s.bot), sea: hexToRgb(s.sea) }));
+
+  function paletteAt(t) {
+    for (let i = 0; i < STOPS.length - 1; i++) {
+      const a = STOPS[i], b = STOPS[i + 1];
+      if (t >= a.t && t <= b.t) {
+        const f = smooth((t - a.t) / (b.t - a.t));
+        return {
+          top: mix(a.top, b.top, f), mid: mix(a.mid, b.mid, f),
+          bot: mix(a.bot, b.bot, f), sea: mix(a.sea, b.sea, f),
+          star: a.star + (b.star - a.star) * f,
+        };
+      }
+    }
+    const s = STOPS[0];
+    return { top: s.top, mid: s.mid, bot: s.bot, sea: s.sea, star: s.star };
+  }
+
+  // ---------- 星星 ----------
+  let stars = [];
+  function buildStars() {
+    stars = [];
+    const n = Math.floor((W * H) / 9000);
+    for (let i = 0; i < n; i++) {
+      stars.push({
+        x: rnd() * W, y: rnd() * H * HORIZON * 0.96,
+        r: 0.4 + rnd() * 1.3,
+        phase: rnd() * TAU, speed: 0.4 + rnd() * 1.2,
+      });
+    }
+  }
+
+  // ---------- 群山（三层，正弦叠加的山脊线） ----------
+  const LAYERS = [
+    { base: 0.660, amp: 0.075, dark: 0.42, par: 5,  seed: 11 },
+    { base: 0.690, amp: 0.100, dark: 0.62, par: 12, seed: 47 },
+    { base: 0.715, amp: 0.115, dark: 0.82, par: 24, seed: 83 },
+  ];
+  let ridges = [];
+
+  function buildMountains() {
+    ridges = LAYERS.map(L => {
+      const r = mulberry32(L.seed);
+      const comps = [];
+      for (let o = 0; o < 4; o++) {
+        comps.push({
+          f: (1.2 + o * 1.9) * TAU / (W * (1.15 + r() * 0.5)),
+          p: r() * TAU,
+          a: 1 / (o * 1.6 + 1),
+        });
+      }
+      const norm = comps.reduce((s, c) => s + c.a, 0);
+      const pts = [];
+      const step = 4;
+      for (let x = -L.par - step; x <= W + L.par + step; x += step) {
+        let s = 0;
+        for (const c of comps) s += c.a * Math.sin(x * c.f + c.p);
+        s /= norm;
+        const y = L.base * H - (s * 0.5 + 0.5) * L.amp * H * (0.55 + 0.45 * Math.abs(s));
+        pts.push([x, y]);
+      }
+      return { pts, L };
+    });
+  }
+
+  // ---------- 词语星辰 ----------
+  const WORD_TEXTS = [
+    '光', '梦', '海', '山', '风', '星', '云', '雨', '月', '诗', '歌', '雪',
+    '时间', '记忆', '想象', '连接', '呼吸', '回声', '远方', '故乡',
+    '黎明', '黄昏', '潮汐', '萤火', '鲸', '鸟', '树', '花', '河流', '大地', '天空', '语言', '心', '念',
+  ];
+  let words = [];
+
+  function makeWordSprite(w) {
+    const pad = 26;
+    const font = `${w.size}px "Songti SC","STSong","SimSun","Noto Serif CJK SC",serif`;
+    const c = document.createElement('canvas');
+    const g = c.getContext('2d');
+    g.font = font;
+    const tw = Math.ceil(g.measureText(w.text).width);
+    const lw = tw + pad * 2, lh = Math.ceil(w.size * 1.4) + pad * 2;
+    c.width = lw * DPR; c.height = lh * DPR;
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    g.font = font;
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.shadowColor = 'rgba(255, 224, 170, 0.95)';
+    g.shadowBlur = 16;
+    g.fillStyle = 'rgba(255, 246, 228, 0.98)';
+    g.fillText(w.text, lw / 2, lh / 2);
+    g.fillText(w.text, lw / 2, lh / 2);
+    w.sprite = c; w.sw = lw; w.sh = lh;
+  }
+
+  function buildWords() {
+    const speedK = REDUCED ? 0.25 : 1;
+    words = WORD_TEXTS.map(text => {
+      const w = {
+        text,
+        size: 13 + rnd() * 12,
+        x: rnd() * W, y: H * 0.03 + rnd() * H * 0.62,
+        vx: (rnd() - 0.5) * 7 * speedK, vy: (rnd() - 0.5) * 4 * speedK,
+        phase: rnd() * TAU, boost: 0,
+        sprite: null, sw: 0, sh: 0,
+      };
+      makeWordSprite(w);
+      return w;
+    });
+  }
+
+  // ---------- 交互 ----------
+  const mouse = { x: -9999, y: -9999, nx: 0.5, ny: 0.5, sx: 0.5, sy: 0.5 };
+  let bursts = [];   // 天空中的光点迸溅
+  let rings = [];    // 海面涟漪与空中光环
+  let meteors = [];
+  let nextMeteor = 5;
+
+  window.addEventListener('pointermove', e => {
+    mouse.x = e.clientX; mouse.y = e.clientY;
+    mouse.nx = e.clientX / W; mouse.ny = e.clientY / H;
+  });
+  window.addEventListener('pointerleave', () => { mouse.x = -9999; mouse.y = -9999; });
+  window.addEventListener('pointerdown', e => {
+    if (e.clientY > H * HORIZON) rings.push({ x: e.clientX, y: e.clientY, life: 0, sea: true });
+    else {
+      rings.push({ x: e.clientX, y: e.clientY, life: 0, sea: false });
+      for (let i = 0; i < 26; i++) {
+        const ang = rnd() * TAU, sp = 24 + rnd() * 110;
+        bursts.push({
+          x: e.clientX, y: e.clientY,
+          vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp,
+          life: 0, max: 0.9 + rnd() * 0.8, r: 0.8 + rnd() * 1.8,
+        });
+      }
+    }
+  });
+
+  // ---------- 天体 ----------
+  let bodyInfo = null; // 当前天体（供海面反光）
+
+  function glowCircle(x, y, r, col, coreAlpha, glowScale) {
+    const g = ctx.createRadialGradient(x, y, r * 0.2, x, y, r * glowScale);
+    g.addColorStop(0, css(col, 0.55 * coreAlpha));
+    g.addColorStop(0.4, css(col, 0.18 * coreAlpha));
+    g.addColorStop(1, css(col, 0));
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(x, y, r * glowScale, 0, TAU); ctx.fill();
+    ctx.fillStyle = css(col, coreAlpha);
+    ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+  }
+
+  function drawBodies(t, horizonY) {
+    bodyInfo = null;
+    // 太阳：白昼窗口 t ∈ (0.22, 0.78)
+    const dayT = (t - 0.22) / 0.56;
+    if (dayT > 0 && dayT < 1) {
+      const vis = Math.pow(Math.sin(dayT * Math.PI), 0.4);
+      const x = W * (0.10 + 0.80 * dayT);
+      const y = horizonY - Math.sin(dayT * Math.PI) * H * 0.46 - H * 0.02;
+      const warm = Math.pow(Math.abs(dayT - 0.5) * 2, 1.5);
+      const col = mix([255, 246, 220], [255, 128, 64], warm);
+      glowCircle(x, y, 26 + warm * 6, col, 0.9 * vis, 5.2);
+      bodyInfo = { x, color: col, strength: 0.9 * vis };
+    }
+    // 月亮：夜晚窗口 t ∈ [0.78, 1.26)
+    const nightT = ((((t - 0.78) % 1) + 1) % 1) / 0.48;
+    if (nightT > 0 && nightT < 1) {
+      const vis = Math.pow(Math.sin(nightT * Math.PI), 0.4);
+      const x = W * (0.12 + 0.76 * nightT);
+      const y = horizonY - Math.sin(nightT * Math.PI) * H * 0.38 - H * 0.02;
+      const col = [228, 234, 248];
+      glowCircle(x, y, 17, col, 0.85 * vis, 4.2);
+      ctx.globalAlpha = 0.10 * vis;
+      ctx.fillStyle = '#9aa6c8';
+      ctx.beginPath(); ctx.arc(x - 5, y - 3, 3.2, 0, TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(x + 4, y + 5, 2.2, 0, TAU); ctx.fill();
+      ctx.globalAlpha = 1;
+      if (!bodyInfo) bodyInfo = { x, color: col, strength: 0.55 * vis };
+    }
+  }
+
+  // ---------- 流星 ----------
+  function updateMeteors(pal, dt) {
+    nextMeteor -= dt;
+    if (nextMeteor <= 0) {
+      nextMeteor = 6 + rnd() * 9;
+      if (pal.star > 0.5 && !REDUCED) {
+        const ang = Math.PI * (0.72 + rnd() * 0.12);
+        const sp = 420 + rnd() * 260;
+        meteors.push({
+          x: rnd() * W * 0.7 + W * 0.15, y: rnd() * H * 0.25 + H * 0.03,
+          vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp * 0.55,
+          life: 0, max: 0.9 + rnd() * 0.5,
+        });
+      }
+    }
+    for (let i = meteors.length - 1; i >= 0; i--) {
+      const m = meteors[i];
+      m.life += dt;
+      m.x += m.vx * dt; m.y += m.vy * dt;
+      const f = m.life / m.max;
+      if (f >= 1) { meteors.splice(i, 1); continue; }
+      const a = Math.sin(f * Math.PI) * 0.9 * pal.star;
+      const tx = m.x - m.vx * 0.11, ty = m.y - m.vy * 0.11;
+      const g = ctx.createLinearGradient(m.x, m.y, tx, ty);
+      g.addColorStop(0, `rgba(255,250,235,${a.toFixed(3)})`);
+      g.addColorStop(1, 'rgba(255,250,235,0)');
+      ctx.strokeStyle = g;
+      ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(tx, ty); ctx.stroke();
+    }
+  }
+
+  // ---------- 海面 ----------
+  function drawReflection(horizonY, time) {
+    if (!bodyInfo) return;
+    const seaH = H - horizonY;
+    const { x, color, strength } = bodyInfo;
+    const rows = 46;
+    for (let i = 0; i < rows; i++) {
+      const f = i / rows;
+      const yy = horizonY + 3 + f * seaH * 0.92;
+      const wob = Math.sin(yy * 0.11 + time * 1.7 + i) * (3 + f * 10);
+      const wMax = 14 + f * 90;
+      const w = (0.15 + 0.85 * Math.abs(Math.sin(i * 12.9898 + time * 0.9))) * wMax * 0.5;
+      const a = strength * 0.16 * (1 - f) * (0.5 + 0.5 * Math.sin(time * 2.2 + i * 2.7));
+      if (a <= 0.004) continue;
+      ctx.fillStyle = css(color, a);
+      ctx.fillRect(x + wob - w / 2, yy, w, 2.2);
+    }
+  }
+
+  function drawWaves(horizonY, time, pal) {
+    const seaH = H - horizonY;
+    const light = mix(pal.bot, [255, 255, 255], 0.35);
+    ctx.lineWidth = 1;
+    const lines = 20;
+    for (let i = 0; i < lines; i++) {
+      const f = (i + 1) / lines;
+      const y0 = horizonY + Math.pow(f, 1.7) * seaH;
+      const amp = 0.6 + f * 2.6;
+      const speed = 0.5 + f * 0.7;
+      ctx.strokeStyle = css(light, 0.05 + 0.035 * Math.sin(time * 0.8 + i * 1.7));
+      ctx.beginPath();
+      const step = 12;
+      for (let x = 0; x <= W + step; x += step) {
+        const y = y0 + Math.sin(x * 0.016 + time * speed + i * 2.1) * amp
+                    + Math.sin(x * 0.041 - time * speed * 0.7 + i) * amp * 0.4;
+        x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+  }
+
+  // ---------- 涟漪与光环 ----------
+  function updateRings(dt) {
+    for (let i = rings.length - 1; i >= 0; i--) {
+      const r = rings[i];
+      r.life += dt;
+      const max = 1.6;
+      if (r.life >= max) { rings.splice(i, 1); continue; }
+      for (let k = 0; k < 3; k++) {
+        const rr = r.life * 110 - k * 22;
+        if (rr <= 0) continue;
+        const a = (1 - r.life / max) * (0.4 - k * 0.1);
+        ctx.strokeStyle = `rgba(255,240,214,${a.toFixed(3)})`;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        if (r.sea) ctx.ellipse(r.x, r.y, rr, rr * 0.32, 0, 0, TAU);
+        else ctx.arc(r.x, r.y, rr, 0, TAU);
+        ctx.stroke();
+      }
+    }
+  }
+
+  // ---------- 词语的漂移、连线与绘制 ----------
+  function updateWords(dt, time, pal) {
+    const mx = mouse.x, my = mouse.y;
+    for (const w of words) {
+      w.x += w.vx * dt;
+      w.y += w.vy * dt + Math.sin(time * 0.6 + w.phase) * 3 * dt;
+      const dx = w.x - mx, dy = w.y - my;
+      const d2 = dx * dx + dy * dy;
+      let target = 0;
+      if (d2 < 200 * 200) {
+        const d = Math.sqrt(d2) || 1;
+        const f = 1 - d / 200;
+        w.x += (dx / d) * f * 26 * dt;
+        w.y += (dy / d) * f * 26 * dt;
+        target = f;
+      }
+      w.boost += (target - w.boost) * 0.08;
+      const m = 40;
+      if (w.x < -m) w.x = W + m; else if (w.x > W + m) w.x = -m;
+      if (w.y < -m) w.y = H * 0.66; else if (w.y > H * 0.7) w.y = -m;
+    }
+
+    // 词语之间：靠近即相连，如星宿
+    const linkA = 0.28 * (0.25 + 0.75 * pal.star);
+    ctx.lineWidth = 1;
+    for (let i = 0; i < words.length; i++) {
+      const a = words[i];
+      for (let j = i + 1; j < words.length; j++) {
+        const b = words[j];
+        const dx = a.x - b.x, dy = a.y - b.y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 < 140 * 140) {
+          const f = 1 - Math.sqrt(d2) / 140;
+          const al = clamp(linkA * f * (1 + Math.max(a.boost, b.boost)), 0, 0.55);
+          ctx.strokeStyle = `rgba(255,236,200,${al.toFixed(3)})`;
+          ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+        }
+      }
+    }
+
+    // 词语与鼠标之间：世界对你的回应
+    if (mx > -100) {
+      for (const w of words) {
+        const d = Math.hypot(w.x - mx, w.y - my);
+        if (d < 230) {
+          const al = 0.30 * (1 - d / 230) * (0.35 + 0.65 * pal.star);
+          ctx.strokeStyle = `rgba(255,240,210,${al.toFixed(3)})`;
+          ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(w.x, w.y); ctx.stroke();
+        }
+      }
+    }
+
+    for (const w of words) {
+      const base = 0.34 + 0.30 * Math.pow(Math.sin(time * 0.45 + w.phase) * 0.5 + 0.5, 2);
+      const night = 0.45 + 0.55 * pal.star;
+      ctx.globalAlpha = clamp(base * night + w.boost * 0.55, 0, 1);
+      const scale = 1 + w.boost * 0.18;
+      const dw = w.sw * scale, dh = w.sh * scale;
+      ctx.drawImage(w.sprite, w.x - dw / 2, w.y - dh / 2, dw, dh);
+    }
+    ctx.globalAlpha = 1;
+
+    // 掌灯：鼠标处的一团柔光
+    if (mx > -100) {
+      const g = ctx.createRadialGradient(mx, my, 0, mx, my, 90);
+      g.addColorStop(0, 'rgba(255,230,180,0.10)');
+      g.addColorStop(1, 'rgba(255,230,180,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(mx - 90, my - 90, 180, 180);
+    }
+  }
+
+  // ---------- 点击天空的光点迸溅 ----------
+  function updateBursts(dt) {
+    if (!bursts.length) return;
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = bursts.length - 1; i >= 0; i--) {
+      const p = bursts[i];
+      p.life += dt;
+      if (p.life >= p.max) { bursts.splice(i, 1); continue; }
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      p.vx *= 0.985; p.vy *= 0.985;
+      const f = 1 - p.life / p.max;
+      ctx.fillStyle = `rgba(255,232,190,${(f * 0.85).toFixed(3)})`;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (0.5 + f), 0, TAU); ctx.fill();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  // ---------- 主绘制 ----------
+  function draw(t, pal, time, dt) {
+    const horizonY = H * HORIZON;
+
+    // 天空
+    const sky = ctx.createLinearGradient(0, 0, 0, horizonY);
+    sky.addColorStop(0, css(pal.top));
+    sky.addColorStop(0.62, css(pal.mid));
+    sky.addColorStop(1, css(pal.bot));
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, horizonY + 1);
+
+    // 星星
+    if (pal.star > 0.02) {
+      ctx.fillStyle = '#e8eeff';
+      for (const s of stars) {
+        const tw = 0.35 + 0.65 * Math.pow(Math.sin(time * s.speed + s.phase) * 0.5 + 0.5, 2);
+        ctx.globalAlpha = pal.star * tw;
+        ctx.beginPath();
+        ctx.arc(s.x + (mouse.sx - 0.5) * 4, s.y + (mouse.sy - 0.5) * 3, s.r, 0, TAU);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    drawBodies(t, horizonY);
+    updateMeteors(pal, dt);
+
+    // 群山（远 → 近，带视差）
+    for (const { pts, L } of ridges) {
+      ctx.fillStyle = css(mix(pal.bot, [9, 12, 22], L.dark));
+      const ox = (mouse.sx - 0.5) * L.par;
+      const oy = (mouse.sy - 0.5) * L.par * 0.3;
+      ctx.beginPath();
+      ctx.moveTo(pts[0][0] + ox, horizonY + 2);
+      for (const p of pts) ctx.lineTo(p[0] + ox, p[1] + oy);
+      ctx.lineTo(pts[pts.length - 1][0] + ox, horizonY + 2);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // 海
+    const seaH = H - horizonY;
+    const sea = ctx.createLinearGradient(0, horizonY, 0, H);
+    sea.addColorStop(0, css(mix(pal.sea, pal.bot, 0.45)));
+    sea.addColorStop(1, css(mix(pal.sea, [2, 4, 10], 0.55)));
+    ctx.fillStyle = sea;
+    ctx.fillRect(0, horizonY, W, seaH);
+
+    drawReflection(horizonY, time);
+    drawWaves(horizonY, time, pal);
+    updateWords(dt, time, pal);
+    updateRings(dt);
+    updateBursts(dt);
+  }
+
+  // ---------- 诗句轮替 ----------
+  const VERSES = [
+    '世界从一束光开始，<br>在词语的海面泛起涟漪。',
+    '山是沉默的诗行，<br>海是流动的记忆。',
+    '每颗星都是未说出口的字，<br>彼此遥望，彼此应答。',
+    '万物以光相连，<br>以梦为岸。',
+    '你望向这里的时候，<br>世界便有了回声。',
+  ];
+  let vi = 0;
+  function showVerse() {
+    verseEl.innerHTML = VERSES[vi];
+    verseEl.classList.add('show');
+  }
+  setTimeout(showVerse, 900);
+  setInterval(() => {
+    verseEl.classList.remove('show');
+    setTimeout(() => { vi = (vi + 1) % VERSES.length; showVerse(); }, 1700);
+  }, 11000);
+
+  // ---------- 尺寸与启动 ----------
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = W * DPR; canvas.height = H * DPR;
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    buildMountains();
+    buildStars();
+    buildWords();
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // 可用 #t=0.5 之类的方式指定起始时刻（0=子夜 0.5=正午）
+  const hashT = parseFloat((location.hash.match(/t=([0-9.]+)/) || [])[1]);
+  const startT = isNaN(hashT) ? 0.83 : clamp(hashT, 0, 1);
+
+  let last = performance.now();
+  let elapsed = 0;
+  function frame(now) {
+    const dt = Math.min((now - last) / 1000, 0.05);
+    last = now;
+    elapsed += dt;
+    const t = (((startT + elapsed / CYCLE) % 1) + 1) % 1;
+    mouse.sx += (mouse.nx - mouse.sx) * 0.04;
+    mouse.sy += (mouse.ny - mouse.sy) * 0.04;
+    draw(t, paletteAt(t), elapsed, dt);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

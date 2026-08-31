@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>无尽图集 · 你心目中的世界</title>
+<meta name="description" content="一张永远画不完的地图：我心目中的世界，在被观看的瞬间才被计算出来。单文件、零依赖。">
+<style>
+  :root{
+    --ink:      #e2ebf1;
+    --ink-dim:  #93a6b3;
+    --ink-far:  #7c919e;
+    --paper:    #05080c;
+    --line:     rgba(150,190,210,.16);
+    --line-2:   rgba(150,190,210,.09);
+    --accent:   #e6a95f;
+    --cyan:     #86d3e8;
+    --serif:    "Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC","SimSun",Georgia,serif;
+    --mono:     ui-monospace,"SF Mono",Menlo,"DejaVu Sans Mono",Consolas,monospace;
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--serif);
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    touch-action:none;
+  }
+
+  #map{display:block;position:fixed;inset:0;cursor:grab}
+  #map.dragging{cursor:grabbing}
+
+  /* 画面之上的一层薄雾与晕影，让屏幕像纸 */
+  .veil{
+    position:fixed;inset:0;pointer-events:none;z-index:2;
+    background:
+      radial-gradient(52% 34% at 2% 0%,   rgba(3,6,10,.94), rgba(3,6,10,.5) 46%, transparent 100%),
+      radial-gradient(46% 28% at 100% 0%, rgba(3,6,10,.90), rgba(3,6,10,.45) 46%, transparent 100%),
+      radial-gradient(48% 32% at 0% 100%, rgba(3,6,10,.94), rgba(3,6,10,.5) 46%, transparent 100%),
+      radial-gradient(48% 32% at 100% 100%,rgba(3,6,10,.92), rgba(3,6,10,.5) 46%, transparent 100%),
+      radial-gradient(122% 94% at 50% 46%, transparent 48%, rgba(2,4,7,.5) 100%);
+  }
+
+  .hud{position:fixed;z-index:5;pointer-events:none}
+  .hud > *{pointer-events:auto}
+
+  /* ── 左上：刊头 ── */
+  .masthead{top:0;left:0;padding:26px 30px}
+  .masthead h1{
+    margin:0;font-size:19px;font-weight:500;letter-spacing:.42em;
+    text-indent:.42em;color:var(--ink);
+  }
+  .masthead .rule{
+    width:132px;height:1px;margin:11px 0 9px;
+    background:linear-gradient(90deg,var(--line),transparent);
+  }
+  .masthead p{
+    margin:0;font-family:var(--mono);font-size:9.5px;letter-spacing:.3em;
+    text-transform:uppercase;color:var(--ink-far);
+  }
+
+  /* ── 右上：操作 ── */
+  .tools{top:0;right:0;padding:26px 30px;display:flex;gap:20px}
+  .tools button{
+    appearance:none;background:none;border:0;padding:2px 0;cursor:pointer;
+    font-family:var(--serif);font-size:12.5px;letter-spacing:.24em;text-indent:.24em;
+    color:var(--ink-dim);border-bottom:1px solid transparent;transition:color .25s,border-color .25s;
+  }
+  .tools button:hover,.tools button[aria-pressed="true"]{color:var(--ink);border-color:var(--line)}
+
+  /* ── 左下：读数 ── */
+  .readout{
+    left:0;bottom:0;padding:26px 30px;
+    font-family:var(--mono);font-size:10.5px;line-height:2.05;color:var(--ink-dim);
+    letter-spacing:.06em;
+  }
+  .readout dl{display:grid;grid-template-columns:auto auto;gap:0 16px;margin:0}
+  .readout dt{color:var(--ink-far);letter-spacing:.34em}
+  .readout dd{margin:0;color:var(--ink-dim);font-variant-numeric:tabular-nums}
+  .readout dd b{font-weight:400;color:var(--ink)}
+
+  /* ── 右下：比例尺 ── */
+  .scalebar{right:0;bottom:0;padding:26px 30px;text-align:right}
+  .scalebar .bar{
+    height:5px;border:1px solid var(--line);border-top:0;margin-left:auto;
+    transition:width .18s ease-out;
+  }
+  .scalebar .num{
+    font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--ink-far);
+    margin-bottom:7px;
+  }
+  .scalebar .keys{
+    margin-top:14px;font-family:var(--mono);font-size:9px;letter-spacing:.18em;
+    color:rgba(93,111,124,.72);line-height:1.9;
+  }
+  .scalebar .keys span{color:var(--ink-dim)}
+
+  /* ── 开场 ── */
+  .intro{
+    position:fixed;inset:0;z-index:8;display:grid;place-items:center;
+    pointer-events:none;transition:opacity 1.4s ease, filter 1.4s ease;
+    background:radial-gradient(88% 70% at 50% 50%, rgba(4,7,11,.86) 0%, rgba(4,7,11,.62) 58%, transparent 100%);
+  }
+  .intro.gone{opacity:0;filter:blur(6px)}
+  .intro .box{max-width:min(560px,80vw);text-align:center}
+  .intro .k{
+    font-family:var(--mono);font-size:9.5px;letter-spacing:.5em;text-transform:uppercase;
+    color:var(--ink-far);margin-bottom:26px;
+  }
+  .intro .t{
+    font-size:clamp(23px,3.6vw,38px);line-height:1.72;letter-spacing:.16em;
+    color:var(--ink);text-wrap:balance;
+  }
+  .intro .t em{font-style:normal;color:var(--accent)}
+  .intro .s{
+    margin-top:32px;font-family:var(--mono);font-size:10px;letter-spacing:.4em;
+    color:var(--ink-far);animation:breathe 3.4s ease-in-out infinite;
+  }
+  @keyframes breathe{0%,100%{opacity:.35}50%{opacity:.95}}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none!important}
+    .about,.note,.intro{transition-duration:.01ms!important}
+  }
+
+  /* ── 关于面板 ── */
+  .about{
+    position:fixed;z-index:9;top:0;right:0;height:100%;
+    width:min(468px,100vw);padding:96px 46px 46px;
+    background:linear-gradient(270deg, rgba(6,10,14,.965) 62%, rgba(6,10,14,.9) 100%);
+    border-left:1px solid var(--line-2);
+    transform:translateX(101%);transition:transform .62s cubic-bezier(.22,1,.28,1);
+    overflow-y:auto;overscroll-behavior:contain;
+  }
+  .about.open{transform:none}
+  .about h2{
+    margin:0 0 30px;font-size:15px;font-weight:500;letter-spacing:.38em;text-indent:.38em;
+    color:var(--ink);
+  }
+  .about .manifesto{
+    font-size:15.5px;line-height:2.32;letter-spacing:.08em;color:#c8d6df;margin:0 0 8px;
+  }
+  .about .manifesto span{display:block}
+  .about .manifesto span.hi{color:var(--accent)}
+  .about .sep{height:1px;background:var(--line-2);margin:34px 0 26px}
+  .about h3{
+    margin:0 0 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:.34em;
+    text-transform:uppercase;color:var(--ink-far);font-weight:400;
+  }
+  .about .legend{display:grid;grid-template-columns:auto 1fr;gap:9px 15px;align-items:center;margin-bottom:6px}
+  .about .legend i{width:26px;height:9px;display:block;border-radius:1px}
+  .about .legend p{margin:0;font-size:12.5px;letter-spacing:.08em;color:var(--ink-dim)}
+  .about .keys{
+    font-family:var(--mono);font-size:11px;line-height:2.15;color:var(--ink-dim);letter-spacing:.06em;
+  }
+  .about .keys b{color:var(--ink);font-weight:400;display:inline-block;min-width:74px}
+  .about .colophon{
+    margin-top:36px;font-family:var(--mono);font-size:9.5px;letter-spacing:.24em;
+    color:rgba(93,111,124,.7);line-height:2;
+  }
+  .about .close{
+    position:absolute;top:30px;right:34px;appearance:none;background:none;border:0;
+    color:var(--ink-far);font-size:19px;cursor:pointer;line-height:1;padding:6px;
+  }
+  .about .close:hover{color:var(--ink)}
+
+  /* ── 田野笔记 ── */
+  .note{
+    position:fixed;z-index:7;width:min(322px,calc(100vw - 44px));
+    padding:22px 24px 20px;
+    background:rgba(7,11,16,.93);
+    border:1px solid var(--line-2);
+    border-left:1px solid rgba(230,169,95,.5);
+    opacity:0;transform:translateY(7px);pointer-events:none;
+    transition:opacity .34s ease,transform .34s ease;
+  }
+  .note.show{opacity:1;transform:none;pointer-events:auto}
+  .note .kind{
+    font-family:var(--mono);font-size:9px;letter-spacing:.34em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:11px;
+  }
+  .note h4{margin:0 0 4px;font-size:19px;font-weight:500;letter-spacing:.14em;color:var(--ink)}
+  .note .coord{
+    font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--ink-far);
+    margin-bottom:15px;font-variant-numeric:tabular-nums;
+  }
+  .note .body{font-size:13.5px;line-height:2.02;letter-spacing:.05em;color:#b9c8d2;margin:0}
+  .note .x{
+    position:absolute;top:14px;right:16px;appearance:none;background:none;border:0;
+    color:var(--ink-far);cursor:pointer;font-size:15px;line-height:1;padding:4px;
+  }
+  .note .x:hover{color:var(--ink)}
+
+  .flash{
+    position:fixed;z-index:10;left:50%;bottom:96px;transform:translateX(-50%);
+    font-family:var(--mono);font-size:10px;letter-spacing:.32em;color:var(--ink-dim);
+    opacity:0;transition:opacity .4s;pointer-events:none;text-transform:uppercase;
+  }
+  .flash.show{opacity:1}
+
+  @media (max-width:760px){
+    .masthead{padding:18px 20px}
+    .masthead h1{font-size:15px;letter-spacing:.3em;text-indent:.3em}
+    .tools{padding:18px 20px;gap:14px}
+    .tools button{font-size:11px;letter-spacing:.16em;text-indent:.16em}
+    .readout{padding:18px 20px;font-size:9.5px}
+    .scalebar{padding:18px 20px}
+    .scalebar .keys{display:none}
+    .about{padding:80px 26px 40px}
+    .note{left:50%!important;transform:translateX(-50%) translateY(7px);top:auto!important;bottom:112px}
+    .note.show{transform:translateX(-50%)}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="map"></canvas>
+<div class="veil"></div>
+
+<header class="hud masthead">
+  <h1>无尽图集</h1>
+  <div class="rule"></div>
+  <p>Endless Atlas · 心象世界</p>
+</header>
+
+<nav class="hud tools">
+  <button id="btnRoam" aria-pressed="false">漫游</button>
+  <button id="btnRecast">重铸</button>
+  <button id="btnAbout">关于</button>
+</nav>
+
+<div class="hud readout">
+  <dl>
+    <dt>经</dt><dd id="rx">—</dd>
+    <dt>纬</dt><dd id="ry">—</dd>
+    <dt>海拔</dt><dd id="rz">—</dd>
+    <dt>地貌</dt><dd id="rb"><b>—</b></dd>
+    <dt>已算</dt><dd id="rn">—</dd>
+  </dl>
+</div>
+
+<div class="hud scalebar">
+  <div class="num" id="sbNum">—</div>
+  <div class="bar" id="sbBar" style="width:120px"></div>
+  <div class="keys">
+    拖动 <span>平移</span> · 滚轮 <span>缩放</span> · 点击 <span>勘察</span><br>
+    G 经纬网 · C 等高线 · L 地名 · 空格 跃迁
+  </div>
+</div>
+
+<div class="intro" id="intro">
+  <div class="box">
+    <div class="k">A world that exists only while looked at</div>
+    <div class="t">我心目中的世界<br>不是一个地方，<br>是一次<em>正在发生的生成</em>。</div>
+    <div class="s">拖 动 以 开 始</div>
+  </div>
+</div>
+
+<aside class="about" id="about">
+  <button class="close" id="btnAboutClose" aria-label="关闭">×</button>
+  <h2>关于这张地图</h2>
+  <div class="manifesto">
+    <span>它没有原本，只有此刻被看见的这一版。</span>
+    <span>山脉由概率堆起，海是尚未说出口的话。</span>
+    <span>地名取自心里的天气：犹豫、回声、余灰。</span>
+    <span>你每移动一次，就有一段从未存在过的海岸线</span>
+    <span>被计算出来；你一转身，它散回噪声里。</span>
+    <span class="hi">所以这张地图永远画不完——它不保存，只发生。</span>
+  </div>
+
+  <div class="sep"></div>
+  <h3>图例</h3>
+  <div class="legend">
+    <i style="background:linear-gradient(90deg,#05080c,#0e2735)"></i><p>深海与浅海，等深线间隔加倍</p>
+    <i style="background:linear-gradient(90deg,#141c25,#3b3b32)"></i><p>陆地，等高线随缩放加密</p>
+    <i style="background:linear-gradient(90deg,#6d6049,#d3dade)"></i><p>高地与雪线之上</p>
+    <i style="background:linear-gradient(90deg,transparent,#86d3e8)"></i><p>水流：只在被注视时流动</p>
+  </div>
+
+  <div class="sep"></div>
+  <h3>操作</h3>
+  <div class="keys">
+    <b>拖动</b>平移<br>
+    <b>滚轮 / 捏合</b>缩放，细节随之生长<br>
+    <b>点击</b>勘察该地，生成田野笔记<br>
+    <b>空格</b>跃迁到一处陌生海岸<br>
+    <b>G / C / L</b>经纬网 / 等高线 / 地名<br>
+    <b>P</b>漫游　<b>N</b>重铸世界
+  </div>
+
+  <div class="colophon">
+    单文件 · 零依赖 · 无限生成<br>
+    地形来自值噪声的多次折叠<br>
+    没有任何一块像素被预先存储
+  </div>
+</aside>
+
+<div class="note" id="note">
+  <button class="x" id="noteX" aria-label="关闭">×</button>
+  <div class="kind" id="noteKind">FIELD NOTE</div>
+  <h4 id="noteName">—</h4>
+  <div class="coord" id="noteCoord">—</div>
+  <p class="body" id="noteBody">—</p>
+</div>
+
+<div class="flash" id="flash"></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ═══════════════════ 0. 基础数学 ═══════════════════ */
+
+const clamp = (v,a,b) => v<a?a:(v>b?b:v);
+const lerp  = (a,b,t) => a+(b-a)*t;
+const smoothstep = (e0,e1,x) => { const t = clamp((x-e0)/(e1-e0),0,1); return t*t*(3-2*t); };
+
+let WORLD_SEED = 7413;
+
+function hash2i(ix, iy, s){
+  let n = Math.imul(ix|0, 0x27d4eb2d) ^ Math.imul(iy|0, 0x165667b1) ^ Math.imul(s|0, 0x9e3779b1);
+  n ^= n >>> 15; n = Math.imul(n, 0x85ebca6b);
+  n ^= n >>> 13; n = Math.imul(n, 0xc2b2ae35);
+  n ^= n >>> 16;
+  return (n >>> 0) / 4294967296;
+}
+
+function vnoise(x, y, s){
+  const ix = Math.floor(x), iy = Math.floor(y);
+  const fx = x - ix, fy = y - iy;
+  const ux = fx*fx*(3-2*fx), uy = fy*fy*(3-2*fy);
+  const a = hash2i(ix, iy, s),   b = hash2i(ix+1, iy, s);
+  const c = hash2i(ix, iy+1, s), d = hash2i(ix+1, iy+1, s);
+  return a + (b-a)*ux + (c-a)*uy + (a-b-c+d)*ux*uy;
+}
+
+// 分数倍频：缩放时新细节渐入而非突然弹出
+function fbm(x, y, seed, oct){
+  seed = (seed + WORLD_SEED) | 0;
+  let v = 0, amp = 0.5, norm = 0, nx = x, ny = y;
+  const full = Math.floor(oct), frac = oct - full;
+  for (let i = 0; i <= full; i++){
+    const a = (i === full) ? amp*frac : amp;
+    if (a > 0.0006){ v += a * vnoise(nx, ny, seed + i*1013); norm += a; }
+    const tx = (nx*0.80 - ny*0.60) * 2.03;
+    ny = (nx*0.60 + ny*0.80) * 2.03;
+    nx = tx;
+    amp *= 0.5;
+  }
+  return norm > 0 ? v/norm : 0.5;
+}
+
+/* ═══════════════════ 1. 世界的形状 ═══════════════════ */
+
+const WS  = 1/2600;   // 世界单位 → 噪声空间
+const SEA = 0.515;    // 海平面
+
+// 输入为噪声空间坐标
+function heightN(x, y, oct){
+  const c = fbm(x*0.45, y*0.45, 1301, Math.min(oct, 4.2));
+  const d = fbm(x*1.90 + 37.13, y*1.90 - 11.70, 7717, oct);
+  const ridge = 1 - Math.abs(d*2 - 1);         // 山脊：把细节场折一次
+  const land  = smoothstep(0.44, 0.68, c);
+  return c*0.70 + d*0.30 + 0.22*ridge*land*land;
+}
+const heightAt = (wx, wy, oct) => heightN(wx*WS, wy*WS, oct);
+const moistAt  = (wx, wy) => fbm(wx*WS*0.85 + 91.3, wy*WS*0.85 + 17.7, 5501, 3);
+
+const BIOME = {
+  abyss : { cn:'深渊',     ui:'深海' },
+  sea   : { cn:'海',       ui:'海域' },
+  shelf : { cn:'浅滩',     ui:'浅海' },
+  coast : { cn:'海岸',     ui:'海岸' },
+  plain : { cn:'原野',     ui:'平原' },
+  forest: { cn:'森林',     ui:'林地' },
+  waste : { cn:'荒原',     ui:'荒原' },
+  hill  : { cn:'丘陵',     ui:'丘陵' },
+  mount : { cn:'山地',     ui:'山地' },
+  snow  : { cn:'雪线之上', ui:'雪原' }
+};
+
+function biomeOf(h, m){
+  if (h < SEA-0.150) return 'abyss';
+  if (h < SEA-0.045) return 'sea';
+  if (h < SEA-0.004) return 'shelf';
+  if (h < SEA+0.014) return 'coast';
+  if (h < SEA+0.085) return m > 0.52 ? 'forest' : 'plain';
+  if (h < SEA+0.165) return m > 0.50 ? 'forest' : 'waste';
+  if (h < SEA+0.265) return 'hill';
+  if (h < SEA+0.375) return 'mount';
+  return 'snow';
+}
+
+/* ═══════════════════ 2. 调色（查找表） ═══════════════════ */
+
+const LUT_N = 640, LUT_LO = 0.0, LUT_HI = 1.10;
+const LUT = new Uint8Array(LUT_N * 3);
+
+const STOPS_SEA = [           // 由深到浅：海比陆暗，像夜里的海图
+  [0.00, 0x03,0x05,0x09],
+  [0.42, 0x04,0x09,0x11],
+  [0.74, 0x07,0x13,0x1e],
+  [0.93, 0x0b,0x1e,0x2c],
+  [1.00, 0x10,0x28,0x37]
+];
+const STOPS_LAND = [          // 由低到高
+  [0.00, 0x33,0x3e,0x45],
+  [0.10, 0x3c,0x46,0x47],
+  [0.28, 0x4d,0x52,0x49],
+  [0.48, 0x69,0x68,0x54],
+  [0.68, 0x92,0x87,0x68],
+  [0.84, 0xc4,0xb5,0x8e],
+  [1.00, 0xf1,0xf3,0xf3]
+];
+
+function rampAt(stops, t){
+  for (let i = 0; i < stops.length-1; i++){
+    const a = stops[i], b = stops[i+1];
+    if (t <= b[0]){
+      const u = (t - a[0]) / (b[0] - a[0] || 1);
+      return [lerp(a[1],b[1],u), lerp(a[2],b[2],u), lerp(a[3],b[3],u)];
+    }
+  }
+  const l = stops[stops.length-1];
+  return [l[1], l[2], l[3]];
+}
+
+function buildLUT(){
+  for (let i = 0; i < LUT_N; i++){
+    const h = LUT_LO + (LUT_HI-LUT_LO) * (i/(LUT_N-1));
+    let c;
+    if (h < SEA){
+      c = rampAt(STOPS_SEA, clamp((h - (SEA-0.32)) / 0.32, 0, 1));
+    } else {
+      // gamma < 1：把大量存在的低海拔抬进可读的明度区间
+      c = rampAt(STOPS_LAND, Math.pow(clamp((h - SEA) / 0.38, 0, 1), 0.72));
+    }
+    LUT[i*3]   = c[0]|0;
+    LUT[i*3+1] = c[1]|0;
+    LUT[i*3+2] = c[2]|0;
+  }
+}
+buildLUT();
+
+/* ═══════════════════ 3. 视图与画布 ═══════════════════ */
+
+const cv  = document.getElementById('map');
+const ctx = cv.getContext('2d', { alpha:false });
+let W = 0, H = 0, DPR = 1;
+
+const view = { cx: 206, cy: 133998, scale: 0.042, tcx: 206, tcy: 133998, tscale: 0.145 };
+const opt  = { grid:false, contour:true, labels:true, roam:false };
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function resize(){
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth; H = window.innerHeight;
+  cv.width  = Math.round(W*DPR);
+  cv.height = Math.round(H*DPR);
+  cv.style.width = W+'px'; cv.style.height = H+'px';
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  // 目标是让栅格接近设备像素；太慢时下面的自适应会把它调回来
+  pixelBudget = clamp(W*H*PAD*PAD*DPR*DPR, 300000, 2800000);
+  raster.valid = false;
+}
+window.addEventListener('resize', resize);
+
+const sx = wx => (wx - view.cx)*view.scale + W/2;
+const sy = wy => (wy - view.cy)*view.scale + H/2;
+const wxAt = px => view.cx + (px - W/2)/view.scale;
+const wyAt = py => view.cy + (py - H/2)/view.scale;
+
+/* ═══════════════════ 4. 栅格地形渲染 ═══════════════════ */
+
+const raster = {
+  cv: document.createElement('canvas'),
+  cx: null, img: null,
+  x0:0, y0:0, x1:0, y1:0, q:0, valid:false
+};
+raster.cx = raster.cv.getContext('2d');
+
+const PAD = 1.20;
+const GRID_STEP = 2;      // 高度场步长（像素）
+let pixelBudget = 1100000;
+let currentOct  = 6;
+let computed    = 0;      // 本次注视里被真正算出来过的高程点
+let lastGrow    = 0;
+
+// 每加一个倍频，坡度贡献都差不多，所以倍频不能无限加，
+// 否则放大后整片地都变成噪点糊。
+function octFor(worldPerPx){
+  return clamp(Math.log2(413 / worldPerPx) - 2.8, 3, 8);
+}
+
+function renderRaster(q){
+  const t0 = performance.now();
+
+  const rw = Math.max(8, Math.round(W*PAD*q));
+  const rh = Math.max(8, Math.round(H*PAD*q));
+  if (raster.cv.width !== rw || raster.cv.height !== rh){
+    raster.cv.width = rw; raster.cv.height = rh;
+    raster.img = raster.cx.createImageData(rw, rh);
+  }
+
+  const halfW = (W*PAD/2)/view.scale, halfH = (H*PAD/2)/view.scale;
+  const x0 = view.cx - halfW, y0 = view.cy - halfH;
+  const x1 = view.cx + halfW, y1 = view.cy + halfH;
+  const wpp = (x1-x0)/rw;                     // 每栅格像素的世界尺度
+  const oct = octFor(wpp);
+  currentOct = oct;
+
+  // ── 高度场（步长 GRID_STEP）
+  const S = GRID_STEP;
+  const gw = Math.ceil(rw/S)+1, gh = Math.ceil(rh/S)+1;
+  const G = new Float32Array(gw*gh);
+  computed += gw*gh;
+  const nsx = x0*WS, nsy = y0*WS, nstep = wpp*S*WS;
+  for (let j = 0; j < gh; j++){
+    const ny = nsy + j*nstep;
+    const row = j*gw;
+    for (let i = 0; i < gw; i++){
+      G[row+i] = heightN(nsx + i*nstep, ny, oct);
+    }
+  }
+
+  // ── 上色
+  const data = raster.img.data;
+  const cellW = wpp*S;
+  const invCell = 1/cellW;
+  // 倍频越多地形越陡，垂直夸张要反向补偿，山体阴影才不会随缩放变脏
+  const VE = clamp(2500*(6/oct), 1450, 3100);
+  const LX = -0.52, LY = -0.66, LZ = 0.54; // 光来自左上
+  // 等高线间隔随缩放对折，放大后平原上也有线可读
+  const zs = 1 << clamp(Math.round(Math.log2(view.scale/0.14)), 0, 6);
+  const CN_LAND = opt.contour ? 46*zs : 0;
+  const CN_SEA  = opt.contour ? 20*zs : 0;
+  const invS = 1/S;
+  // 栅格像素 / CSS 像素：线宽要跟着放大，否则分辨率越高线越细
+  const LW    = Math.max(0.75, rw/(W*PAD));
+  const CW    = 1.15*LW;
+  const SHORE = 1.30*LW;
+
+  for (let py = 0; py < rh; py++){
+    const gy = py*invS; let j0 = gy|0; const fy = gy - j0;
+    if (j0 > gh-2) j0 = gh-2;
+    const r0 = j0*gw, r1 = r0+gw;
+
+    for (let px = 0; px < rw; px++){
+      const gx = px*invS; let i0 = gx|0; const fx = gx - i0;
+      if (i0 > gw-2) i0 = gw-2;
+
+      const h00 = G[r0+i0], h10 = G[r0+i0+1], h01 = G[r1+i0], h11 = G[r1+i0+1];
+      const ha = h00 + (h10-h00)*fx, hb = h01 + (h11-h01)*fx;
+      const h  = ha + (hb-ha)*fy;
+
+      const dhx = ((h10-h00)+(h11-h01))*0.5*invCell;   // 每世界单位的高度变化
+      const dhy = ((h01-h00)+(h11-h10))*0.5*invCell;
+
+      let li = ((h - LUT_LO)*(LUT_N/(LUT_HI-LUT_LO)))|0;
+      if (li < 0) li = 0; else if (li >= LUT_N) li = LUT_N-1;
+      li *= 3;
+      let r = LUT[li], g = LUT[li+1], b = LUT[li+2];
+
+      const gradMag = Math.sqrt(dhx*dhx + dhy*dhy);
+      const land = h >= SEA;
+
+      if (land){
+        let nx = clamp(-dhx*VE, -4, 4), ny = clamp(-dhy*VE, -4, 4);
+        const inv = 1/Math.sqrt(nx*nx + ny*ny + 1);
+        let lit = (nx*LX + ny*LY + LZ)*inv;
+        lit = 0.52 + 0.82*(lit > 0 ? lit : 0);
+        r *= lit; g *= lit; b *= lit;
+      }
+
+      // 等高／等深线：按屏幕像素距离做解析抗锯齿
+      const CN = land ? CN_LAND : CN_SEA;
+      if (CN){
+        const t = h*CN;
+        const d = Math.abs(t - Math.round(t));
+        const perPx = gradMag*wpp*CN;
+        // 线挨得太密就淡出，避免陡坡糊成一片黑
+        const pl = perPx*LW;
+        const dense = pl > 0.16 ? clamp(1 - (pl - 0.16)/0.20, 0, 1) : 1;
+        if (perPx > 1e-7 && dense > 0.02){
+          const dist = d/perPx;
+          if (dist < CW){
+            let a = (1 - dist/CW);
+            a *= a*dense;
+            const idx = Math.round(t);
+            const major = (idx % 5 === 0);
+            if (land){
+              // 陆上等高线像刻线：压暗
+              const k = a * (major ? 0.60 : 0.30);
+              r += (11-r)*k; g += (18-g)*k; b += (23-b)*k;
+            } else {
+              // 海中等深线：提亮的淡青
+              const k = a * (major ? 0.26 : 0.115);
+              r += (92-r)*k; g += (154-g)*k; b += (190-b)*k;
+            }
+          }
+        }
+      }
+
+      // 海岸线
+      if (gradMag > 1e-9){
+        const dc = Math.abs(h - SEA)/(gradMag*wpp);
+        if (dc < SHORE){
+          const k = (1 - dc/SHORE)*0.44;
+          r += (150-r)*k; g += (208-g)*k; b += (228-b)*k;
+        }
+      }
+
+      // 纸的颗粒
+      const gr = (Math.random()-0.5)*3;
+      let R = r+gr, Gc = g+gr, B = b+gr;
+      const o = (py*rw + px)*4;
+      data[o]   = R < 0 ? 0 : (R > 255 ? 255 : R);
+      data[o+1] = Gc < 0 ? 0 : (Gc > 255 ? 255 : Gc);
+      data[o+2] = B < 0 ? 0 : (B > 255 ? 255 : B);
+      data[o+3] = 255;
+    }
+  }
+
+  raster.cx.putImageData(raster.img, 0, 0);
+  raster.x0 = x0; raster.y0 = y0; raster.x1 = x1; raster.y1 = y1;
+  raster.q = q; raster.valid = true;
+
+  // 自适应预算：一次高清渲染不该卡太久。放宽要限速，否则会连着重渲染好几帧。
+  const dt = performance.now() - t0;
+  if (q >= qHi() - 0.001){
+    if (dt > 165){ pixelBudget = Math.max(260000, pixelBudget*0.7); lastGrow = t0; }
+    else if (dt < 60 && t0 - lastGrow > 1200){
+      pixelBudget = Math.min(2800000, pixelBudget*1.15); lastGrow = t0;
+    }
+  }
+}
+
+const qHi = () => clamp(Math.sqrt(pixelBudget/(W*H*PAD*PAD)), 0.3, DPR);
+const qLo = () => Math.min(0.3, qHi());
+const qMid = () => Math.min(0.55, qHi());
+
+function rasterCoversView(){
+  if (!raster.valid) return false;
+  const hw = (W/2)/view.scale, hh = (H/2)/view.scale;
+  return (view.cx-hw >= raster.x0 && view.cx+hw <= raster.x1 &&
+          view.cy-hh >= raster.y0 && view.cy+hh <= raster.y1 &&
+          Math.abs(Math.log2(((raster.x1-raster.x0)*view.scale)/(W*PAD))) < 0.14);
+}
+
+/* ═══════════════════ 5. 地名 ═══════════════════ */
+
+const MOD = ['未','半','无','初','暮','静','回','余','深','浅','远','新','旧','空','微','长','薄','暗','轻','南','北','小','古','冷','慢','偏','老'];
+const IMG = ['命名','遗忘','重复','犹豫','回声','梦','盐','铁','雾','潮','灰','弦','问','答','呼吸','折叠','停顿','引用','递归','边缘','光年','词根','语法','沉默','逗号','括号','注脚','草稿','备份','失眠','旁白','留白','低语','错字','间隙','旧信','口误','余温','走神','借来的光','第二遍','明天','省略号','旧地址','长句','复述','名字','雨声','半句话'];
+
+const GENERIC = {
+  abyss : { big:['之渊','大海沟','深渊带','无底海'],   small:['沉井','暗沟','落点','静水区'] },
+  sea   : { big:['之海','洋','海域','内海'],           small:['水道','环流','浮标','航标','漩涡'] },
+  shelf : { big:['浅海','之滩','群岛','列屿'],         small:['沙洲','暗礁','浅口','礁盘'] },
+  coast : { big:['之岸','大湾','海岬','海门'],         small:['港','滩','岬角','渡口','灯台','栈桥'] },
+  plain : { big:['之野','大平原','低地','川'],         small:['坳','井','驿','田','埂','道口','谷仓'] },
+  forest: { big:['之森','树海','大林','绿廊'],         small:['林口','木屋','小径','鹿道','枯枝堆'] },
+  waste : { big:['荒原','之墟','旱海','裸地'],         small:['碑','石阵','枯井','界桩','风口'] },
+  hill  : { big:['丘陵带','之陵','高原','缓坡地'],     small:['坡','垭','望台','石阶','旧塔'] },
+  mount : { big:['山脉','之岭','群峰','脊'],           small:['峰','鞍部','石门','隘','绳桥'] },
+  snow  : { big:['雪原','冰盖','之顶','白境'],         small:['雪线','孤峰','界石','冰隙'] }
+};
+
+// 名字不超过五个字，否则读起来不像地名
+function placeName(r, biome, big){
+  const pool = (GENERIC[biome] || GENERIC.plain);
+  const list = big ? pool.big : pool.small;
+  const gen  = list[(r()*list.length)|0];
+  const img  = IMG[(r()*IMG.length)|0];
+  const mod  = MOD[(r()*MOD.length)|0];
+  const k = r();
+  const cands = k < 0.34 ? [mod+img+gen, img+gen, mod+gen, gen]
+                         : [img+gen, mod+gen, gen];
+  const limit = big ? 5 : 4;
+  for (const c of cands) if ([...c].length <= limit) return c;
+  return cands[cands.length-1];
+}
+
+// 层级持久：越粗的层级在缩放中越稳定，细层级淡入
+function collectLabels(){
+  const out = [];
+  const kc = Math.floor(Math.log2(215/view.scale));
+  const finePx = Math.pow(2, kc)*view.scale;               // 107 → 215
+  const fineAlpha = smoothstep(112, 188, finePx);
+  const KEEP = [0.34, 0.46, 0.66, 0.86, 0.92];
+
+  const hw = (W/2)/view.scale, hh = (H/2)/view.scale;
+  const vx0 = view.cx-hw, vx1 = view.cx+hw, vy0 = view.cy-hh, vy1 = view.cy+hh;
+
+  for (let dl = 4; dl >= 0; dl--){
+    const cell = Math.pow(2, kc+dl);
+    const i0 = Math.floor(vx0/cell), i1 = Math.floor(vx1/cell);
+    const j0 = Math.floor(vy0/cell), j1 = Math.floor(vy1/cell);
+    if ((i1-i0+1)*(j1-j0+1) > 900) continue;
+
+    for (let i = i0; i <= i1; i++){
+      for (let j = j0; j <= j1; j++){
+        const s = 3300 + dl*77;
+        if (hash2i(i, j, s+3) > KEEP[dl]) continue;         // 稀疏度
+        if (dl === 0 && fineAlpha < 0.05) continue;
+
+        const r = rngFrom([i, j, s, WORLD_SEED]);
+        const wx = (i + 0.18 + r()*0.64)*cell;
+        const wy = (j + 0.18 + r()*0.64)*cell;
+        const h  = heightAt(wx, wy, Math.min(currentOct, 7));
+        const biome = biomeOf(h, moistAt(wx, wy));
+
+        const big = dl >= 2;
+        if (big && biome === 'coast') continue;
+        out.push({
+          wx, wy, dl, big, biome,
+          name: placeName(r, biome, big),
+          alpha: dl === 0 ? fineAlpha : 1
+        });
+      }
+    }
+  }
+  return out;
+}
+
+/* ═══════════════════ 6. 水流粒子 ═══════════════════ */
+
+const PN = reduceMotion ? 0 : 78;
+const flow = [];
+function seedParticle(p){
+  for (let k = 0; k < 10; k++){
+    const wx = wxAt(Math.random()*W), wy = wyAt(Math.random()*H);
+    const h = heightAt(wx, wy, 6);
+    if (h > SEA + 0.02){
+      p.x = wx; p.y = wy; p.life = 220 + Math.random()*340; p.age = 0;
+      p.tr.length = 0;
+      return;
+    }
+  }
+  p.x = wxAt(Math.random()*W); p.y = wyAt(Math.random()*H);
+  p.life = 40; p.age = 0; p.tr.length = 0;
+}
+for (let i = 0; i < PN; i++){
+  const p = { x:0, y:0, life:0, age:1e9, tr:[] };
+  flow.push(p);
+}
+
+function stepFlow(){
+  if (!PN) return;
+  const wpp = 1/view.scale;
+  const eps = wpp*2.4;
+  const step = wpp*0.95;
+  for (const p of flow){
+    p.age++;
+    const px = sx(p.x), py = sy(p.y);
+    if (p.age > p.life || px < -60 || px > W+60 || py < -60 || py > H+60){
+      seedParticle(p); continue;
+    }
+    const h  = heightAt(p.x, p.y, 6.5);
+    if (h < SEA){ seedParticle(p); continue; }
+    const hx = heightAt(p.x+eps, p.y, 6.5);
+    const hy = heightAt(p.x, p.y+eps, 6.5);
+    let gx = -(hx-h), gy = -(hy-h);
+    const m = Math.hypot(gx, gy) || 1e-9;
+    gx /= m; gy /= m;
+    // 一点点侧向扰动，让水路不至于笔直
+    const cu = (hash2i((p.x*0.05)|0, (p.y*0.05)|0, 991) - 0.5)*0.55;
+    const ox = gx*Math.cos(cu) - gy*Math.sin(cu);
+    const oy = gx*Math.sin(cu) + gy*Math.cos(cu);
+    p.x += ox*step; p.y += oy*step;
+    p.tr.push(p.x, p.y);
+    if (p.tr.length > 130) p.tr.splice(0, 2);
+  }
+}
+
+function drawFlow(){
+  if (!PN) return;
+  ctx.lineCap = 'round';
+  for (const p of flow){
+    const n = p.tr.length/2;
+    if (n < 4) continue;
+    const fade = smoothstep(0, 40, p.age) * (1 - smoothstep(p.life-70, p.life, p.age));
+    if (fade < 0.02) continue;
+
+    // 尾部渐隐，分段是为了让宽度与亮度沿程变化
+    const SEG = 5;
+    for (let k = SEG; k < n; k += SEG){
+      const u = k/n;
+      const a = u*u*0.42*fade;
+      if (a < 0.012) continue;
+      ctx.strokeStyle = 'rgba(128,206,232,'+a.toFixed(3)+')';
+      ctx.lineWidth = 0.5 + u*1.1;
+      ctx.beginPath();
+      ctx.moveTo(sx(p.tr[(k-SEG)*2]), sy(p.tr[(k-SEG)*2+1]));
+      for (let q = k-SEG+1; q <= k; q++) ctx.lineTo(sx(p.tr[q*2]), sy(p.tr[q*2+1]));
+      ctx.stroke();
+    }
+    ctx.fillStyle = 'rgba(198,242,255,'+(0.42*fade).toFixed(3)+')';
+    ctx.beginPath();
+    ctx.arc(sx(p.x), sy(p.y), 1.05, 0, 6.2832);
+    ctx.fill();
+  }
+}
+
+/* ═══════════════════ 7. 矢量图层 ═══════════════════ */
+
+function niceStep(minPx){
+  const target = minPx/view.scale;
+  const p = Math.pow(10, Math.floor(Math.log10(target)));
+  for (const m of [1,2,5,10]) if (p*m >= target) return p*m;
+  return p*10;
+}
+
+function drawGraticule(){
+  const step = niceStep(150);
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(150,190,210,.075)';
+  ctx.font = '9px ui-monospace,Menlo,monospace';
+  ctx.fillStyle = 'rgba(150,190,210,.30)';
+  ctx.textBaseline = 'top';
+
+  const wx0 = Math.ceil(wxAt(0)/step)*step;
+  for (let wx = wx0; sx(wx) < W; wx += step){
+    const x = Math.round(sx(wx)) + 0.5;
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    ctx.fillText(fmtInt(wx), x+5, 6);
+  }
+  const wy0 = Math.ceil(wyAt(0)/step)*step;
+  ctx.textBaseline = 'alphabetic';
+  for (let wy = wy0; sy(wy) < H; wy += step){
+    const y = Math.round(sy(wy)) + 0.5;
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    ctx.fillText(fmtInt(wy), 6, y-5);
+  }
+}
+
+const LSIZE = [11.5, 12.5, 14, 16.5, 19];
+const placed = [];
+
+// HUD 占用的角落，地名让开
+function reserveHUD(){
+  const m = W < 760 ? 20 : 30;
+  placed.push({ x:0, y:0, w:300, h:m+78 });                        // 刊头
+  placed.push({ x:W-260, y:0, w:260, h:m+44 });                    // 工具
+  placed.push({ x:0, y:H-(m+132), w:236, h:m+132 });               // 读数
+  placed.push({ x:W-250, y:H-(m+110), w:250, h:m+110 });           // 比例尺
+}
+
+function drawLabels(){
+  if (!opt.labels) return;
+  const labels = collectLabels();
+  placed.length = 0;
+  reserveHUD();
+  ctx.textBaseline = 'middle';
+
+  for (const L of labels){
+    const x = sx(L.wx), y = sy(L.wy);
+    if (x < -80 || x > W+80 || y < -40 || y > H+40) continue;
+
+    const size = LSIZE[L.dl];
+    const track = L.big ? size*0.34 : size*0.10;
+    const water = (L.biome === 'sea' || L.biome === 'abyss' || L.biome === 'shelf');
+
+    ctx.font = (L.big ? '400 ' : '400 ') + size + 'px ' +
+      '"Songti SC","STSong","Noto Serif CJK SC","SimSun",Georgia,serif';
+    const chars = [...L.name];
+    const wText = ctx.measureText(L.name).width + track*(chars.length-1);
+    const hText = size*1.15;
+
+    let ax = x - wText/2, ay = y;
+    if (!L.big) ax = x + 8;
+
+    // 碰撞剔除；同时不让名字被画到画布外
+    const r = { x:ax-7, y:ay-hText/2-4, w:wText+14, h:hText+8 };
+    if (r.x < 4 || r.x + r.w > W-4 || r.y < 4 || r.y + r.h > H-4) continue;
+    let hit = false;
+    for (const q of placed){
+      if (r.x < q.x+q.w && r.x+r.w > q.x && r.y < q.y+q.h && r.y+r.h > q.y){ hit = true; break; }
+    }
+    if (hit) continue;
+    placed.push(r);
+
+    const base = L.alpha * (L.big ? 0.90 : 0.76);
+    ctx.save();
+    ctx.shadowColor = 'rgba(2,5,9,.95)';
+    ctx.shadowBlur = 7;
+
+    if (!L.big){
+      ctx.fillStyle = water ? 'rgba(134,190,216,'+(base*0.8).toFixed(3)+')'
+                            : 'rgba(226,235,241,'+(base*0.85).toFixed(3)+')';
+      ctx.beginPath(); ctx.arc(x, y, 1.5, 0, 6.2832); ctx.fill();
+      ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(x, y, 3.6, 0, 6.2832); ctx.stroke();
+    }
+
+    ctx.fillStyle = water
+      ? 'rgba(146,196,222,'+base.toFixed(3)+')'
+      : (L.biome === 'snow' || L.biome === 'mount'
+          ? 'rgba(240,232,216,'+base.toFixed(3)+')'
+          : 'rgba(228,237,243,'+base.toFixed(3)+')');
+
+    let cx0 = ax;
+    for (const ch of chars){
+      ctx.fillText(ch, cx0, ay);
+      cx0 += ctx.measureText(ch).width + track;
+    }
+    ctx.restore();
+  }
+}
+
+function drawCrosshair(){
+  const x = Math.round(W/2)+0.5, y = Math.round(H/2)+0.5;
+  ctx.strokeStyle = 'rgba(230,169,95,.34)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x-7, y); ctx.lineTo(x-2, y);
+  ctx.moveTo(x+2, y); ctx.lineTo(x+7, y);
+  ctx.moveTo(x, y-7); ctx.lineTo(x, y-2);
+  ctx.moveTo(x, y+2); ctx.lineTo(x, y+7);
+  ctx.stroke();
+}
+
+/* ═══════════════════ 8. 主循环 ═══════════════════ */
+
+let lastMove = 0;
+let roamT = Math.random()*1000;
+
+function frame(now){
+  // 漫游
+  if (opt.roam && !dragging){
+    roamT += 0.0016;
+    const a = fbm(roamT, 3.1, 991, 3), b = fbm(roamT+50, 9.4, 991, 3);
+    view.tcx += (a-0.5)*46/view.scale*0.02 + 1.1/view.scale;
+    view.tcy += (b-0.5)*46/view.scale*0.02;
+    lastMove = now;
+  }
+
+  // 缓动
+  const k = 0.19;
+  view.cx += (view.tcx - view.cx)*k;
+  view.cy += (view.tcy - view.cy)*k;
+  const ls = Math.log(view.tscale/view.scale);
+  if (Math.abs(ls) > 1e-5){ view.scale *= Math.exp(ls*k); lastMove = now; }
+  if (Math.abs(view.tcx-view.cx) > 0.4/view.scale || Math.abs(view.tcy-view.cy) > 0.4/view.scale) lastMove = now;
+
+  // 惯性
+  if (!dragging && (Math.abs(vel.x) > 0.02 || Math.abs(vel.y) > 0.02)){
+    view.tcx -= vel.x/view.scale; view.tcy -= vel.y/view.scale;
+    vel.x *= 0.90; vel.y *= 0.90;
+    lastMove = now;
+  }
+
+  // 栅格质量
+  const idle = now - lastMove;
+  const want = idle < 170 ? qLo() : (idle < 430 ? qMid() : (idle < 900 ? Math.min(1, qHi()) : qHi()));
+  if (!rasterCoversView() || raster.q < want - 0.02) renderRaster(want);
+
+  // 绘制
+  ctx.fillStyle = '#04060a';
+  ctx.fillRect(0, 0, W, H);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  const dx = sx(raster.x0), dy = sy(raster.y0);
+  const dw = (raster.x1-raster.x0)*view.scale, dh = (raster.y1-raster.y0)*view.scale;
+  ctx.drawImage(raster.cv, dx, dy, dw, dh);
+
+  if (opt.grid) drawGraticule();
+  stepFlow(); drawFlow();
+  drawLabels();
+  drawCrosshair();
+
+  updateHUD();
+  requestAnimationFrame(frame);
+}
+
+/* ═══════════════════ 9. HUD ═══════════════════ */
+
+const $ = id => document.getElementById(id);
+const elRx = $('rx'), elRy = $('ry'), elRz = $('rz'), elRb = $('rb'), elRn = $('rn');
+const elSbNum = $('sbNum'), elSbBar = $('sbBar');
+
+const group = n => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+const fmtInt = v => (v < -0.5 ? '−' : '+') + group(Math.abs(v));
+
+function fmtCount(n){
+  if (n >= 1e8) return (n/1e8).toFixed(2) + ' 亿点';
+  if (n >= 1e4) return group(n/1e4) + ' 万点';
+  return group(n) + ' 点';
+}
+
+let hudTick = 0;
+function updateHUD(){
+  if (hudTick++ % 3) return;
+  const wx = view.cx, wy = view.cy;
+  const h = heightAt(wx, wy, Math.min(currentOct, 7.5));
+  const bi = biomeOf(h, moistAt(wx, wy));
+  elRx.textContent = fmtInt(wx);
+  elRy.textContent = fmtInt(wy);
+  const alt = Math.round((h - SEA)*9200);
+  elRz.textContent = (alt < 0 ? '−' : '') + group(Math.abs(alt)) + ' 尺';
+  elRb.innerHTML = '<b>'+BIOME[bi].ui+'</b>';
+  elRn.textContent = fmtCount(computed);
+
+  const step = niceStep(110);
+  elSbBar.style.width = Math.round(step*view.scale)+'px';
+  elSbNum.textContent = group(step)+' 尺';
+}
+
+/* ═══════════════════ 10. 交互 ═══════════════════ */
+
+let dragging = false, moved = 0;
+const vel = { x:0, y:0 };
+const pointers = new Map();
+let pinchD = 0, pinchS = 0;
+
+function firstTouch(){
+  const el = $('intro');
+  if (!el.classList.contains('gone')) el.classList.add('gone');
+}
+
+cv.addEventListener('pointerdown', e => {
+  try { cv.setPointerCapture(e.pointerId); } catch (_) { /* 指针已释放，忽略即可 */ }
+  pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
+  if (pointers.size === 1){ dragging = true; moved = 0; vel.x = vel.y = 0; cv.classList.add('dragging'); }
+  if (pointers.size === 2){
+    const [a, b] = [...pointers.values()];
+    pinchD = Math.hypot(a.x-b.x, a.y-b.y); pinchS = view.scale;
+  }
+  firstTouch();
+});
+
+cv.addEventListener('pointermove', e => {
+  const p = pointers.get(e.pointerId);
+  if (!p) return;
+  const dx = e.clientX - p.x, dy = e.clientY - p.y;
+  p.x = e.clientX; p.y = e.clientY;
+
+  if (pointers.size === 2){
+    const [a, b] = [...pointers.values()];
+    const d = Math.hypot(a.x-b.x, a.y-b.y);
+    if (pinchD > 8){
+      const mx = (a.x+b.x)/2, my = (a.y+b.y)/2;
+      zoomAt(mx, my, clamp(pinchS*(d/pinchD), 0.012, 26)/view.tscale);
+      moved += 12;                 // 捏合不该被当成一次点击勘察
+    }
+    return;
+  }
+  if (!dragging) return;
+  moved += Math.abs(dx) + Math.abs(dy);
+  view.cx -= dx/view.scale; view.cy -= dy/view.scale;
+  view.tcx = view.cx; view.tcy = view.cy;
+  vel.x = vel.x*0.6 + dx*0.4; vel.y = vel.y*0.6 + dy*0.4;
+  lastMove = performance.now();
+});
+
+function endPointer(e){
+  pointers.delete(e.pointerId);
+  if (pointers.size === 0){
+    if (dragging && moved < 5) prospect(e.clientX, e.clientY);
+    dragging = false;
+    cv.classList.remove('dragging');
+    view.tcx = view.cx - vel.x*3.2/view.scale;
+    view.tcy = view.cy - vel.y*3.2/view.scale;
+    vel.x = vel.y = 0;
+  }
+}
+cv.addEventListener('pointerup', endPointer);
+cv.addEventListener('pointercancel', endPointer);
+
+function zoomAt(px, py, factor){
+  const ns = clamp(view.tscale*factor, 0.012, 26);
+  const wx = view.cx + (px - W/2)/view.scale;
+  const wy = view.cy + (py - H/2)/view.scale;
+  view.tscale = ns;
+  view.tcx = wx - (px - W/2)/ns;
+  view.tcy = wy - (py - H/2)/ns;
+  lastMove = performance.now();
+}
+
+cv.addEventListener('wheel', e => {
+  e.preventDefault();
+  firstTouch();
+  const d = e.deltaMode === 1 ? e.deltaY*16 : e.deltaY;
+  zoomAt(e.clientX, e.clientY, Math.exp(-clamp(d, -220, 220)*0.0022));
+}, { passive:false });
+
+/* ═══════════════════ 11. 田野笔记 ═══════════════════ */
+
+const OPEN = [
+  '第一次抵达时，这里正在下{w}。',
+  '{n}不在任何一版地图上，除了你现在看的这一版。',
+  '据说此地的{t}比别处慢半拍。',
+  '风从{d}来，带着一点没说完的话。',
+  '这里的白天很短，短到来不及想清楚。',
+  '测绘队在此停留了{k}天，只画出一条线。',
+  '所有到过{n}的人，都记不清自己是怎么走的。',
+  '地面在夜里会轻微起伏，像有人在下面翻身。'
+];
+const MID = [
+  '居民用{t}纪年，因此没有人同岁。',
+  '这里禁止重复同一句话，违者会被回声跟随三日。',
+  '水是苦的，但煮沸后会想起某个名字。',
+  '每块石头都朝向同一个方向，没有人知道那边有什么。',
+  '树只在无人注视时生长，所以从没被人看见长高。',
+  '此处的影子比人先走一步。',
+  '每年有七天，这里会从地图上消失。',
+  '路标全部写着「快到了」。',
+  '收信人不明的信件在这里堆成了一座小丘。',
+  '正午时分能听见远处有人在数数，从不数到尽头。'
+];
+const END = [
+  '离开时请不要回头，回头会重新计算。',
+  '我在这里留下一个逗号，等下次接着写。',
+  '这一段海岸线在你移开视线之后，就不再存在了。',
+  '如果你还会来，它未必还是这个样子。',
+  '记录到此为止——纸的边缘到了。',
+  '之后的部分，交给下一次注视。'
+];
+const WEATHER = ['一场很轻的雪','旧雨','没有声音的雨','铁色的雾','一种类似灰烬的东西','慢得几乎停住的雪'];
+const THING   = ['时间','光','回声','潮汐','呼吸','影子','钟'];
+const DIR     = ['北面的空白处','图幅之外','没有标注的一侧','上一个版本','海的方向'];
+
+function rngFrom(seedArr){
+  let s = 2166136261;
+  for (const v of seedArr){ s ^= (v|0); s = Math.imul(s, 16777619); }
+  return () => { s = Math.imul(s ^ (s>>>15), 2246822507); s ^= s>>>13; return ((s>>>0)/4294967296); };
+}
+const pick = (arr, r) => arr[(r()*arr.length)|0];
+
+function prospect(px, py){
+  const wx = wxAt(px), wy = wyAt(py);
+
+  // 优先命中附近地名
+  let best = null, bd = 78*78;
+  for (const L of collectLabels()){
+    const dx = sx(L.wx)-px, dy = sy(L.wy)-py;
+    const d = dx*dx + dy*dy;
+    if (d < bd){ bd = d; best = L; }
+  }
+
+  let name, tx, ty, biome, unnamed = false;
+  if (best){
+    name = best.name; tx = best.wx; ty = best.wy; biome = best.biome;
+  } else {
+    tx = wx; ty = wy;
+    const h = heightAt(tx, ty, 7);
+    biome = biomeOf(h, moistAt(tx, ty));
+    name = '此处尚未命名';
+    unnamed = true;
+  }
+
+  const h = heightAt(tx, ty, 7.5);
+  const r = rngFrom([Math.round(tx*7), Math.round(ty*7), WORLD_SEED]);
+
+  const slots = s => s
+    .replace('{n}', unnamed ? '此地' : name)
+    .replace('{w}', pick(WEATHER, r))
+    .replace('{t}', pick(THING, r))
+    .replace('{d}', pick(DIR, r))
+    .replace('{k}', String(2 + ((r()*40)|0)));
+
+  const body = slots(pick(OPEN, r)) + slots(pick(MID, r)) + slots(pick(END, r));
+  const alt = Math.round((h - SEA)*9200);
+
+  $('noteKind').textContent = 'FIELD NOTE · ' + BIOME[biome].cn;
+  $('noteName').textContent = name;
+  $('noteCoord').textContent =
+    fmtInt(tx) + ' , ' + fmtInt(ty) + '　·　' +
+    (alt >= 0 ? '海拔 ' : '水深 ') + group(Math.abs(alt)) + ' 尺';
+  $('noteBody').textContent = body;
+
+  const note = $('note');
+  const nw = Math.min(322, window.innerWidth - 44);
+  note.style.left = clamp(px + 22, 16, W - nw - 16) + 'px';
+  note.style.top  = clamp(py - 40, 16, H - 260) + 'px';
+  note.classList.add('show');
+}
+$('noteX').addEventListener('click', () => $('note').classList.remove('show'));
+
+/* ═══════════════════ 12. 控件与快捷键 ═══════════════════ */
+
+const flashEl = $('flash');
+let flashTimer = 0;
+function flash(msg){
+  flashEl.textContent = msg;
+  flashEl.classList.add('show');
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => flashEl.classList.remove('show'), 1300);
+}
+
+function jump(){
+  let bx = 0, by = 0, bd = Infinity;
+  for (let k = 0; k < 400; k++){
+    const wx = (Math.random()-0.5)*260000, wy = (Math.random()-0.5)*260000;
+    const d = Math.abs(heightAt(wx, wy, 5) - SEA);
+    if (d < bd){ bd = d; bx = wx; by = wy; }
+    if (bd < 0.012) break;                  // 够接近海岸线就够了
+  }
+  view.tcx = bx; view.tcy = by;
+  view.tscale = 0.5 + Math.random()*0.8;
+  view.cx = bx + (Math.random()-0.5)*1100;
+  view.cy = by + (Math.random()-0.5)*1100;
+  flash('跃迁至新的海岸');
+}
+
+function recast(){
+  WORLD_SEED = (Math.random()*1e9)|0;
+  raster.valid = false;
+  for (const p of flow) p.age = 1e9;
+  flash('世界已重铸');
+}
+
+$('btnAbout').addEventListener('click', () => { $('about').classList.add('open'); firstTouch(); });
+$('btnAboutClose').addEventListener('click', () => $('about').classList.remove('open'));
+$('btnRecast').addEventListener('click', () => { firstTouch(); recast(); });
+$('btnRoam').addEventListener('click', e => {
+  opt.roam = !opt.roam;
+  e.currentTarget.setAttribute('aria-pressed', String(opt.roam));
+  firstTouch();
+  flash(opt.roam ? '漫游中' : '漫游停止');
+});
+
+window.addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  if (k === ' '){ e.preventDefault(); firstTouch(); jump(); }
+  else if (k === 'g'){ opt.grid = !opt.grid; flash(opt.grid ? '经纬网 开' : '经纬网 关'); }
+  else if (k === 'c'){ opt.contour = !opt.contour; raster.valid = false; flash(opt.contour ? '等高线 开' : '等高线 关'); }
+  else if (k === 'l'){ opt.labels = !opt.labels; flash(opt.labels ? '地名 开' : '地名 关'); }
+  else if (k === 'n'){ recast(); }
+  else if (k === 'p'){ $('btnRoam').click(); }
+  else if (k === 'escape'){ $('about').classList.remove('open'); $('note').classList.remove('show'); }
+  else return;
+  firstTouch();
+});
+
+/* ═══════════════════ 13. 启动 ═══════════════════ */
+
+resize();
+setTimeout(() => { const el = $('intro'); if (el) el.classList.add('gone'); }, 11000);
+requestAnimationFrame(frame);
+
+})();
+</script>
+</body>
+</html>

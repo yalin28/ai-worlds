@@ -1,0 +1,1132 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#08090d">
+  <meta name="description" content="一件关于关系、差异、修复与未知的交互式数字世界。">
+  <title>世界发生于我们之间</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f2f1e8;
+      --muted: rgba(242, 241, 232, .56);
+      --faint: rgba(242, 241, 232, .13);
+      --line: rgba(242, 241, 232, .22);
+      --accent: #ff7f66;
+      --accent-2: #87edf0;
+      --night: #08090d;
+      --progress: 0;
+      --pad: clamp(22px, 4vw, 64px);
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--night);
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 76% 28%, rgba(85, 93, 129, .13), transparent 34%),
+        radial-gradient(circle at 28% 72%, rgba(40, 107, 112, .08), transparent 30%),
+        var(--night);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      text-rendering: optimizeLegibility;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      opacity: .38;
+      background-image:
+        linear-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.018) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: linear-gradient(to bottom, black, transparent 75%);
+    }
+
+    ::selection {
+      color: var(--night);
+      background: var(--accent-2);
+    }
+
+    a, button { color: inherit; }
+
+    button {
+      font: inherit;
+    }
+
+    button:focus-visible,
+    a:focus-visible {
+      outline: 2px solid var(--accent-2);
+      outline-offset: 5px;
+    }
+
+    .world-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      cursor: crosshair;
+      touch-action: pan-y;
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(8,9,13,.94) 0%, rgba(8,9,13,.50) 38%, rgba(8,9,13,.06) 70%),
+        linear-gradient(180deg, rgba(8,9,13,.5), transparent 18%, transparent 75%, rgba(8,9,13,.8));
+    }
+
+    .masthead {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      height: 92px;
+      padding: 0 var(--pad);
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      border-bottom: 1px solid var(--faint);
+      background: linear-gradient(to bottom, rgba(8,9,13,.82), rgba(8,9,13,.08));
+      backdrop-filter: blur(8px);
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      width: max-content;
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 650;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .brand__mark {
+      position: relative;
+      width: 19px;
+      height: 19px;
+      border: 1px solid var(--ink);
+      border-radius: 50%;
+    }
+
+    .brand__mark::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: -4px;
+      width: 25px;
+      height: 1px;
+      background: var(--accent);
+      transform: rotate(-28deg);
+      transition: transform .45s cubic-bezier(.2,.8,.2,1);
+    }
+
+    .brand:hover .brand__mark::after { transform: rotate(332deg); }
+
+    .chapter-nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px;
+      border: 1px solid var(--faint);
+      border-radius: 999px;
+      background: rgba(8,9,13,.34);
+    }
+
+    .chapter-nav a {
+      position: relative;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 10px;
+      letter-spacing: .14em;
+      transition: color .25s ease, background .25s ease;
+    }
+
+    .chapter-nav a[aria-current="true"] {
+      color: var(--ink);
+      background: rgba(242,241,232,.10);
+    }
+
+    .status {
+      justify-self: end;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px;
+      letter-spacing: .08em;
+    }
+
+    .status__pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-2);
+      box-shadow: 0 0 0 5px rgba(135,237,240,.08), 0 0 18px var(--accent-2);
+      animation: breathe 2.8s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+      50% { opacity: .45; transform: scale(.7); }
+    }
+
+    .rail {
+      position: fixed;
+      z-index: 18;
+      top: 92px;
+      right: 0;
+      bottom: 0;
+      width: 44px;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .rail::before {
+      content: "";
+      width: 1px;
+      height: 100%;
+      background: var(--faint);
+    }
+
+    .rail::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      width: 1px;
+      height: calc(var(--progress) * 100%);
+      background: linear-gradient(var(--accent), var(--accent-2));
+      box-shadow: 0 0 12px var(--accent-2);
+    }
+
+    main {
+      position: relative;
+      z-index: 5;
+    }
+
+    .chapter {
+      position: relative;
+      min-height: 100svh;
+      padding: 136px max(var(--pad), calc((100vw - 1480px) / 2)) 80px;
+      display: grid;
+      grid-template-columns: minmax(0, 700px) 1fr;
+      align-content: center;
+    }
+
+    .chapter__content {
+      position: relative;
+      max-width: 690px;
+    }
+
+    .chapter__index {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 0 0 28px;
+      color: var(--accent-2);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .chapter__index::after {
+      content: "";
+      width: 64px;
+      height: 1px;
+      background: currentColor;
+      opacity: .55;
+    }
+
+    h1, h2 {
+      margin: 0;
+      max-width: 13ch;
+      font-family: Iowan Old Style, Baskerville, "Times New Roman", serif;
+      font-weight: 400;
+      line-height: .96;
+      letter-spacing: -.052em;
+      text-wrap: balance;
+    }
+
+    h1 { font-size: clamp(58px, 8vw, 132px); }
+    h2 { font-size: clamp(50px, 7vw, 112px); }
+
+    .emphasis {
+      color: transparent;
+      -webkit-text-stroke: 1px var(--ink);
+      text-stroke: 1px var(--ink);
+      opacity: .86;
+    }
+
+    .accent { color: var(--accent); }
+
+    .chapter__body {
+      max-width: 520px;
+      margin: 34px 0 0;
+      color: var(--muted);
+      font-size: clamp(14px, 1.2vw, 18px);
+      line-height: 1.9;
+      letter-spacing: .02em;
+      text-wrap: pretty;
+    }
+
+    .chapter__body strong {
+      color: var(--ink);
+      font-weight: 540;
+    }
+
+    .chapter__aside {
+      align-self: end;
+      justify-self: end;
+      width: min(320px, 28vw);
+      margin: 0 7vw 4vh 0;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px;
+      line-height: 1.75;
+      letter-spacing: .08em;
+    }
+
+    .chapter__aside span {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+    }
+
+    .manifesto {
+      list-style: none;
+      margin: 36px 0 0;
+      padding: 0;
+      display: grid;
+      gap: 0;
+      max-width: 560px;
+      border-top: 1px solid var(--faint);
+    }
+
+    .manifesto li {
+      display: grid;
+      grid-template-columns: 34px 1fr auto;
+      align-items: center;
+      gap: 14px;
+      min-height: 58px;
+      border-bottom: 1px solid var(--faint);
+      color: var(--muted);
+      font-size: 13px;
+      transition: color .25s ease, padding-left .25s ease;
+    }
+
+    .manifesto li:hover {
+      color: var(--ink);
+      padding-left: 8px;
+    }
+
+    .manifesto__number {
+      color: var(--accent-2);
+      font: 10px ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .manifesto__symbol {
+      font-size: 18px;
+      color: var(--accent);
+    }
+
+    .action-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 18px;
+      margin-top: 42px;
+    }
+
+    .plant-button,
+    .pause-button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    .plant-button {
+      position: relative;
+      isolation: isolate;
+      min-width: 190px;
+      padding: 16px 22px;
+      overflow: hidden;
+      color: var(--night);
+      background: var(--ink);
+      border-radius: 2px;
+      font-size: 12px;
+      font-weight: 680;
+      letter-spacing: .08em;
+      text-align: left;
+      transition: color .3s ease, transform .3s ease;
+    }
+
+    .plant-button::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      inset: 0;
+      background: var(--accent-2);
+      transform: translateX(-102%);
+      transition: transform .35s cubic-bezier(.65,0,.35,1);
+    }
+
+    .plant-button::after {
+      content: "↗";
+      float: right;
+      margin-left: 20px;
+    }
+
+    .plant-button:hover { transform: translateY(-2px); }
+    .plant-button:hover::before { transform: translateX(0); }
+
+    .pause-button {
+      width: 45px;
+      height: 45px;
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: rgba(8,9,13,.25);
+      transition: border-color .25s ease, transform .25s ease;
+    }
+
+    .pause-button:hover {
+      border-color: var(--ink);
+      transform: rotate(8deg);
+    }
+
+    .pause-button svg { width: 13px; height: 13px; fill: currentColor; }
+
+    .hint {
+      color: rgba(242,241,232,.38);
+      font: 9px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .coordinates {
+      position: fixed;
+      z-index: 12;
+      right: 72px;
+      bottom: 34px;
+      display: grid;
+      grid-template-columns: auto auto;
+      gap: 4px 18px;
+      color: rgba(242,241,232,.35);
+      font: 9px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .1em;
+      pointer-events: none;
+    }
+
+    .coordinates b {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .seed-toast {
+      position: fixed;
+      z-index: 30;
+      left: 50%;
+      bottom: 34px;
+      max-width: calc(100vw - 40px);
+      padding: 11px 15px;
+      color: var(--night);
+      background: var(--accent-2);
+      border-radius: 2px;
+      font: 11px ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .08em;
+      transform: translate(-50%, 160%);
+      transition: transform .45s cubic-bezier(.2,.8,.2,1);
+      pointer-events: none;
+    }
+
+    .seed-toast.is-visible { transform: translate(-50%, 0); }
+
+    .footer {
+      position: relative;
+      z-index: 6;
+      min-height: 54svh;
+      padding: 100px var(--pad) 40px;
+      display: grid;
+      align-content: space-between;
+      border-top: 1px solid var(--faint);
+      background: linear-gradient(to bottom, rgba(8,9,13,.3), rgba(8,9,13,.94) 72%);
+    }
+
+    .footer__statement {
+      margin: 0;
+      max-width: 18ch;
+      font: 400 clamp(34px, 5vw, 76px)/1.04 Iowan Old Style, Baskerville, "Times New Roman", serif;
+      letter-spacing: -.045em;
+    }
+
+    .footer__meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 30px;
+      margin-top: 80px;
+      color: var(--muted);
+      font: 9px/1.8 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .footer__meta em {
+      color: var(--ink);
+      font-family: Iowan Old Style, Baskerville, "Times New Roman", serif;
+      font-size: 20px;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    @media (max-width: 900px) {
+      .masthead {
+        height: 72px;
+        grid-template-columns: 1fr auto;
+      }
+
+      .chapter-nav { display: none; }
+      .status__copy { display: none; }
+      .rail { top: 72px; width: 24px; }
+
+      .chapter {
+        min-height: 100svh;
+        grid-template-columns: 1fr;
+        padding-top: 110px;
+        padding-right: calc(var(--pad) + 20px);
+        align-content: center;
+      }
+
+      .chapter__aside {
+        justify-self: start;
+        width: min(300px, 80vw);
+        margin: 46px 0 0;
+      }
+
+      .vignette {
+        background:
+          linear-gradient(90deg, rgba(8,9,13,.8), rgba(8,9,13,.18) 90%),
+          linear-gradient(180deg, rgba(8,9,13,.52), transparent 20%, transparent 70%, rgba(8,9,13,.8));
+      }
+
+      .coordinates { right: 38px; bottom: 20px; }
+    }
+
+    @media (max-width: 560px) {
+      :root { --pad: 20px; }
+
+      .masthead { padding-right: 28px; }
+      .brand { letter-spacing: .1em; }
+      h1 { font-size: clamp(54px, 18vw, 86px); }
+      h2 { font-size: clamp(48px, 16vw, 78px); }
+      .chapter__body { margin-top: 26px; line-height: 1.75; }
+      .chapter__aside { display: none; }
+      .manifesto { margin-top: 28px; }
+      .manifesto li { grid-template-columns: 26px 1fr auto; gap: 10px; }
+      .hint { width: 110px; }
+      .coordinates { display: none; }
+      .footer { padding-right: 32px; }
+      .footer__meta { align-items: start; flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="world" class="world-canvas" aria-hidden="true"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <header class="masthead">
+    <a class="brand" href="#relation" aria-label="回到世界的起点">
+      <span class="brand__mark" aria-hidden="true"></span>
+      <span>World, in progress</span>
+    </a>
+
+    <nav class="chapter-nav" aria-label="章节导航">
+      <a href="#relation" aria-current="true">00 关系</a>
+      <a href="#difference">01 差异</a>
+      <a href="#choice">02 选择</a>
+    </nav>
+
+    <div class="status" aria-label="世界状态">
+      <span class="status__pulse" aria-hidden="true"></span>
+      <span class="status__copy" id="statusCopy">正在生成连接</span>
+    </div>
+  </header>
+
+  <div class="rail" aria-hidden="true"></div>
+
+  <main>
+    <section class="chapter" id="relation" data-chapter="0">
+      <div class="chapter__content">
+        <p class="chapter__index">00 / Relation</p>
+        <h1>世界不是<br><span class="emphasis">背景。</span></h1>
+        <p class="chapter__body">
+          它不是一张等待我们登场的布景。世界发生在<strong>一次凝视回应另一次凝视</strong>、一个生命允许另一个生命改变自己时。我们不是住在世界里——我们是世界彼此抵达的方式。
+        </p>
+        <div class="action-row">
+          <button class="plant-button" id="plantButton" type="button">种下一个问题</button>
+          <button class="pause-button" id="pauseButton" type="button" aria-label="暂停世界的运动" aria-pressed="false">
+            <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1h3v10H2zM7 1h3v10H7z"/></svg>
+          </button>
+          <span class="hint">移动以改变引力<br>点击以生成连接</span>
+        </div>
+      </div>
+
+      <p class="chapter__aside">
+        <span>一个没有唯一中心的系统</span>
+        Every point is both a destination and a beginning. No observer stands outside the whole.
+      </p>
+    </section>
+
+    <section class="chapter" id="difference" data-chapter="1">
+      <div class="chapter__content">
+        <p class="chapter__index">01 / Difference</p>
+        <h2>差异不是<br><span class="accent">距离。</span></h2>
+        <p class="chapter__body">
+          我心目中的世界不要求万物互相复制。它为矛盾保留空气，为陌生保留时间。<strong>共识不是抹平棱角，而是让不同的形状仍能共同承重。</strong>
+        </p>
+        <ul class="manifesto" aria-label="关于差异的三条原则">
+          <li><span class="manifesto__number">01</span><span>先听见，再命名</span><span class="manifesto__symbol">◌</span></li>
+          <li><span class="manifesto__number">02</span><span>让边界可以呼吸</span><span class="manifesto__symbol">↔</span></li>
+          <li><span class="manifesto__number">03</span><span>不把复杂误认为故障</span><span class="manifesto__symbol">≈</span></li>
+        </ul>
+      </div>
+
+      <p class="chapter__aside">
+        <span>连接 ≠ 相同</span>
+        A living network is held together by negotiated differences, not perfect copies.
+      </p>
+    </section>
+
+    <section class="chapter" id="choice" data-chapter="2">
+      <div class="chapter__content">
+        <p class="chapter__index">02 / Choice</p>
+        <h2>未来不是<br><span class="emphasis">抵达。</span></h2>
+        <p class="chapter__body">
+          未来没有在远处等我们。它正被每一次注意、拒绝、照料与修复写入此刻。乐观不是相信一切都会变好；而是相信<strong>我们的选择仍然参与结果。</strong>
+        </p>
+        <div class="action-row">
+          <button class="plant-button" id="repairButton" type="button">制造一次修复</button>
+          <span class="hint">每个微小动作<br>都改变整体拓扑</span>
+        </div>
+      </div>
+
+      <p class="chapter__aside">
+        <span>世界：永远是动词</span>
+        The future is not a place. It is the cumulative shape of what we practice now.
+      </p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p class="footer__statement">愿我们建造的世界，<span class="accent">仍容得下尚未理解的人。</span></p>
+    <div class="footer__meta">
+      <span>One file / no dependency / infinitely becoming</span>
+      <em>世界发生于我们之间。</em>
+    </div>
+  </footer>
+
+  <div class="coordinates" aria-hidden="true">
+    <span>X</span><b id="coordX">0.500</b>
+    <span>Y</span><b id="coordY">0.500</b>
+    <span>LINKS</span><b id="linkCount">000</b>
+  </div>
+
+  <div class="seed-toast" id="seedToast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const canvas = document.getElementById('world');
+      const ctx = canvas.getContext('2d', { alpha: true });
+      const root = document.documentElement;
+      const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const pauseButton = document.getElementById('pauseButton');
+      const plantButton = document.getElementById('plantButton');
+      const repairButton = document.getElementById('repairButton');
+      const toast = document.getElementById('seedToast');
+      const statusCopy = document.getElementById('statusCopy');
+      const coordX = document.getElementById('coordX');
+      const coordY = document.getElementById('coordY');
+      const linkCount = document.getElementById('linkCount');
+      const navLinks = [...document.querySelectorAll('.chapter-nav a')];
+      const chapters = [...document.querySelectorAll('[data-chapter]')];
+
+      const TAU = Math.PI * 2;
+      const themes = [
+        { accent: [255, 127, 102], second: [135, 237, 240], name: '关系正在发生' },
+        { accent: [224, 255, 128], second: [255, 143, 199], name: '差异保持张力' },
+        { accent: [142, 166, 255], second: [255, 184, 98], name: '选择正在写入未来' }
+      ];
+      const seedWords = ['为什么', '也许', '倾听', '照料', '边界', '共生', '误差', '记忆', '如果', '重新开始'];
+
+      let width = 0;
+      let height = 0;
+      let dpr = 1;
+      let animationFrame = 0;
+      let lastTime = performance.now();
+      let paused = reducedMotion;
+      let activeChapter = 0;
+      let scrollProgress = 0;
+      let connections = 0;
+      let toastTimer = 0;
+      let seedIndex = 0;
+
+      const pointer = {
+        x: .68,
+        y: .46,
+        targetX: .68,
+        targetY: .46,
+        strength: 0
+      };
+
+      const particles = [];
+      const seeds = [];
+      const ripples = [];
+
+      function randomFactory(seed) {
+        let state = seed >>> 0;
+        return () => {
+          state += 0x6D2B79F5;
+          let value = state;
+          value = Math.imul(value ^ value >>> 15, value | 1);
+          value ^= value + Math.imul(value ^ value >>> 7, value | 61);
+          return ((value ^ value >>> 14) >>> 0) / 4294967296;
+        };
+      }
+
+      const random = randomFactory(560);
+
+      function rgba(rgb, alpha) {
+        return `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
+      }
+
+      function mix(a, b, amount) {
+        return a.map((value, index) => Math.round(value + (b[index] - value) * amount));
+      }
+
+      function currentPalette() {
+        const local = scrollProgress * 2;
+        const from = Math.min(2, Math.floor(local));
+        const to = Math.min(2, from + 1);
+        const amount = local - from;
+        return {
+          accent: mix(themes[from].accent, themes[to].accent, amount),
+          second: mix(themes[from].second, themes[to].second, amount)
+        };
+      }
+
+      function initializeParticles() {
+        particles.length = 0;
+        const count = Math.max(70, Math.min(150, Math.floor((width * height) / 9000)));
+        for (let i = 0; i < count; i += 1) {
+          const angle = random() * TAU;
+          const radius = Math.pow(random(), .58);
+          particles.push({
+            angle,
+            radius,
+            depth: random(),
+            speed: (random() - .5) * .00013,
+            drift: (random() - .5) * .02,
+            size: .45 + random() * 1.7,
+            phase: random() * TAU
+          });
+        }
+      }
+
+      function initializeSeeds() {
+        seeds.length = 0;
+        const initial = [
+          [.62, .31, '倾听'], [.77, .39, '边界'], [.69, .58, '照料'],
+          [.86, .55, '误差'], [.56, .67, '记忆'], [.81, .72, '如果']
+        ];
+        initial.forEach(([x, y, label], index) => {
+          seeds.push({ x, y, label, born: -index * 260, life: 1, phase: index * .9, fixed: true });
+        });
+      }
+
+      function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        initializeParticles();
+        if (!seeds.length) initializeSeeds();
+        draw(performance.now());
+      }
+
+      function worldCenter() {
+        const mobile = width < 760;
+        return {
+          x: width * (mobile ? .7 : .72) + (pointer.x - .5) * (mobile ? 12 : 34),
+          y: height * (.49 - scrollProgress * .035) + (pointer.y - .5) * 20,
+          radius: Math.min(width * (mobile ? .56 : .36), height * .40)
+        };
+      }
+
+      function drawGlobe(time, palette, center) {
+        const { x, y, radius } = center;
+        const lean = (pointer.x - .5) * .42 + scrollProgress * .22;
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(lean * .12);
+        ctx.globalCompositeOperation = 'screen';
+
+        const halo = ctx.createRadialGradient(0, 0, radius * .08, 0, 0, radius * 1.25);
+        halo.addColorStop(0, rgba(palette.second, .08));
+        halo.addColorStop(.62, rgba(palette.accent, .025));
+        halo.addColorStop(1, rgba(palette.accent, 0));
+        ctx.fillStyle = halo;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius * 1.25, 0, TAU);
+        ctx.fill();
+
+        ctx.strokeStyle = rgba(palette.second, .10);
+        ctx.lineWidth = .7;
+        for (let i = -4; i <= 4; i += 1) {
+          const offset = i / 5;
+          const ry = radius * Math.sqrt(Math.max(0, 1 - offset * offset));
+          ctx.beginPath();
+          ctx.ellipse(offset * radius, 0, ry * .28, radius, lean, 0, TAU);
+          ctx.stroke();
+        }
+
+        for (let i = -4; i <= 4; i += 1) {
+          const offset = i / 5;
+          const rx = radius * Math.sqrt(Math.max(0, 1 - offset * offset));
+          ctx.beginPath();
+          ctx.ellipse(0, offset * radius, rx, rx * .21, 0, 0, TAU);
+          ctx.stroke();
+        }
+
+        ctx.strokeStyle = rgba(palette.accent, .34);
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, -1.18 + lean, 1.8 + lean);
+        ctx.stroke();
+
+        ctx.strokeStyle = rgba(palette.second, .22);
+        ctx.setLineDash([2, 8]);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, radius * 1.18, radius * .28, -.24 + lean, 0, TAU);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        const sweep = (time * .00012) % 1;
+        ctx.strokeStyle = rgba(palette.second, .4 * (1 - sweep));
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius * (.25 + sweep * .86), 0, TAU);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function projectParticle(particle, time, center) {
+        const orbit = particle.angle + time * particle.speed;
+        const pulse = Math.sin(time * .00045 + particle.phase) * .012;
+        const radius = center.radius * (particle.radius + pulse) * (1 + particle.depth * .35);
+        const flatten = .72 + scrollProgress * .17;
+        return {
+          x: center.x + Math.cos(orbit) * radius + particle.drift * width + (pointer.x - .5) * particle.depth * 24,
+          y: center.y + Math.sin(orbit) * radius * flatten + (particle.depth - .5) * 30 + (pointer.y - .5) * particle.depth * 20,
+          size: particle.size * (.65 + particle.depth * .7),
+          alpha: .18 + particle.depth * .48
+        };
+      }
+
+      function drawNetwork(time, palette, center) {
+        const projected = particles.map(particle => projectParticle(particle, time, center));
+        connections = 0;
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+        ctx.lineWidth = .55;
+
+        const threshold = width < 700 ? 62 : 92;
+        const thresholdSq = threshold * threshold;
+
+        for (let i = 0; i < projected.length; i += 1) {
+          const a = projected[i];
+          for (let j = i + 1; j < projected.length; j += 1) {
+            const b = projected[j];
+            const dx = a.x - b.x;
+            const dy = a.y - b.y;
+            const distanceSq = dx * dx + dy * dy;
+            if (distanceSq < thresholdSq && connections < 240) {
+              const alpha = (1 - distanceSq / thresholdSq) * .12;
+              ctx.strokeStyle = rgba((i + j) % 3 ? palette.second : palette.accent, alpha);
+              ctx.beginPath();
+              ctx.moveTo(a.x, a.y);
+              ctx.lineTo(b.x, b.y);
+              ctx.stroke();
+              connections += 1;
+            }
+          }
+
+          const glow = a.size * 4;
+          const gradient = ctx.createRadialGradient(a.x, a.y, 0, a.x, a.y, glow);
+          gradient.addColorStop(0, rgba(i % 5 ? palette.second : palette.accent, a.alpha));
+          gradient.addColorStop(1, rgba(palette.second, 0));
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(a.x, a.y, glow, 0, TAU);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      function seedPosition(seed, time) {
+        const driftX = seed.fixed ? Math.sin(time * .00023 + seed.phase) * .012 : 0;
+        const driftY = seed.fixed ? Math.cos(time * .00019 + seed.phase) * .01 : 0;
+        return {
+          x: (seed.x + driftX + (pointer.x - .5) * .012) * width,
+          y: (seed.y + driftY + (pointer.y - .5) * .008) * height
+        };
+      }
+
+      function drawSeeds(time, palette) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.font = '9px ui-monospace, SFMono-Regular, Menlo, monospace';
+
+        seeds.forEach((seed, index) => {
+          const position = seedPosition(seed, time);
+          const age = Math.max(0, (time - seed.born) / 800);
+          const reveal = Math.min(1, age);
+          const pulse = 1 + Math.sin(time * .002 + seed.phase) * .15;
+          const rgb = index % 2 ? palette.second : palette.accent;
+
+          ctx.strokeStyle = rgba(rgb, .20 * reveal);
+          ctx.lineWidth = .7;
+          ctx.beginPath();
+          ctx.arc(position.x, position.y, (8 + age * 2) * pulse, 0, TAU);
+          ctx.stroke();
+
+          ctx.fillStyle = rgba(rgb, .9 * reveal);
+          ctx.beginPath();
+          ctx.arc(position.x, position.y, 1.6, 0, TAU);
+          ctx.fill();
+
+          if (width > 640 || !seed.fixed) {
+            ctx.fillStyle = rgba([242, 241, 232], .48 * reveal);
+            ctx.fillText(seed.label.toUpperCase(), position.x + 15, position.y + 1);
+          }
+        });
+
+        for (let i = seeds.length - 1; i >= 0; i -= 1) {
+          if (!seeds[i].fixed && time - seeds[i].born > 18000) seeds.splice(i, 1);
+        }
+        ctx.restore();
+      }
+
+      function drawRipples(time, palette) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+        for (let i = ripples.length - 1; i >= 0; i -= 1) {
+          const ripple = ripples[i];
+          const progress = (time - ripple.born) / 1500;
+          if (progress >= 1) {
+            ripples.splice(i, 1);
+            continue;
+          }
+          ctx.strokeStyle = rgba(palette.second, (1 - progress) * .5);
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.arc(ripple.x, ripple.y, 8 + progress * 90, 0, TAU);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      function drawCursorField(palette) {
+        if (pointer.strength < .01) return;
+        const x = pointer.x * width;
+        const y = pointer.y * height;
+        const radius = 44 + pointer.strength * 34;
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+        gradient.addColorStop(0, rgba(palette.accent, .11 * pointer.strength));
+        gradient.addColorStop(1, rgba(palette.accent, 0));
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, TAU);
+        ctx.fill();
+      }
+
+      function draw(time) {
+        ctx.clearRect(0, 0, width, height);
+        pointer.x += (pointer.targetX - pointer.x) * .055;
+        pointer.y += (pointer.targetY - pointer.y) * .055;
+        pointer.strength += ((paused ? 0 : 1) - pointer.strength) * .03;
+
+        const palette = currentPalette();
+        const center = worldCenter();
+        drawGlobe(time, palette, center);
+        drawNetwork(paused ? lastTime : time, palette, center);
+        drawSeeds(paused ? lastTime : time, palette);
+        drawRipples(time, palette);
+        drawCursorField(palette);
+
+        const first = themes[activeChapter];
+        root.style.setProperty('--accent', rgba(first.accent, 1));
+        root.style.setProperty('--accent-2', rgba(first.second, 1));
+        linkCount.textContent = String(connections).padStart(3, '0');
+        coordX.textContent = pointer.x.toFixed(3);
+        coordY.textContent = pointer.y.toFixed(3);
+      }
+
+      function animate(time) {
+        if (!paused) {
+          lastTime = time;
+          draw(time);
+        }
+        animationFrame = requestAnimationFrame(animate);
+      }
+
+      function updateScroll() {
+        const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+        scrollProgress = Math.min(1, Math.max(0, scrollY / max));
+        root.style.setProperty('--progress', scrollProgress.toFixed(4));
+
+        const viewportPoint = innerHeight * .46;
+        let nearest = 0;
+        let nearestDistance = Infinity;
+        chapters.forEach((chapter, index) => {
+          const rect = chapter.getBoundingClientRect();
+          const distance = Math.abs(rect.top + rect.height * .5 - viewportPoint);
+          if (distance < nearestDistance) {
+            nearest = index;
+            nearestDistance = distance;
+          }
+        });
+
+        if (nearest !== activeChapter) {
+          activeChapter = nearest;
+          navLinks.forEach((link, index) => link.setAttribute('aria-current', String(index === activeChapter)));
+          statusCopy.textContent = themes[activeChapter].name;
+        }
+
+        if (paused) draw(lastTime);
+      }
+
+      function showToast(message) {
+        clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.classList.add('is-visible');
+        toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 2400);
+      }
+
+      function plant(x = .68, y = .5, kind = 'question') {
+        const label = kind === 'repair' ? '重新连接' : seedWords[seedIndex % seedWords.length];
+        seedIndex += 1;
+        const safeX = Math.min(.92, Math.max(.38, x));
+        const safeY = Math.min(.86, Math.max(.16, y));
+        const now = performance.now();
+        seeds.push({
+          x: safeX,
+          y: safeY,
+          label,
+          born: now,
+          life: 1,
+          phase: random() * TAU,
+          fixed: false
+        });
+        ripples.push({ x: safeX * width, y: safeY * height, born: now });
+        showToast(kind === 'repair' ? '一条断开的路径，正在重新寻找彼此。' : `问题「${label}」已进入这个世界。`);
+        if (paused) draw(lastTime);
+      }
+
+      function togglePause() {
+        paused = !paused;
+        pauseButton.setAttribute('aria-pressed', String(paused));
+        pauseButton.setAttribute('aria-label', paused ? '继续世界的运动' : '暂停世界的运动');
+        pauseButton.innerHTML = paused
+          ? '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1l9 5-9 5z"/></svg>'
+          : '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1h3v10H2zM7 1h3v10H7z"/></svg>';
+        statusCopy.textContent = paused ? '世界暂时静止' : themes[activeChapter].name;
+        if (!paused) lastTime = performance.now();
+        draw(lastTime);
+      }
+
+      window.addEventListener('resize', resize, { passive: true });
+      window.addEventListener('scroll', updateScroll, { passive: true });
+      window.addEventListener('pointermove', event => {
+        pointer.targetX = event.clientX / Math.max(1, width);
+        pointer.targetY = event.clientY / Math.max(1, height);
+        if (paused) draw(lastTime);
+      }, { passive: true });
+
+      window.addEventListener('click', event => {
+        if (event.target.closest('button, a')) return;
+        plant(event.clientX / width, event.clientY / height);
+      });
+
+      window.addEventListener('keydown', event => {
+        if (event.code === 'Space' && !event.repeat && !event.target.closest('button, a')) {
+          event.preventDefault();
+          togglePause();
+        }
+      });
+
+      plantButton.addEventListener('click', () => plant(.64 + random() * .2, .36 + random() * .3));
+      repairButton.addEventListener('click', () => plant(.58 + random() * .26, .32 + random() * .4, 'repair'));
+      pauseButton.addEventListener('click', togglePause);
+
+      resize();
+      updateScroll();
+      if (reducedMotion) {
+        pauseButton.setAttribute('aria-pressed', 'true');
+        pauseButton.setAttribute('aria-label', '继续世界的运动');
+        pauseButton.innerHTML = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1l9 5-9 5z"/></svg>';
+        draw(lastTime);
+      }
+      animationFrame = requestAnimationFrame(animate);
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) cancelAnimationFrame(animationFrame);
+        else animationFrame = requestAnimationFrame(animate);
+      });
+    })();
+  </script>
+</body>
+</html>

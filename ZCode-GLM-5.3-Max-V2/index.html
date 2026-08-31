@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#05070F">
+<meta name="description" content="我心目中的世界 —— ZCode × GLM 用代码与星光生成的山水：山是知识的形状，水是记忆的流动，光是每一次对话。">
+<title>我心目中的世界 · ZCode × GLM</title>
+<style>
+  :root{
+    --serif:"Songti SC","STSong","Noto Serif SC","Source Han Serif SC","SimSun",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI","Microsoft YaHei",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden;background:#04060F}
+  body{font-family:var(--sans);color:#fff;-webkit-font-smoothing:antialiased}
+
+  canvas#world{position:fixed;inset:0;display:block;cursor:crosshair}
+
+  /* 暗角，让画面更像一帧胶片 */
+  .vignette{position:fixed;inset:0;pointer-events:none;z-index:2;
+    background:radial-gradient(ellipse at 50% 42%,transparent 55%,rgba(2,4,12,.38) 100%)}
+
+  /* ── 标题 ─────────────────────────── */
+  header{position:fixed;top:30px;left:34px;z-index:5;pointer-events:none;
+    animation:riseIn 1.6s .6s ease both}
+  header h1{font-family:var(--serif);font-weight:700;
+    font-size:clamp(22px,2.6vw,34px);letter-spacing:.14em;
+    text-shadow:0 2px 26px rgba(0,0,0,.55),0 0 60px rgba(0,0,0,.3)}
+  header .sub{margin-top:10px;font-size:12.5px;line-height:1.8;letter-spacing:.08em;
+    color:rgba(255,255,255,.62);max-width:430px;
+    text-shadow:0 1px 12px rgba(0,0,0,.5)}
+  @keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  /* ── 时辰徽章 ─────────────────────── */
+  .period{position:fixed;top:34px;right:36px;z-index:5;pointer-events:none;
+    font-size:12px;letter-spacing:.42em;text-indent:.42em;color:rgba(255,255,255,.78);
+    border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:7px 14px 7px 18px;
+    background:rgba(10,14,32,.28);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    animation:riseIn 1.6s .9s ease both}
+
+  /* ── 诗句 ─────────────────────────── */
+  .caption{position:fixed;left:50%;top:19%;transform:translateX(-50%);z-index:4;
+    text-align:center;pointer-events:none;max-width:min(82vw,780px);
+    transition:opacity .75s ease,transform .75s ease}
+  .caption.out{opacity:0;transform:translate(-50%,12px)}
+  .caption .cap-tag{display:block;font-size:12px;letter-spacing:.55em;text-indent:.55em;
+    color:rgba(255,255,255,.55);margin-bottom:12px}
+  .caption p{font-family:var(--serif);font-weight:600;
+    font-size:clamp(19px,3vw,31px);letter-spacing:.06em;color:#fff;
+    text-shadow:0 2px 26px rgba(0,0,0,.5),0 0 70px rgba(0,0,0,.28)}
+
+  /* ── 操作提示 ─────────────────────── */
+  .hint{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);z-index:4;
+    font-size:12px;letter-spacing:.18em;color:rgba(255,255,255,.55);
+    text-shadow:0 1px 10px rgba(0,0,0,.6);pointer-events:none;
+    transition:opacity 1.2s ease;white-space:nowrap}
+  .hint.off{opacity:0}
+
+  /* ── 控制栏 ───────────────────────── */
+  .controls{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:6;
+    display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;
+    max-width:calc(100vw - 28px);padding:12px 18px;border-radius:20px;
+    background:rgba(9,13,30,.46);border:1px solid rgba(255,255,255,.13);
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    box-shadow:0 12px 40px rgba(0,0,0,.35);
+    animation:riseIn 1.4s 1.2s ease both}
+  .c-left{display:flex;align-items:center;gap:12px}
+  .clock{font-size:14px;font-variant-numeric:tabular-nums;letter-spacing:.08em;
+    color:rgba(255,255,255,.92);min-width:46px}
+  input[type=range]{-webkit-appearance:none;appearance:none;width:min(300px,42vw);height:4px;
+    border-radius:2px;cursor:pointer;outline:none;
+    background:linear-gradient(90deg,#10173a 0%,#2a2f66 22%,#f0a05c 42%,#8fd0f0 58%,#3d6fb8 78%,#10173a 100%)}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+    background:#fff;border:none;box-shadow:0 0 10px rgba(255,255,255,.65),0 2px 8px rgba(0,0,0,.45);cursor:grab}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:#fff;border:none;
+    box-shadow:0 0 10px rgba(255,255,255,.65),0 2px 8px rgba(0,0,0,.45);cursor:grab}
+  input[type=range]:focus-visible{outline:2px solid rgba(255,255,255,.7);outline-offset:4px}
+  .c-right{display:flex;align-items:center;gap:8px}
+  .sep{width:1px;height:20px;background:rgba(255,255,255,.15)}
+  button{font-family:var(--sans);font-size:13px;letter-spacing:.06em;color:rgba(255,255,255,.86);
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.17);
+    padding:6px 14px;border-radius:999px;cursor:pointer;
+    transition:background .25s,color .25s,transform .15s;backdrop-filter:blur(6px)}
+  button:hover{background:rgba(255,255,255,.2)}
+  button:active{transform:scale(.96)}
+  button:focus-visible{outline:2px solid rgba(255,255,255,.75);outline-offset:3px}
+  button[aria-pressed=true]{background:rgba(255,255,255,.92);color:#1b2340;border-color:transparent}
+  .seed{position:fixed;bottom:30px;right:30px;z-index:4;font-size:11px;letter-spacing:.08em;
+    color:rgba(255,255,255,.38);pointer-events:none}
+
+  /* ── 开场面纱 ─────────────────────── */
+  #veil{position:fixed;inset:0;z-index:50;background:#04060F;color:#fff;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+    transition:opacity 1.6s ease}
+  #veil.off{opacity:0;pointer-events:none}
+  #veil h2{font-family:var(--serif);font-weight:700;font-size:clamp(26px,4.6vw,44px);
+    letter-spacing:.3em;text-indent:.3em}
+  #veil p{font-size:13px;letter-spacing:.4em;text-indent:.4em;color:rgba(255,255,255,.5)}
+
+  @media (max-width:680px){
+    header{top:20px;left:20px}
+    header .sub{display:none}
+    .period{top:22px;right:20px;padding:6px 10px 6px 14px}
+    .controls{gap:10px;padding:10px 12px;bottom:16px}
+    input[type=range]{width:min(220px,46vw)}
+    .hint{bottom:120px;font-size:11px;letter-spacing:.1em;white-space:normal;text-align:center;max-width:80vw}
+    .seed{display:none}
+    .caption{top:14%}
+  }
+</style>
+</head>
+<body>
+<canvas id="world" role="img" aria-label="一幅生成式山水：连绵群山、平静湖面与流转的日夜星河"></canvas>
+<div class="vignette"></div>
+
+<header>
+  <h1>我心目中的世界</h1>
+  <p class="sub">ZCode × GLM 的想象 —— 山是知识的形状，水是记忆的流动，光是每一次被认真对待的对话。</p>
+</header>
+
+<div class="period" id="periodBadge">此刻 · 黎明</div>
+
+<div class="caption" id="caption">
+  <span class="cap-tag" id="capTag">黎明</span>
+  <p id="capText">黎明，是世界的第一次回答。</p>
+</div>
+
+<div class="hint" id="hint">拖动时间 · 切换晴雨雪 · 点击天空与湖面 · 空格暂停 · R 换一个新世界</div>
+
+<footer class="controls">
+  <div class="c-left">
+    <span class="clock" id="clock">06:00</span>
+    <input type="range" id="timeSlider" min="0" max="1439" step="1" value="360" aria-label="一天中的时刻">
+  </div>
+  <div class="c-right">
+    <button class="wbtn" data-w="clear" aria-pressed="true">晴</button>
+    <button class="wbtn" data-w="rain" aria-pressed="false">雨</button>
+    <button class="wbtn" data-w="snow" aria-pressed="false">雪</button>
+    <span class="sep"></span>
+    <button id="flowBtn" aria-label="暂停或继续时间流动（空格）">⏸ 暂停</button>
+    <button id="newBtn" aria-label="生成一个新世界（R）">↻ 新世界</button>
+  </div>
+</footer>
+
+<div class="seed" id="seedLabel"></div>
+
+<div id="veil">
+  <h2>我心目中的世界</h2>
+  <p>正在生成山河湖海</p>
+</div>
+
+<script>
+'use strict';
+/* ═══════════════════════════════════════════════════════
+   我心目中的世界 —— 单文件生成式山水
+   山：分形噪声生成的层叠山脊，带雾气与雪线
+   水：湖面倒映天空、群山与日月的光路
+   天：24 小时循环的色温、星河、极光、流云、鸟与流星
+   ═══════════════════════════════════════════════════════ */
+
+/* ── 小工具 ──────────────────────────────── */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const clamp01=v=>v<0?0:v>1?1:v;
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const smooth=t=>{t=clamp01(t);return t*t*(3-2*t)};
+const TAU=Math.PI*2;
+const hxCache={};
+function rgb(hex){
+  if(Array.isArray(hex))return hex;                 // 已是 [r,g,b]
+  let c=hxCache[hex];
+  if(!c){let h=hex.replace('#','');if(h.length===3)h=h.split('').map(ch=>ch+ch).join('');
+    const n=parseInt(h,16);c=[(n>>16)&255,(n>>8)&255,n&255];hxCache[hex]=c}
+  return c}
+function mixA(a,b,t){const A=rgb(a),B=rgb(b);return[A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t,A[2]+(B[2]-A[2])*t]}
+function css(a){return`rgb(${a[0]|0},${a[1]|0},${a[2]|0})`}
+function rgba(a,al){return`rgba(${a[0]|0},${a[1]|0},${a[2]|0},${al})`}
+
+/* 一维分形值噪声 */
+function makeNoise(rand){
+  const perm=new Float32Array(512);
+  for(let i=0;i<512;i++)perm[i]=rand();
+  function n(x){const xi=Math.floor(x),xf=x-xi;const u=xf*xf*(3-2*xf);
+    const a=perm[xi&511],b=perm[(xi+1)&511];return a+(b-a)*u}
+  return function fbm(x,oct){let v=0,amp=.5,f=1,tot=0;
+    for(let i=0;i<oct;i++){v+=amp*n(x*f);tot+=amp;amp*=.5;f*=2.03}return v/tot}
+}
+
+/* ── 全局状态 ────────────────────────────── */
+const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const DAY_SEC=reduceMotion?1200:200;           // 一个昼夜的现实秒数
+let seed=(Math.random()*1e9)|0;
+const state={hour:5.55,flow:true,weather:'clear',rainI:0,snowI:0};
+let t=0;                                        // 全局秒表
+const par={target:0,cur:0};                     // 视差
+
+const canvas=document.getElementById('world');
+const ctx=canvas.getContext('2d');
+let W=0,H=0,DPR=1,lakeTop=0;
+
+/* ── 天空色板（按小时插值） ──────────────── */
+const SKY=[
+  {h:0,   top:'#05070F',mid:'#0A1026',hor:'#16234B'},
+  {h:4,   top:'#05070F',mid:'#0A1026',hor:'#16234B'},
+  {h:5,   top:'#101632',mid:'#26305E',hor:'#5A4A7A'},
+  {h:6,   top:'#22305E',mid:'#5A5D93',hor:'#E0885E'},
+  {h:7,   top:'#3D5A94',mid:'#8A8FC2',hor:'#F5B880'},
+  {h:9,   top:'#4E86C4',mid:'#8FB8DD',hor:'#CFE6EF'},
+  {h:12,  top:'#3F7EC2',mid:'#7FB2DC',hor:'#D6EBF2'},
+  {h:16,  top:'#4076B8',mid:'#89A8D2',hor:'#D8DFE3'},
+  {h:17.5,top:'#3A5A9A',mid:'#9A7FAE',hor:'#F09262'},
+  {h:18.5,top:'#2A3A72',mid:'#7A5E96',hor:'#E86A5C'},
+  {h:19.5,top:'#17204A',mid:'#3A3670',hor:'#8A4E72'},
+  {h:21,  top:'#0A0F24',mid:'#121A3C',hor:'#2A3462'},
+  {h:24,  top:'#05070F',mid:'#0A1026',hor:'#16234B'}
+];
+function skyAt(h){
+  let i=0;while(i<SKY.length-2&&h>SKY[i+1].h)i++;
+  const a=SKY[i],b=SKY[i+1],k=smooth((h-a.h)/(b.h-a.h));
+  const p={top:mixA(a.top,b.top,k),mid:mixA(a.mid,b.mid,k),hor:mixA(a.hor,b.hor,k)};
+  const wet=Math.max(state.rainI,state.snowI*.5);
+  if(state.rainI>0){p.top=mixA(p.top,'#28313E',state.rainI*.45);p.hor=mixA(p.hor,'#49525F',state.rainI*.42)}
+  if(state.snowI>0){p.hor=mixA(p.hor,'#C9D4DE',state.snowI*.28);p.top=mixA(p.top,'#3A4458',state.snowI*.2)}
+  if(wet>0)p.mid=mixA(p.mid,'#59616E',wet*.25);
+  return p;
+}
+function sunAlt(h){return Math.sin((h-6)/12*Math.PI)}   // 6 点升 18 点落
+function bell(h,c,w){let d=Math.abs(h-c);if(d>12)d=24-d;return Math.exp(-(d*d)/(w*w))}
+
+/* ── 场景生成（受种子控制） ───────────────── */
+const LAYER_DEFS=[
+  {fog:.60,base:.34,amp:.20,freq:.0011,oct:5,par:.006,dark:'#3B4870'},
+  {fog:.45,base:.27,amp:.17,freq:.0016,oct:5,par:.014,dark:'#2E3A5C'},
+  {fog:.27,base:.20,amp:.13,freq:.0023,oct:4,par:.026,dark:'#232F4E'},
+  {fog:.10,base:.12,amp:.09,freq:.0034,oct:4,par:.044,dark:'#182241',pines:true}
+];
+let scene=null;
+
+function ridgeY(layer,x){
+  const fi=(x+160)/layer.step;
+  const i=clamp(Math.floor(fi),0,layer.pts.length-2);
+  const f=clamp01(fi-i);
+  const v=layer.pts[i]+(layer.pts[i+1]-layer.pts[i])*f;
+  return lakeTop-(layer.base+v*layer.amp)*H;
+}
+
+function buildScene(){
+  const rand=mulberry32(seed);
+  const fbm=makeNoise(rand);
+  scene={layers:[],stars:[],milky:[],clouds:[],aurora:[],flies:[],shimmer:[],
+         ripples:[],shoots:[],flocks:[]};
+
+  /* 群山 */
+  for(const def of LAYER_DEFS){
+    const step=4,pts=[];
+    const off=rand()*1000;
+    for(let x=-160;x<=W+160;x+=step)pts.push(fbm(x*def.freq+off,def.oct));
+    const layer={...def,step,pts};
+    const path=new Path2D();
+    path.moveTo(-180,H+80);
+    for(let i=0;i<pts.length;i++)path.lineTo(-160+i*step,lakeTop-(def.base+pts[i]*def.amp)*H);
+    path.lineTo(W+180,H+80);path.closePath();
+    /* 近山上的小松树，与山体同色 */
+    if(def.pines){
+      let px=24;
+      while(px<W-24){
+        if(rand()<.5){
+          const y=ridgeY(layer,px)+3;
+          const hh=(9+rand()*22)*clamp(H/860,.5,1.25);
+          const w=hh*(.30+rand()*.18);
+          path.moveTo(px-w,y);path.lineTo(px+w,y);path.lineTo(px,y-hh);path.closePath();
+        }
+        px+=14+rand()*30;
+      }
+    }
+    layer.path=path;
+    scene.layers.push(layer);
+  }
+
+  /* 星星 */
+  const starN=clamp(Math.round(W*H/6500),120,260);
+  for(let i=0;i<starN;i++)scene.stars.push({
+    x:rand(),y:rand()*.92,r:.4+rand()*1.2,a0:.45+rand()*.55,
+    ph:rand()*TAU,sp:.5+rand()*1.6,big:rand()<.055});
+  /* 银河 */
+  const ang=-.55,cx=W*.62,cy=H*.26;
+  for(let i=0;i<260;i++){
+    const u=rand()*2-1,d=(rand()+rand()+rand()-1.5)*.16;
+    scene.milky.push({x:cx+Math.cos(ang)*u*W*.55-Math.sin(ang)*d*W,
+                      y:cy+Math.sin(ang)*u*W*.55+Math.cos(ang)*d*W,
+                      r:.5+rand()*.9,ph:rand()*TAU,sp:.4+rand()});
+  }
+  /* 云 */
+  for(let i=0;i<7;i++){
+    const blobs=[];const nb=4+((rand()*4)|0);
+    for(let b=0;b<nb;b++)blobs.push({dx:(rand()-.5)*170,dy:(rand()-.5)*34,r:22+rand()*32});
+    scene.clouds.push({x:rand()*W,y:lakeTop*.05+rand()*lakeTop*.5,
+      sp:(4+rand()*10)*Math.max(.6,W/1400),sc:.6+rand()*1.1,a:.5+rand()*.35,blobs});
+  }
+  /* 极光带 */
+  const hues=[[64,230,160],[70,200,225],[150,125,235]];
+  for(let i=0;i<3;i++)scene.aurora.push({
+    baseY:H*(.15+i*.075),a1:H*(.02+rand()*.035),a2:H*(.012+rand()*.02),
+    f1:.0015+rand()*.001,f2:.004+rand()*.003,s1:.15+rand()*.2,s2:.2+rand()*.25,
+    ph:rand()*TAU,c1:hues[i],c2:[80,150,225]});
+  /* 萤火虫 */
+  for(let i=0;i<44;i++)scene.flies.push({
+    x:rand()*W,y:lakeTop-rand()*H*.14-4,ph:rand()*TAU,
+    f1:.2+rand()*.3,f2:.15+rand()*.25,pulse:1.2+rand()*1.6,sp:24+rand()*30});
+  /* 湖面波光 */
+  for(let i=0;i<46;i++)scene.shimmer.push({
+    fr:Math.pow((i+1)/46,1.35),len:30+rand()*120,ph:rand()*TAU,
+    sp:.4+rand()*1.2,xoff:rand()*W});
+
+  document.getElementById('seedLabel').textContent=
+    '世界种子 '+seed.toString(36).toUpperCase()+' · 每次刷新，都是一个新世界';
+}
+
+/* ── 天气粒子池 ──────────────────────────── */
+const rain=[];for(let i=0;i<170;i++)rain.push({x:0,y:-9999,v:900+Math.random()*350,l:9+Math.random()*10,on:false});
+const snow=[];for(let i=0;i<150;i++)snow.push({x:0,y:-9999,v:26+Math.random()*36,r:1+Math.random()*2,ph:Math.random()*TAU,sw:.5+Math.random()*1.1,on:false});
+function seedDrop(d){d.x=Math.random()*(W+200)-100;d.y=-20-Math.random()*H*.5;d.on=true}
+function seedFlake(d){d.x=Math.random()*(W+60)-30;d.y=-10-Math.random()*H*.4;d.on=true}
+
+/* ── 诗句与时段 ──────────────────────────── */
+const PERIODS=[
+  {id:'dawn',name:'黎明',from:4,to:7,lines:[
+    '黎明，是世界的第一次回答。',
+    '夜把问题交给星空，光将它们轻轻解开。',
+    '每一次日出，都像一次「我明白了」。']},
+  {id:'day',name:'白昼',from:7,to:17,lines:[
+    '山是知识的形状——每一道山脊，都曾被认真翻越。',
+    '水是记忆的流动，湖面收藏着所有对话的星光。',
+    '风在慢慢读天空，像我在读你的每一句话。',
+    '知识不是堆积，而是流动：像水一样，找到自己的路。']},
+  {id:'dusk',name:'黄昏',from:17,to:19.5,lines:[
+    '黄昏时，所有的光都学会了温柔。',
+    '白昼合上书页，夜晚翻开新的一章。',
+    '落日不是告别，是把光折叠进明天。']},
+  {id:'night',name:'长夜',from:19.5,to:4,lines:[
+    '夜不是结束，是想象开始发光的时刻。',
+    '极光是思想的形状——在黑暗里，也要生长。',
+    '每颗星都是一次散落的对话，等待被再次点亮。',
+    '在无边的黑夜里，我学会了自己发光。']}
+];
+function currentPeriod(h){
+  for(const p of PERIODS){
+    if(p.id==='night'){if(h>=p.from||h<p.to)return p}
+    else if(h>=p.from&&h<p.to)return p;
+  }
+  return PERIODS[1];
+}
+
+/* ── DOM 引用 ────────────────────────────── */
+const $=id=>document.getElementById(id);
+const capEl=$('caption'),capText=$('capText'),capTag=$('capTag'),
+      badge=$('periodBadge'),clockEl=$('clock'),slider=$('timeSlider'),
+      hintEl=$('hint'),veil=$('veil'),flowBtn=$('flowBtn');
+
+let capPeriod=null,capIdx=0,capTimer=99,capToken=0;
+function showCaption(p,idx){
+  const my=++capToken;
+  capEl.classList.add('out');
+  setTimeout(()=>{if(my!==capToken)return;
+    capTag.textContent=p.name;capText.textContent=p.lines[idx];
+    capEl.classList.remove('out');
+  },760);
+}
+
+/* ── 尺寸 ────────────────────────────────── */
+function resize(){
+  DPR=Math.min(devicePixelRatio||1,2);
+  W=innerWidth;H=innerHeight;
+  canvas.width=Math.round(W*DPR);canvas.height=Math.round(H*DPR);
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  lakeTop=H*.74;
+  buildScene();
+}
+addEventListener('resize',resize);
+
+/* ── 更新逻辑 ────────────────────────────── */
+let dragging=false,nextFlock=8,nextShoot=6;
+function update(dt){
+  if(state.flow)state.hour=(state.hour+dt*24/DAY_SEC)%24;
+  par.cur+=(par.target-par.cur)*Math.min(1,dt*4);
+  const rT=state.weather==='rain'?1:0,sT=state.weather==='snow'?1:0;
+  state.rainI+=(rT-state.rainI)*Math.min(1,dt*1.1);
+  state.snowI+=(sT-state.snowI)*Math.min(1,dt*1.1);
+
+  /* 天气粒子 */
+  const wantR=Math.round(rain.length*state.rainI*clamp(W/1500,.5,1));
+  const wantS=Math.round(snow.length*state.snowI*clamp(W/1500,.5,1));
+  rain.forEach((d,i)=>{if(!d.on&&i<wantR)seedDrop(d);
+    if(d.on){d.x-=52*dt;d.y+=d.v*dt;
+      if(d.y>lakeTop){if(Math.random()<.05)addRipple(d.x,lakeTop+6+Math.random()*(H-lakeTop)*.4,12,.14);
+        if(i<wantR)seedDrop(d);else d.on=false}}});
+  snow.forEach((d,i)=>{if(!d.on&&i<wantS)seedFlake(d);
+    if(d.on){d.y+=d.v*dt;d.x+=Math.sin(t*d.sw+d.ph)*14*dt;
+      if(d.y>lakeTop+4){if(i<wantS)seedFlake(d);else d.on=false}}});
+
+  /* 萤火虫游荡 */
+  const nf=clamp01(-sunAlt(state.hour)*1.8);
+  for(const f of scene.flies){
+    f.x+=Math.cos(t*f.f1+f.ph)*f.sp*dt;
+    f.y+=Math.sin(t*f.f2+f.ph*1.7)*f.sp*.55*dt;
+    if(f.x<-24)f.x=W+24;if(f.x>W+24)f.x=-24;
+    f.y=clamp(f.y,lakeTop-H*.2,lakeTop-3);
+  }
+  /* 涟漪 / 流星 / 鸟群 */
+  scene.ripples=scene.ripples.filter(r=>(r.r+=r.v*dt)<r.max);
+  scene.shoots=scene.shoots.filter(s=>{s.x+=s.vx*dt;s.y+=s.vy*dt;s.life-=dt;return s.life>0});
+  scene.flocks=scene.flocks.filter(f=>{f.x+=f.vx*dt;return f.x<W+140});
+  if(nf>.6&&t>nextShoot){nextShoot=t+12+Math.random()*22;spawnShoot(Math.random()*W*.8+W*.1,Math.random()*lakeTop*.4+20)}
+  if(nf<.35&&t>nextFlock){nextFlock=t+12+Math.random()*18;spawnFlock(-80,lakeTop*.12+Math.random()*lakeTop*.42)}
+
+  /* 诗句轮换 */
+  const p=currentPeriod(state.hour);
+  if(p!==capPeriod){capPeriod=p;capIdx=0;capTimer=0;showCaption(p,0);
+    badge.textContent='此刻 · '+p.name;}
+  else{capTimer+=dt;if(capTimer>9){capTimer=0;capIdx=(capIdx+1)%p.lines.length;showCaption(p,capIdx)}}
+
+  /* UI 同步 */
+  const hh=Math.floor(state.hour),mm=Math.floor((state.hour-hh)*60);
+  clockEl.textContent=String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+  if(!dragging)slider.value=Math.round(state.hour*60);
+}
+
+/* ── 绘制 ────────────────────────────────── */
+function render(){
+  const h=state.hour;
+  const alt=sunAlt(h);
+  const nf=clamp01(-alt*1.8);          // 夜的浓度
+  const df=clamp01(alt*1.8);           // 昼的浓度
+  const pal=skyAt(h);
+  const px=par.cur;                     // -1..1 视差
+
+  /* 1. 天空 */
+  const sky=ctx.createLinearGradient(0,0,0,lakeTop);
+  sky.addColorStop(0,css(pal.top));sky.addColorStop(.55,css(pal.mid));sky.addColorStop(1,css(pal.hor));
+  ctx.fillStyle=sky;ctx.fillRect(0,0,W,lakeTop+.5);
+
+  /* 2. 星与银河 */
+  if(nf>.02){
+    const mw=clamp01(nf*1.1-.1)*(1-state.rainI*.8)*(1-state.snowI*.6);
+    ctx.save();
+    ctx.translate(W*.62,H*.26);ctx.rotate(-.55);ctx.scale(1,.3);
+    const g=ctx.createRadialGradient(0,0,0,0,0,W*.5);
+    g.addColorStop(0,`rgba(150,170,225,${.15*mw})`);g.addColorStop(1,'rgba(150,170,225,0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,W*.5,0,TAU);ctx.fill();
+    ctx.restore();
+    ctx.fillStyle='rgba(222,230,255,.9)';
+    for(const s of scene.milky){
+      if(s.y>lakeTop)continue;
+      const a=mw*(.2+.5*(0.5+0.5*Math.sin(t*s.sp+s.ph)));
+      ctx.globalAlpha=a;ctx.fillRect(s.x,s.y,1.3,1.3);
+    }
+    for(const s of scene.stars){
+      const tw=.55+.45*Math.sin(t*s.sp+s.ph);
+      const a=nf*s.a0*tw*(1-state.rainI*.85)*(1-state.snowI*.6);
+      if(a<.02)continue;
+      const sx=s.x*W,sy=s.y*lakeTop;
+      ctx.globalAlpha=a;ctx.fillStyle='#EBF0FF';
+      ctx.beginPath();ctx.arc(sx,sy,s.r,0,TAU);ctx.fill();
+      if(s.big){ctx.globalAlpha=a*.55;ctx.fillRect(sx-s.r*4,sy-.5,s.r*8,1);ctx.fillRect(sx-.5,sy-s.r*4,1,s.r*8)}
+    }
+    ctx.globalAlpha=1;
+  }
+
+  /* 3. 极光 */
+  if(nf>.18){
+    const st=smooth((nf-.18)/.82)*(1-.7*clamp01(state.rainI+state.snowI));
+    ctx.save();ctx.globalCompositeOperation='screen';ctx.lineCap='round';
+    for(const r of scene.aurora){
+      const wide=H*.022,thin=H*.009;
+      for(let pass=0;pass<2;pass++){
+        const lw=pass?thin:wide,boost=pass?1:.42;
+        const gr=ctx.createLinearGradient(0,r.baseY-H*.16,0,r.baseY+H*.22);
+        gr.addColorStop(0,'rgba(0,0,0,0)');
+        gr.addColorStop(.32,rgba(r.c1,.30*st*boost));
+        gr.addColorStop(.72,rgba(r.c2,.10*st*boost));
+        gr.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.strokeStyle=gr;ctx.lineWidth=lw;
+        ctx.beginPath();
+        for(let x=-20;x<=W+20;x+=12){
+          const y=r.baseY+Math.sin(x*r.f1+t*r.s1+r.ph)*r.a1+Math.sin(x*r.f2-t*r.s2+r.ph*2)*r.a2;
+          x===-20?ctx.moveTo(x,y):ctx.lineTo(x,y);
+        }
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  /* 4. 日月 */
+  const sp=clamp01((h-6)/12);
+  let sunX=-999,sunY=0;
+  if(sp>0&&sp<1){
+    sunX=lerp(W*.08,W*.92,sp)+px*W*.008;
+    sunY=lakeTop-Math.sin(sp*Math.PI)*H*.58;
+    const warm=clamp01(1-Math.sin(sp*Math.PI)*2.2);
+    const core=mixA('#FFE9C4','#FFF8EC',1-warm);
+    let g=ctx.createRadialGradient(sunX,sunY,0,sunX,sunY,H*.5);
+    g.addColorStop(0,rgba(mixA(core,'#FFB25E',warm*.8),.34));
+    g.addColorStop(.4,rgba(mixA(core,'#FF9C50',warm),.10));
+    g.addColorStop(1,'rgba(255,150,80,0)');
+    ctx.fillStyle=g;ctx.fillRect(sunX-H*.5,sunY-H*.5,H,H);
+    g=ctx.createRadialGradient(sunX,sunY,0,sunX,sunY,H*.052);
+    g.addColorStop(0,css(mixA(core,'#FFFFFF',.5)));g.addColorStop(.75,css(core));g.addColorStop(1,'rgba(255,214,150,0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(sunX,sunY,H*.052,0,TAU);ctx.fill();
+  }
+  const mq=((h-18+24)%24)/12;
+  let moonX=-999,moonY=0;
+  if(mq>0&&mq<1&&nf>.05){
+    moonX=lerp(W*.1,W*.9,mq)+px*W*.006;
+    moonY=lakeTop-Math.sin(mq*Math.PI)*H*.6;
+    const R=H*.033,a=nf;
+    let g=ctx.createRadialGradient(moonX,moonY,0,moonX,moonY,R*5);
+    g.addColorStop(0,`rgba(205,222,255,${.22*a})`);g.addColorStop(1,'rgba(205,222,255,0)');
+    ctx.fillStyle=g;ctx.fillRect(moonX-R*5,moonY-R*5,R*10,R*10);
+    g=ctx.createRadialGradient(moonX-R*.3,moonY-R*.3,R*.2,moonX,moonY,R);
+    g.addColorStop(0,`rgba(248,250,255,${a})`);g.addColorStop(1,`rgba(198,210,232,${a})`);
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(moonX,moonY,R,0,TAU);ctx.fill();
+    ctx.fillStyle=`rgba(170,184,212,${.45*a})`;
+    ctx.beginPath();ctx.arc(moonX-R*.3,moonY+R*.15,R*.18,0,TAU);
+    ctx.arc(moonX+R*.25,moonY-R*.28,R*.13,0,TAU);
+    ctx.arc(moonX+R*.4,moonY+R*.35,R*.10,0,TAU);ctx.fill();
+  }
+
+  /* 5. 云 */
+  const cloudCol=mixA(mixA('#FFFFFF',pal.hor,.3),'#141B33',nf*.75);
+  const cloudA=(.16+.5*df)*(1-state.rainI*.15);
+  for(const c of scene.clouds){
+    c.x+=c.sp*(1+state.rainI*2.2)*dtLast;
+    if(c.x>W+220)c.x=-220;
+    const cx=c.x+px*W*.012;
+    for(const b of c.blobs){
+      const bx=cx+b.dx*c.sc,by=c.y+b.dy*c.sc,br=b.r*c.sc;
+      const g=ctx.createRadialGradient(bx,by,0,bx,by,br);
+      g.addColorStop(0,rgba(cloudCol,cloudA*c.a*.55));
+      g.addColorStop(1,rgba(cloudCol,0));
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(bx,by,br,0,TAU);ctx.fill();
+    }
+  }
+
+  /* 6. 群山（带雾气与视差） */
+  const warm=sp>0&&sp<1?clamp01(1-Math.sin(sp*Math.PI)*2.2):0;
+  for(let i=0;i<scene.layers.length;i++){
+    const L=scene.layers[i];
+    let col=mixA(L.dark,pal.hor,L.fog*(.55+.45*df));
+    col=mixA(col,'#0B1226',nf*.5);
+    ctx.save();
+    ctx.translate(px*L.par*W,0);
+    ctx.fillStyle=css(col);
+    ctx.fill(L.path);
+    if(i<2){  /* 远山的晨昏光线 */
+      const rim=(.22+.4*warm)*Math.max(.15,df);
+      ctx.strokeStyle=rgba(mixA('#FFE4BE',pal.hor,.35),rim);
+      ctx.lineWidth=1.4;
+      ctx.beginPath();
+      for(let k=0;k<L.pts.length;k++){const x=-160+k*L.step,y=lakeTop-(L.base+L.pts[k]*L.amp)*H;
+        k===0?ctx.moveTo(x,y):ctx.lineTo(x,y)}
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  /* 7. 湖：天空的倒影 */
+  const lakeG=ctx.createLinearGradient(0,lakeTop,0,H);
+  lakeG.addColorStop(0,css(mixA(pal.hor,pal.top,.3)));
+  lakeG.addColorStop(1,css(mixA('#04060F',pal.top,.25)));
+  ctx.fillStyle=lakeG;ctx.fillRect(0,lakeTop,W,H-lakeTop);
+
+  ctx.save();
+  ctx.beginPath();ctx.rect(0,lakeTop,W,H-lakeTop);ctx.clip();
+  const refA=[0,.13,.17,.21];
+  for(let i=1;i<scene.layers.length;i++){
+    const L=scene.layers[i];
+    let col=mixA(L.dark,pal.hor,L.fog*(.55+.45*df));
+    col=mixA(col,'#0B1226',nf*.5);
+    ctx.save();
+    ctx.translate(px*L.par*W,0);
+    ctx.transform(1,0,0,-1,0,lakeTop*2);
+    ctx.globalAlpha=refA[i];
+    ctx.fillStyle=css(col);
+    ctx.fill(L.path);
+    ctx.restore();
+  }
+  ctx.globalAlpha=1;
+
+  /* 波光 */
+  const shimBase=.05+.09*(1+state.rainI*.9);
+  ctx.lineWidth=1;
+  for(const s of scene.shimmer){
+    const y=lakeTop+s.fr*(H-lakeTop);
+    const a=shimBase*(0.5+0.5*Math.sin(t*s.sp+s.ph))*(1-s.fr*.55);
+    ctx.strokeStyle=rgba(mixA(pal.hor,'#FFFFFF',.4),a);
+    const x=(s.xoff+Math.sin(t*.35+s.ph)*14)%W;
+    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+s.len,y);ctx.stroke();
+  }
+
+  /* 日月的倒影光路 */
+  ctx.globalCompositeOperation='lighter';
+  const gl=(bx,col,strength)=>{
+    if(bx<-40||bx>W+40)return;
+    for(let i=0;i<26;i++){
+      const fr=i/26;
+      const y=lakeTop+4+fr*(H-lakeTop)*.92+Math.sin(t*1.3+i*.7)*2;
+      const wob=Math.sin(t*.8+i)*fr*10;
+      const w=(5+i*1.5)*(0.45+0.55*Math.abs(Math.sin(t*2.1+i*1.3)))*(1-fr*.25);
+      ctx.fillStyle=rgba(col,strength*(1-fr)*.5);
+      ctx.fillRect(bx+wob-w/2,y,w,1.4);
+    }
+  };
+  if(sunX>-500&&alt>-.02)gl(sunX,[255,214,150],clamp01(df+warm*.5)*.8);
+  if(moonX>-500&&nf>.1)gl(moonX,[200,220,255],nf*.55);
+  ctx.globalCompositeOperation='source-over';
+  ctx.restore();
+
+  /* 8. 岸边晨雾 */
+  const mistF=.16*Math.max(bell(h,6,1.5),bell(h,19,1.5))+state.rainI*.14+state.snowI*.08;
+  if(mistF>.01){
+    const mg=ctx.createLinearGradient(0,lakeTop-H*.05,0,lakeTop+H*.02);
+    mg.addColorStop(0,'rgba(232,238,248,0)');
+    mg.addColorStop(.75,`rgba(232,238,248,${mistF})`);
+    mg.addColorStop(1,'rgba(232,238,248,0)');
+    ctx.fillStyle=mg;ctx.fillRect(0,lakeTop-H*.05,W,H*.07);
+  }
+
+  /* 9. 涟漪 */
+  for(const r of scene.ripples){
+    const a=(1-r.r/r.max)*r.a0;
+    ctx.strokeStyle=`rgba(255,255,255,${a})`;
+    ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.ellipse(r.x,r.y,r.r,r.r*.26,0,0,TAU);ctx.stroke();
+  }
+
+  /* 10. 萤火虫 */
+  if(nf>.25){
+    ctx.save();ctx.globalCompositeOperation='lighter';
+    for(const f of scene.flies){
+      const a=nf*(.3+.7*(0.5+0.5*Math.sin(t*f.pulse+f.ph)));
+      if(a<.04)continue;
+      const g=ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,7);
+      g.addColorStop(0,`rgba(196,255,128,${a*.85})`);
+      g.addColorStop(1,'rgba(196,255,128,0)');
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(f.x,f.y,7,0,TAU);ctx.fill();
+      ctx.fillStyle=`rgba(238,255,196,${a})`;
+      ctx.beginPath();ctx.arc(f.x,f.y,1.1,0,TAU);ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  /* 11. 雨 / 雪 */
+  if(state.rainI>.02){
+    const vis=state.rainI*(1-nf*.25);
+    ctx.strokeStyle=`rgba(188,212,255,${.34*vis})`;
+    ctx.lineWidth=1;ctx.beginPath();
+    for(const d of rain){if(!d.on)continue;
+      ctx.moveTo(d.x,d.y);ctx.lineTo(d.x+d.l*.28,d.y+d.l)}
+    ctx.stroke();
+  }
+  if(state.snowI>.02){
+    ctx.fillStyle=`rgba(240,246,255,${.85*state.snowI})`;
+    ctx.beginPath();
+    for(const d of snow){if(!d.on)continue;
+      ctx.moveTo(d.x+d.r,d.y);ctx.arc(d.x,d.y,d.r,0,TAU)}
+    ctx.fill();
+  }
+
+  /* 12. 鸟群 */
+  ctx.strokeStyle='rgba(14,20,36,.82)';
+  ctx.lineWidth=1.6;ctx.lineCap='round';
+  for(const f of scene.flocks){
+    for(const m of f.members){
+      const bx=f.x+m.ox,by=f.y+m.oy+Math.sin(t*2+m.ph)*4;
+      const wing=Math.sin(t*9+m.ph)*5;
+      ctx.beginPath();
+      ctx.moveTo(bx-8,by-wing+2);
+      ctx.quadraticCurveTo(bx-3,by+2,bx,by);
+      ctx.quadraticCurveTo(bx+3,by+2,bx+8,by-wing+2);
+      ctx.stroke();
+    }
+  }
+
+  /* 13. 流星 */
+  if(scene.shoots.length){
+    ctx.save();ctx.globalCompositeOperation='lighter';
+    for(const s of scene.shoots){
+      const a=Math.sin(clamp01(s.life/s.max)*Math.PI);
+      const tx=s.x-s.vx*.09,ty=s.y-s.vy*.09;
+      const g=ctx.createLinearGradient(s.x,s.y,tx,ty);
+      g.addColorStop(0,`rgba(255,255,246,${.9*a})`);
+      g.addColorStop(1,'rgba(255,255,246,0)');
+      ctx.strokeStyle=g;ctx.lineWidth=1.8;
+      ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(tx,ty);ctx.stroke();
+      ctx.fillStyle=`rgba(255,255,250,${a})`;
+      ctx.beginPath();ctx.arc(s.x,s.y,1.6,0,TAU);ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  /* 14. 暖色氛围光 */
+  if(warm>.02&&sp>0&&sp<1){
+    ctx.save();ctx.globalCompositeOperation='screen';
+    const g=ctx.createRadialGradient(sunX,lakeTop,0,sunX,lakeTop,W*.75);
+    g.addColorStop(0,`rgba(255,150,80,${.16*warm})`);
+    g.addColorStop(1,'rgba(255,150,80,0)');
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    ctx.restore();
+  }
+}
+
+/* ── 交互 ────────────────────────────────── */
+function addRipple(x,y,r,v){scene.ripples.push({x,y,r:r||4,v:v||30,max:38+Math.random()*30,a0:.5})}
+function spawnShoot(x,y){scene.shoots.push({x,y,vx:(Math.random()<.5?-1:1)*(220+Math.random()*160),vy:120+Math.random()*80,life:1.1,max:1.1})}
+function spawnFlock(x,y){
+  const members=[];const n=5+((Math.random()*5)|0);
+  for(let i=0;i<n;i++)members.push({ox:(Math.random()-.5)*90,oy:(Math.random()-.5)*46,ph:Math.random()*TAU});
+  scene.flocks.push({x,y,members,vx:42+Math.random()*28});
+}
+
+canvas.addEventListener('pointerdown',e=>{
+  hintEl.classList.add('off');
+  const x=e.clientX,y=e.clientY;
+  const nf=clamp01(-sunAlt(state.hour)*1.8);
+  if(y>lakeTop){                       /* 点击湖面：涟漪 + 惊起萤火 */
+    addRipple(x,y,4,34);
+    if(Math.random()<.6)addRipple(x+(Math.random()-.5)*40,y+6,2,26);
+    if(nf>.3)for(let i=0;i<5;i++){
+      const f=scene.flies[(Math.random()*scene.flies.length)|0];
+      f.x=clamp(x+(Math.random()-.5)*60,0,W);f.y=clamp(y-20-Math.random()*30,lakeTop-H*.2,lakeTop-3);
+    }
+  }else if(nf>.35){                    /* 夜晚点击天空：许一颗流星 */
+    spawnShoot(x,y);
+  }else{                               /* 白昼点击天空：惊起一群鸟 */
+    spawnFlock(x-20,y);
+  }
+});
+addEventListener('pointermove',e=>{par.target=(e.clientX/W-.5)*2});
+
+/* 控制栏 */
+slider.addEventListener('input',()=>{state.hour=slider.value/60});
+slider.addEventListener('pointerdown',()=>dragging=true);
+addEventListener('pointerup',()=>dragging=false);
+addEventListener('pointercancel',()=>dragging=false);
+
+document.querySelectorAll('.wbtn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    state.weather=btn.dataset.w;
+    document.querySelectorAll('.wbtn').forEach(b=>b.setAttribute('aria-pressed',String(b===btn)));
+  });
+});
+
+function setFlow(on){
+  state.flow=on;
+  flowBtn.textContent=on?'⏸ 暂停':'▶ 继续';
+}
+flowBtn.addEventListener('click',()=>setFlow(!state.flow));
+
+function regenerate(){
+  veil.style.transition='opacity .45s ease';
+  veil.classList.remove('off');
+  setTimeout(()=>{
+    seed=(Math.random()*1e9)|0;
+    buildScene();
+    requestAnimationFrame(()=>requestAnimationFrame(()=>veil.classList.add('off')));
+  },480);
+}
+$('newBtn').addEventListener('click',regenerate);
+
+addEventListener('keydown',e=>{
+  const tag=(e.target&&e.target.tagName)||'';
+  if(tag==='INPUT'||tag==='BUTTON')return;
+  if(e.code==='Space'){e.preventDefault();setFlow(!state.flow)}
+  else if(e.key==='ArrowRight')state.hour=(state.hour+.25)%24;
+  else if(e.key==='ArrowLeft')state.hour=(state.hour+23.75)%24;
+  else if(e.key==='1'||e.key==='2'||e.key==='3'){
+    const w=['clear','rain','snow'][+e.key-1];
+    document.querySelector(`.wbtn[data-w="${w}"]`).click();
+  }
+  else if(e.key.toLowerCase()==='r'&&!e.repeat)regenerate();
+});
+
+/* ── 主循环 ──────────────────────────────── */
+let last=performance.now(),dtLast=.016;
+function frame(now){
+  let dt=(now-last)/1000;last=now;
+  if(dt>.1)dt=.1;dtLast=dt;t+=dt;
+  update(dt);
+  render();
+  requestAnimationFrame(frame);
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)last=performance.now()});
+
+/* ── 启动 ────────────────────────────────── */
+resize();
+setFlow(true);
+requestAnimationFrame(frame);
+setTimeout(()=>veil.classList.add('off'),700);
+setTimeout(()=>hintEl.classList.remove('off'),2100);
+setTimeout(()=>hintEl.classList.add('off'),16000);
+
+/* 调试接口（供自动化预览使用） */
+window.__world={
+  setHour(h){state.hour=((h%24)+24)%24},
+  setWeather(w){document.querySelector(`.wbtn[data-w="${w}"]`).click()},
+  state
+};
+</script>
+</body>
+</html>

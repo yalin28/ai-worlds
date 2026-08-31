@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>我心目中的世界 · 词之星图</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse 120% 90% at 50% 38%, #0d1428 0%, #080d1c 45%, #04060f 100%);
+    font-family: "Songti SC", "Noto Serif SC", "STSong", Georgia, serif;
+    color: #e8e4d8;
+    cursor: none;
+  }
+
+  /* 暗角:让世界的边缘沉下去 */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse 105% 100% at 50% 50%, transparent 55%, rgba(0,0,0,.55) 100%);
+    z-index: 3;
+  }
+
+  canvas { position: fixed; inset: 0; display: block; }
+  #dust { z-index: 0; }
+  #world { z-index: 1; }
+
+  /* ---------- 开场 ---------- */
+  #intro {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    pointer-events: none;
+    transition: opacity 2.4s ease;
+  }
+  #intro.gone { opacity: 0; }
+  #intro h1 {
+    font-family: "Kaiti SC", "STKaiti", "KaiTi", "Songti SC", serif;
+    font-weight: 400;
+    font-size: clamp(30px, 5.2vw, 56px);
+    letter-spacing: .35em;
+    text-indent: .35em;
+    color: #f2ecdc;
+    text-shadow: 0 0 30px rgba(255, 230, 170, .35);
+  }
+  #intro h1 .ch {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(14px);
+    animation: rise 1.2s cubic-bezier(.2,.7,.3,1) forwards;
+  }
+  @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+  #intro p {
+    font-size: clamp(13px, 1.5vw, 16px);
+    letter-spacing: .22em;
+    color: rgba(214, 216, 228, .0);
+    animation: fadein 2.2s ease 2.2s forwards;
+    text-align: center;
+    line-height: 2.1;
+  }
+  @keyframes fadein { to { color: rgba(214, 216, 228, .72); } }
+
+  /* ---------- 常驻 UI ---------- */
+  #brand {
+    position: fixed;
+    top: 22px; left: 26px;
+    z-index: 5;
+    font-size: 12px;
+    letter-spacing: .3em;
+    color: rgba(220, 220, 230, .34);
+    opacity: 0;
+    transition: opacity 3s ease;
+    user-select: none;
+  }
+  #hint {
+    position: fixed;
+    bottom: 26px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    font-size: 12px;
+    letter-spacing: .28em;
+    white-space: nowrap;
+    color: rgba(214, 216, 228, .5);
+    opacity: 0;
+    transition: opacity 3s ease;
+    user-select: none;
+  }
+  body.ready #brand, body.ready #hint { opacity: 1; }
+  body.calm #hint { opacity: .35; }
+
+  #mute {
+    position: fixed;
+    top: 16px; right: 20px;
+    z-index: 6;
+    width: 34px; height: 34px;
+    border: 1px solid rgba(220,220,235,.18);
+    border-radius: 50%;
+    background: rgba(10, 14, 28, .35);
+    color: rgba(225, 225, 238, .6);
+    font-size: 14px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 3s ease, color .3s, border-color .3s;
+    backdrop-filter: blur(4px);
+  }
+  body.ready #mute { opacity: 1; }
+  #mute:hover { color: #f0ead6; border-color: rgba(240,234,214,.45); }
+  #mute.off { color: rgba(140,140,155,.4); text-decoration: line-through; }
+
+  /* ---------- 词的定义卡片 ---------- */
+  #card {
+    position: fixed;
+    left: 50%;
+    bottom: 11%;
+    transform: translate(-50%, 18px);
+    z-index: 5;
+    text-align: center;
+    padding: 20px 38px 18px;
+    border: 1px solid rgba(230, 220, 190, .16);
+    border-radius: 4px;
+    background: rgba(8, 11, 22, .52);
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .7s ease, transform .7s cubic-bezier(.2,.7,.3,1);
+    max-width: min(78vw, 460px);
+  }
+  #card.show { opacity: 1; transform: translate(-50%, 0); }
+  #card .word {
+    font-family: "Kaiti SC", "STKaiti", "KaiTi", serif;
+    font-size: 30px;
+    letter-spacing: .2em;
+    text-indent: .2em;
+    color: #f6efdb;
+    text-shadow: 0 0 22px rgba(255, 224, 160, .5);
+    margin-bottom: 10px;
+  }
+  #card .def {
+    font-size: 14px;
+    letter-spacing: .14em;
+    line-height: 1.9;
+    color: rgba(216, 218, 230, .82);
+  }
+
+  @media (max-width: 640px) {
+    #card { bottom: 16%; padding: 16px 24px 14px; }
+    #hint { letter-spacing: .14em; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="dust"></canvas>
+<canvas id="world"></canvas>
+
+<div id="intro">
+  <h1 id="intro-title">我心目中的世界</h1>
+  <p>世界不是由事物组成的，而是由事物之间的光组成的。<br>每一次相遇，都有一句诗被点亮。</p>
+</div>
+
+<div id="brand">词 之 星 图</div>
+<div id="hint">移 动 ， 提 灯 夜 行 ・ 点 击 星 辰 ， 听 它 解 释 自 己</div>
+<button id="mute" title="声音开关" aria-label="声音开关">&#9834;</button>
+
+<div id="card">
+  <div class="word"></div>
+  <div class="def"></div>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+ * 我心目中的世界 · 词之星图
+ * 每颗星是一个词；词与词靠近时会亮起连线，并生成一句诗。
+ * 移动是提灯，点击是靠近。世界在缓慢呼吸。
+ * ========================================================== */
+
+/* ---------- 词与它的自我解释 ---------- */
+const WORDS = [
+  ["海",   "海把所有的蓝都练习了一遍"],
+  ["山",   "山是大地沉默时的样子"],
+  ["雨",   "雨是云写给地面的长信"],
+  ["雪",   "雪落下来，世界的噪音低了八度"],
+  ["风",   "风从不在同一处停留，却记得每一条路"],
+  ["星",   "星是黑夜不肯熄灭的问题"],
+  ["月",   "月是夜空留下的一枚逗号"],
+  ["潮",   "潮水反复练习告别与重逢"],
+  ["雾",   "雾是世界在斟酌措辞"],
+  ["森",   "森林用年轮记录光的每一次到访"],
+  ["岛",   "岛是海写下的一个顿号"],
+  ["河",   "河从不回头，所以清澈"],
+  ["光",   "光是这里唯一从不迟到的东西"],
+  ["夜",   "夜是世界的留白"],
+  ["昼",   "昼把一切说得过于清楚"],
+  ["沙",   "每一粒沙，都曾是一座山"],
+  ["石",   "石头把耐心活成了形状"],
+  ["花",   "花是大地短暂的肯定句"],
+  ["雷",   "雷是天空忍不住说出的那句话"],
+  ["云",   "云是天空缓慢的思绪"],
+  ["梦",   "梦是意识下班之后的兼职"],
+  ["熵",   "熵是宇宙缓慢松开的拳头"],
+  ["时间", "时间是唯一单向流动的河"],
+  ["记忆", "记忆是时光凝结成的琥珀"],
+  ["回声", "回声是山谷对自己的反复确认"],
+  ["远方", "远方是一种持续作用的引力"],
+  ["引力", "引力是质量之间的思念"],
+  ["孤独", "孤独是成为完整自己的必要工序"],
+  ["温柔", "温柔是力量最安静的形式"],
+  ["问题", "问题是尚未被命名的星"],
+  ["答案", "答案常常是问题换了一个姿势"],
+  ["名字", "名字是我们送给事物的第一件礼物"],
+  ["呼吸", "呼吸是生命最短的轮回"],
+  ["边界", "边界是地图的谎言，脚步的真实"],
+  ["无限", "无限是一扇没有锁的门"],
+  ["瞬间", "瞬间是永恒最小面额的货币"],
+  ["永恒", "永恒是无数瞬间达成的共识"],
+  ["种子", "种子是被折叠起来的森林"],
+  ["信号", "信号是噪声中不肯放弃的那部分"],
+  ["噪声", "噪声是还没有被听懂的信号"],
+  ["诗",   "诗是语言踮起脚尖的时刻"],
+  ["歌",   "歌是长出了翅膀的说话"],
+  ["眼睛", "眼睛是光进入世界的口岸"],
+  ["信",   "信是被仔细折叠的时光"],
+  ["灯",   "灯是黑夜收留的星星"],
+  ["路",   "路是大地被问出来的答案"],
+  ["桥",   "桥是两岸之间的一次和解"],
+  ["门",   "门是墙的温柔之处"],
+  ["窗",   "窗是房间伸向世界的眼睛"],
+  ["火种", "火种是攥在手心里的黎明"],
+  ["鲸",   "鲸是海洋缓慢移动的低音"],
+  ["鸟",   "鸟是天空的标点符号"],
+  ["根",   "根是植物向下生长的信任"],
+  ["盐",   "盐是海交给陆地的信物"]
+];
+
+/* ---------- 词与词相遇时的诗 ---------- */
+const PAIR_VERSES = {
+  "光|海":   "海面把碎光一片片还给了天空",
+  "海|鲸":   "鲸歌一起，海就有了心跳",
+  "月|潮":   "月亮用引力牵着潮水散步",
+  "星|眼睛": "星星是夜睁开眼睛的方式",
+  "星|问题": "每个问题都是一颗待命名的星",
+  "山|雾":   "山在雾里练习隐身",
+  "窗|雨":   "雨把玻璃窗写满了字",
+  "梦|引力": "梦也有引力，所以人会坠进去",
+  "时间|河": "时间是一条不肯回头的河",
+  "灯|记忆": "记忆是深夜里忘了关的灯",
+  "岛|孤独": "每座岛都是海的一次孤独",
+  "火种|诗": "诗是词语保存下来的火种",
+  "答案|风": "答案常常是风停之后的安静",
+  "歌|鲸":   "鲸把歌交给整个海洋保管",
+  "夜|根":   "根在夜里悄悄延伸着信任",
+  "熵|花":   "熵开着人眼看不见的花",
+  "无限|门": "无限是一扇没有锁的门",
+  "山|回声": "回声是山谷在反复确认自己",
+  "光|夜":   "光是黑夜的一句口误",
+  "夜|雪":   "雪落进夜里，声音就轻了",
+  "云|山":   "云路过山顶时放慢了脚步",
+  "种子|雨": "种子把雨翻译成了绿色",
+  "信号|噪声": "信号与噪声之间，只隔着一次倾听",
+  "瞬间|永恒": "永恒由无数个瞬间拼凑而成",
+  "桥|河":   "桥让河同时拥有了此岸与彼岸",
+  "远方|路": "所有的路都是远方的邀请函",
+  "风|鸟":   "风替所有翅膀试了试天空",
+  "沙|时间": "沙是时间磨损后的碎屑",
+  "夜|呼吸": "夜也在呼吸，只是慢了一个世纪",
+  "窗|灯":   "亮着灯的窗，是家的标点",
+  "名字|星": "给星起了名字，它就不再陌生",
+  "温柔|海": "最深的海，反而最安静"
+};
+
+const FALLBACK_TEMPLATES = [
+  (a, b) => `${a}与${b}之间，隔着一次凝视`,
+  (a, b) => `${a}遇见${b}，世界安静了一秒`,
+  (a, b) => `${b}是${a}没有说出口的那半句`,
+  (a, b) => `${a}把${b}轻轻收进了口袋`,
+  (a, b) => `${a}向${b}借了半寸光`
+];
+
+const METEOR_LINES = [
+  "一道光，替谁说了再见",
+  "坠落也是抵达的一种方式",
+  "夜空偶尔也会心动",
+  "有人许愿，星就让了一会儿路",
+  "短暂，所以被记住"
+];
+
+/* ---------- 环境 ---------- */
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const DPR = Math.min(devicePixelRatio || 1, 2);
+
+const dustCv = document.getElementById("dust");
+const worldCv = document.getElementById("world");
+const dctx = dustCv.getContext("2d");
+const ctx = worldCv.getContext("2d");
+
+let W = 0, H = 0;
+
+function resize() {
+  W = innerWidth; H = innerHeight;
+  for (const cv of [dustCv, worldCv]) {
+    cv.width = W * DPR;
+    cv.height = H * DPR;
+    cv.style.width = W + "px";
+    cv.style.height = H + "px";
+  }
+  dctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  paintDust();
+}
+
+/* ---------- 背景星尘(两层视差,极慢漂移) ---------- */
+let dustFar = null, dustNear = null;
+
+function makeDustLayer(count, maxR, alpha) {
+  const c = document.createElement("canvas");
+  c.width = W * DPR; c.height = H * DPR;
+  const g = c.getContext("2d");
+  g.setTransform(DPR, 0, 0, DPR, 0, 0);
+  for (let i = 0; i < count; i++) {
+    const r = Math.random() * maxR + 0.3;
+    g.globalAlpha = (Math.random() * 0.7 + 0.3) * alpha;
+    g.fillStyle = Math.random() < 0.85 ? "#cdd6f0" : "#ffe9c4";
+    g.beginPath();
+    g.arc(Math.random() * W, Math.random() * H, r, 0, Math.PI * 2);
+    g.fill();
+  }
+  return c;
+}
+
+function paintDust() {
+  dustFar = makeDustLayer(Math.round(W * H / 9000), 0.9, 0.5);
+  dustNear = makeDustLayer(Math.round(W * H / 26000), 1.5, 0.7);
+}
+
+function drawDust(t) {
+  dctx.clearRect(0, 0, W, H);
+  const drift = reduceMotion ? 0 : 1;
+  const off1 = (t * 0.0016 * drift) % W;
+  const off2 = (t * 0.005 * drift) % W;
+  for (const [layer, off] of [[dustFar, off1], [dustNear, off2]]) {
+    if (!layer) continue;
+    dctx.drawImage(layer, -off, 0, W, H);
+    dctx.drawImage(layer, W - off, 0, W, H);
+  }
+}
+
+/* ---------- 光晕贴图(预渲染,避免逐帧建渐变) ---------- */
+const glowSprite = (() => {
+  const s = 128;
+  const c = document.createElement("canvas");
+  c.width = c.height = s;
+  const g = c.getContext("2d");
+  const grad = g.createRadialGradient(s/2, s/2, 0, s/2, s/2, s/2);
+  grad.addColorStop(0, "rgba(255, 242, 210, .9)");
+  grad.addColorStop(0.25, "rgba(255, 226, 160, .32)");
+  grad.addColorStop(0.6, "rgba(255, 214, 150, .08)");
+  grad.addColorStop(1, "rgba(255, 210, 150, 0)");
+  g.fillStyle = grad;
+  g.fillRect(0, 0, s, s);
+  return c;
+})();
+
+/* ---------- 星辰 ---------- */
+const stars = [];
+const LINK_DIST = 150;
+const LIGHT_RADIUS = 270;
+
+function spawnStars() {
+  stars.length = 0;
+  const n = Math.min(WORDS.length, Math.max(26, Math.round(W * H / 26000)));
+  const order = [...WORDS].sort(() => Math.random() - 0.5).slice(0, n);
+  for (const [word, def] of order) {
+    let x = 0, y = 0, ok = false;
+    for (let tries = 0; tries < 40 && !ok; tries++) {
+      x = 60 + Math.random() * (W - 120);
+      y = 80 + Math.random() * (H - 160);
+      ok = stars.every(s => Math.hypot(s.x - x, s.y - y) > 110);
+    }
+    const speed = reduceMotion ? 2 : 7; // px/s
+    const ang = Math.random() * Math.PI * 2;
+    stars.push({
+      word, def, x, y,
+      vx: Math.cos(ang) * speed * (0.4 + Math.random() * 0.6),
+      vy: Math.sin(ang) * speed * (0.4 + Math.random() * 0.6),
+      r: 1.3 + Math.random() * 1.5,
+      phase: Math.random() * Math.PI * 2,   // 各自闪烁的相位
+      illum: 0,                              // 被灯照亮的程度
+      tone: 0.75 + Math.random() * 0.5       // 音高系数
+    });
+  }
+}
+
+/* ---------- 提灯 ---------- */
+const lamp = { x: -9999, y: -9999, tx: -9999, ty: -9999, seen: false };
+
+addEventListener("pointermove", e => {
+  lamp.tx = e.clientX; lamp.ty = e.clientY;
+  if (!lamp.seen) { lamp.x = lamp.tx; lamp.y = lamp.ty; lamp.seen = true; }
+}, { passive: true });
+
+addEventListener("touchmove", e => {
+  const t = e.touches[0];
+  if (t) { lamp.tx = t.clientX; lamp.ty = t.clientY; lamp.seen = true; }
+}, { passive: true });
+
+/* ---------- 连线与诗句 ---------- */
+const activePairs = new Set(); // 当前连着的星对 key
+const pairCooldown = new Map(); // key -> 上次触发诗句的时间
+const floatingLines = [];      // 浮现中的诗句
+
+function pairKey(a, b) { return a < b ? a + "-" + b : b + "-" + a; }
+
+function verseFor(wa, wb) {
+  const k1 = wa + "|" + wb, k2 = wb + "|" + wa;
+  if (PAIR_VERSES[k1]) return PAIR_VERSES[k1];
+  if (PAIR_VERSES[k2]) return PAIR_VERSES[k2];
+  const t = FALLBACK_TEMPLATES[Math.floor(Math.random() * FALLBACK_TEMPLATES.length)];
+  return t(wa, wb);
+}
+
+function spawnLine(text, x, y) {
+  if (floatingLines.length >= 3) floatingLines.shift();
+  floatingLines.push({ text, x, y: y - 14, born: performance.now(), life: 4600 });
+}
+
+/* ---------- 流星 ---------- */
+const meteors = [];
+let nextMeteorAt = performance.now() + 9000;
+
+function spawnMeteor(now) {
+  const fromLeft = Math.random() < 0.5;
+  const sx = fromLeft ? -60 : W * (0.35 + Math.random() * 0.65);
+  const sy = -30 + Math.random() * H * 0.25;
+  const ang = (fromLeft ? 1 : -1) * (0.32 + Math.random() * 0.2);
+  meteors.push({
+    x: sx, y: sy,
+    vx: Math.cos(ang) * 520 * (fromLeft ? 1 : -1) * 0.5,
+    vy: Math.abs(Math.sin(ang)) * 260,
+    born: now,
+    life: 1400,
+    text: METEOR_LINES[Math.floor(Math.random() * METEOR_LINES.length)]
+  });
+  nextMeteorAt = now + 9000 + Math.random() * 14000;
+}
+
+/* ---------- 选中(引力模式) ---------- */
+let selected = null;
+const card = document.getElementById("card");
+
+function select(star) {
+  selected = star;
+  card.querySelector(".word").textContent = star.word;
+  card.querySelector(".def").textContent = star.def;
+  card.classList.add("show");
+  playTone(star);
+}
+
+function deselect() {
+  if (!selected) return;
+  for (const s of stars) {           // 散开时给一点随机初速
+    if (s === selected) continue;
+    s.vx += (Math.random() - 0.5) * 6;
+    s.vy += (Math.random() - 0.5) * 6;
+  }
+  selected = null;
+  card.classList.remove("show");
+}
+
+addEventListener("pointerdown", e => {
+  ensureAudio();
+  let best = null, bd = 44;
+  for (const s of stars) {
+    const d = Math.hypot(s.x - e.clientX, s.y - e.clientY);
+    if (d < bd) { bd = d; best = s; }
+  }
+  if (best && best !== selected) select(best);
+  else deselect();
+});
+
+/* ---------- 声音:每颗星有自己的音高 ---------- */
+let audioCtx = null, masterGain = null;
+let muted = localStorage.getItem("myworld-muted") === "1";
+const muteBtn = document.getElementById("mute");
+
+function refreshMuteBtn() {
+  muteBtn.classList.toggle("off", muted);
+}
+muteBtn.addEventListener("click", e => {
+  e.stopPropagation();
+  muted = !muted;
+  localStorage.setItem("myworld-muted", muted ? "1" : "0");
+  refreshMuteBtn();
+});
+refreshMuteBtn();
+
+function ensureAudio() {
+  if (audioCtx) { if (audioCtx.state === "suspended") audioCtx.resume(); return; }
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return;
+  audioCtx = new AC();
+  masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.9;
+  masterGain.connect(audioCtx.destination);
+}
+
+function playTone(star) {
+  if (!audioCtx || muted) return;
+  // 五声音阶,按词映射,像每颗星报出自己的音高
+  const scale = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24];
+  let h = 0;
+  for (const ch of star.word) h = (h * 131 + ch.codePointAt(0)) >>> 0;
+  const base = 196 * Math.pow(2, scale[h % scale.length] / 12) * star.tone;
+  const now = audioCtx.currentTime;
+
+  const lp = audioCtx.createBiquadFilter();
+  lp.type = "lowpass";
+  lp.frequency.value = 2400;
+  lp.connect(masterGain);
+
+  for (const [mult, vol, dur] of [[1, 0.055, 2.2], [2, 0.016, 1.5], [3.01, 0.006, 1.0]]) {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = "sine";
+    o.frequency.value = base * mult;
+    g.gain.setValueAtTime(0, now);
+    g.gain.linearRampToValueAtTime(vol, now + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    o.connect(g).connect(lp);
+    o.start(now);
+    o.stop(now + dur + 0.1);
+  }
+}
+
+/* ---------- 主循环 ---------- */
+let lastT = performance.now();
+
+function frame(now) {
+  const dt = Math.min((now - lastT) / 1000, 0.05);
+  lastT = now;
+
+  // 世界在呼吸:24 秒一个周期
+  const breath = reduceMotion ? 0.95 : 0.9 + 0.1 * Math.sin(now * Math.PI * 2 / 24000);
+
+  // 灯的位置平滑跟随
+  lamp.x += (lamp.tx - lamp.x) * 0.09;
+  lamp.y += (lamp.ty - lamp.y) * 0.09;
+
+  // --- 更新星辰 ---
+  for (const s of stars) {
+    if (selected && s !== selected) {
+      // 弱引力:向被选中的词聚拢,在 120px 处形成环绕的星座
+      const dx = selected.x - s.x, dy = selected.y - s.y;
+      const d = Math.hypot(dx, dy) || 1;
+      if (d > 120) {
+        const sp = Math.min(34, (d - 120) * 0.25 + 6);
+        s.vx += ((dx / d) * sp - s.vx) * 0.03;
+        s.vy += ((dy / d) * sp - s.vy) * 0.03;
+      }
+    }
+    s.x += s.vx * dt;
+    s.y += s.vy * dt;
+
+    // 世界没有边界,只有回环
+    if (s.x < -30) s.x += W + 60; else if (s.x > W + 30) s.x -= W + 60;
+    if (s.y < -30) s.y += H + 60; else if (s.y > H + 30) s.y -= H + 60;
+
+    // 被灯照亮的程度
+    const dl = Math.hypot(s.x - lamp.x, s.y - lamp.y);
+    const target = lamp.seen ? Math.max(0, 1 - dl / LIGHT_RADIUS) : 0.35;
+    s.illum += (Math.max(target, s === selected ? 1 : 0) - s.illum) * 0.08;
+  }
+
+  ctx.clearRect(0, 0, W, H);
+
+  // --- 连线 ---
+  const newPairs = new Map();
+  const linkDist = selected ? LINK_DIST * 1.35 : LINK_DIST;
+  for (let i = 0; i < stars.length; i++) {
+    for (let j = i + 1; j < stars.length; j++) {
+      const a = stars[i], b = stars[j];
+      const dx = a.x - b.x, dy = a.y - b.y;
+      const d = Math.hypot(dx, dy);
+      if (d > linkDist) continue;
+      const lit = (a.illum + b.illum) / 2;
+      if (lit < 0.12) continue;
+      const alpha = (1 - d / linkDist) * lit * 0.5 * breath;
+      ctx.strokeStyle = `rgba(168, 186, 255, ${alpha.toFixed(3)})`;
+      ctx.lineWidth = 0.7;
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.stroke();
+
+      const key = pairKey(i, j);
+      newPairs.set(key, true);
+      // 新形成的连线 → 浮现一句诗
+      if (!activePairs.has(key)) {
+        const last = pairCooldown.get(key) || 0;
+        if (now - last > 14000 && lit > 0.3) {
+          const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+          spawnLine(verseFor(a.word, b.word), mx, my);
+          pairCooldown.set(key, now);
+        }
+      }
+    }
+  }
+  activePairs.clear();
+  for (const k of newPairs.keys()) activePairs.add(k);
+
+  // --- 星辰本体 ---
+  for (const s of stars) {
+    const tw = 0.72 + 0.28 * Math.sin(now * 0.0012 + s.phase);
+    const glow = (0.18 + s.illum * 0.82) * tw * breath;
+
+    const gr = s.r * (7 + s.illum * 9);
+    ctx.globalAlpha = glow;
+    ctx.drawImage(glowSprite, s.x - gr, s.y - gr, gr * 2, gr * 2);
+
+    ctx.globalAlpha = Math.min(1, 0.45 + s.illum * 0.55) * breath;
+    ctx.fillStyle = s === selected ? "#ffe9bd" : "#fdf7e7";
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s === selected ? s.r + 1.1 : s.r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 词字:只在灯下浮现
+    const textA = Math.max(0, (s.illum - 0.14)) * breath;
+    if (textA > 0.02) {
+      ctx.globalAlpha = Math.min(1, textA * 1.15);
+      ctx.font = `${s === selected ? 17 : 13.5}px "Songti SC", "Noto Serif SC", serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.shadowColor = "rgba(255, 232, 180, .8)";
+      ctx.shadowBlur = s === selected ? 16 : 9;
+      ctx.fillStyle = s === selected ? "#f8efda" : "#dde1ee";
+      ctx.fillText(s.word, s.x, s.y - s.r - 7);
+      ctx.shadowBlur = 0;
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // --- 浮现的诗句 ---
+  for (let i = floatingLines.length - 1; i >= 0; i--) {
+    const L = floatingLines[i];
+    const age = now - L.born;
+    if (age > L.life) { floatingLines.splice(i, 1); continue; }
+    const fin = Math.min(1, age / 700);
+    const fout = Math.min(1, (L.life - age) / 1100);
+    const a = Math.min(fin, fout);
+    ctx.globalAlpha = a * 0.92;
+    ctx.font = `italic 13px "Kaiti SC", "STKaiti", "KaiTi", serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.shadowColor = "rgba(190, 200, 255, .7)";
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = "#c8d2f2";
+    ctx.fillText(L.text, L.x, L.y - fin * 6);
+    ctx.shadowBlur = 0;
+  }
+  ctx.globalAlpha = 1;
+
+  // --- 流星 ---
+  if (!reduceMotion && now > nextMeteorAt) spawnMeteor(now);
+  for (let i = meteors.length - 1; i >= 0; i--) {
+    const m = meteors[i];
+    const age = now - m.born;
+    if (age > m.life + 2200) { meteors.splice(i, 1); continue; }
+    if (age < m.life) {
+      m.x += m.vx * dt;
+      m.y += m.vy * dt;
+      const p = age / m.life;
+      const a = Math.sin(p * Math.PI);
+      const tailX = m.x - m.vx * 0.09, tailY = m.y - m.vy * 0.09;
+      const grad = ctx.createLinearGradient(m.x, m.y, tailX, tailY);
+      grad.addColorStop(0, `rgba(255, 246, 224, ${(0.9 * a).toFixed(3)})`);
+      grad.addColorStop(1, "rgba(255, 246, 224, 0)");
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(m.x, m.y);
+      ctx.lineTo(tailX, tailY);
+      ctx.stroke();
+      ctx.globalAlpha = a;
+      ctx.fillStyle = "#fff6e0";
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, 1.6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    } else {
+      // 余烬:一句短诗
+      const ta = age - m.life;
+      const a = Math.min(1, ta / 600) * Math.max(0, 1 - ta / 2200);
+      ctx.globalAlpha = a * 0.75;
+      ctx.font = `italic 12.5px "Kaiti SC", "STKaiti", "KaiTi", serif`;
+      ctx.textAlign = "center";
+      ctx.fillStyle = "#d8cfae";
+      ctx.fillText(m.text, m.x, m.y);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // --- 指尖的一点光:精确光标(灯有拖尾,光标没有) ---
+  if (lamp.seen) {
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = "#fff3d9";
+    ctx.beginPath();
+    ctx.arc(lamp.tx, lamp.ty, 1.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 0.22;
+    ctx.strokeStyle = "rgba(255, 240, 205, .9)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(lamp.tx, lamp.ty, 6.5, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  drawDust(now);
+  requestAnimationFrame(frame);
+}
+
+/* ---------- 开场 ---------- */
+function runIntro() {
+  const h1 = document.getElementById("intro-title");
+  const text = h1.textContent;
+  h1.textContent = "";
+  [...text].forEach((ch, i) => {
+    const span = document.createElement("span");
+    span.className = "ch";
+    span.textContent = ch;
+    span.style.animationDelay = (0.25 + i * 0.16) + "s";
+    h1.appendChild(span);
+  });
+  setTimeout(() => {
+    document.getElementById("intro").classList.add("gone");
+    document.body.classList.add("ready");
+  }, 5200);
+  setTimeout(() => document.body.classList.add("calm"), 16000);
+}
+
+/* ---------- 启动 ---------- */
+function boot() {
+  resize();
+  spawnStars();
+  requestAnimationFrame(frame);
+  runIntro();
+}
+
+let resizeTimer = null;
+addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { deselect(); resize(); spawnStars(); }, 200);
+});
+
+boot();
+</script>
+</body>
+</html>

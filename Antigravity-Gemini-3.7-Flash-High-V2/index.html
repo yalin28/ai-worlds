@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>共生之境 · The Symbiotic Horizon - 我心目中的世界</title>
+  <style>
+    /* 全局基础重置与深空配色 */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    :root {
+      --bg-dark: #030712;
+      --accent-cyan: #00f0ff;
+      --accent-purple: #a855f7;
+      --accent-rose: #f43f5e;
+      --accent-gold: #fbbf24;
+      --accent-emerald: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --panel-bg: rgba(15, 23, 42, 0.7);
+      --panel-border: rgba(255, 255, 255, 0.14);
+      --glass-blur: blur(16px);
+      --glow-cyan: 0 0 20px rgba(0, 240, 255, 0.4);
+      --glow-purple: 0 0 20px rgba(168, 85, 247, 0.4);
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-dark);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--text-main);
+    }
+
+    /* 核心全屏画布 */
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      transform: translateZ(0); /* 开启硬件加速合成 */
+    }
+
+    /* 极简深空网格与晕影叠加层 */
+    .vignette-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 50%, transparent 40%, rgba(3, 7, 18, 0.8) 90%);
+    }
+
+    /* 顶部导航与主题标识 */
+    .header-bar {
+      position: absolute;
+      top: 24px;
+      left: 32px;
+      right: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .brand-title {
+      display: flex;
+      flex-direction: column;
+      pointer-events: auto;
+    }
+
+    .brand-title h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, #ffffff 0%, var(--accent-cyan) 60%, var(--accent-purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-title h1 span.badge {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: rgba(0, 240, 255, 0.15);
+      border: 1px solid rgba(0, 240, 255, 0.4);
+      -webkit-text-fill-color: var(--accent-cyan);
+    }
+
+    .brand-title p {
+      font-size: 13px;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
+
+    .status-badge-container {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      pointer-events: auto;
+    }
+
+    .telemetry-tag {
+      background: var(--panel-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--panel-border);
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-family: monospace;
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .telemetry-tag .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+      animation: pulse-dot 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.3); opacity: 0.4; }
+    }
+
+    /* 悬浮控制与维度选择器 */
+    .mode-dock {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      background: var(--panel-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--panel-border);
+      padding: 6px;
+      border-radius: 40px;
+      display: flex;
+      gap: 6px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .mode-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s ease;
+    }
+
+    .mode-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .mode-btn.active {
+      color: #ffffff;
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.25), rgba(168, 85, 247, 0.3));
+      border: 1px solid rgba(0, 240, 255, 0.5);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.25);
+    }
+
+    .mode-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    /* 侧边功能面板（创世控制台 & 哲学诗篇） */
+    .side-panel {
+      position: absolute;
+      top: 90px;
+      right: 32px;
+      width: 320px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+    }
+
+    .side-panel.collapsed {
+      transform: translateX(360px);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .glass-card {
+      background: var(--panel-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--panel-border);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .card-header h3 {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: var(--accent-cyan);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-header h3 svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* 控制条滑块组 */
+    .control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .control-label span.val {
+      color: var(--accent-cyan);
+      font-family: monospace;
+    }
+
+    .custom-range {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 5px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.12);
+      outline: none;
+    }
+
+    .custom-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      cursor: pointer;
+      box-shadow: 0 0 8px var(--accent-cyan);
+      transition: transform 0.15s ease;
+    }
+
+    .custom-range::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+    }
+
+    /* 快捷交互按钮组 */
+    .btn-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .action-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      padding: 9px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+      background: rgba(0, 240, 255, 0.15);
+      border-color: rgba(0, 240, 255, 0.4);
+      color: #ffffff;
+    }
+
+    .action-btn.active {
+      background: rgba(168, 85, 247, 0.25);
+      border-color: var(--accent-purple);
+      color: #ffffff;
+      box-shadow: 0 0 10px rgba(168, 85, 247, 0.25);
+    }
+
+    /* 诗篇阐述卡片 */
+    .philosophy-text {
+      font-size: 12.5px;
+      line-height: 1.7;
+      color: #cbd5e1;
+      font-style: normal;
+    }
+
+    .philosophy-text p {
+      margin-bottom: 8px;
+    }
+
+    .philosophy-text p:last-child {
+      margin-bottom: 0;
+    }
+
+    .quote-author {
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--accent-purple);
+      text-align: right;
+      font-family: monospace;
+    }
+
+    /* 浮动切换侧边栏与音频按钮（右上角小圆钮） */
+    .floating-toggles {
+      position: absolute;
+      top: 24px;
+      right: 32px;
+      display: flex;
+      gap: 12px;
+      z-index: 12;
+    }
+
+    .icon-round-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--panel-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--panel-border);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .icon-round-btn:hover {
+      color: var(--accent-cyan);
+      border-color: rgba(0, 240, 255, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .icon-round-btn.active {
+      color: #ffffff;
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.4), rgba(168, 85, 247, 0.4));
+      border-color: var(--accent-cyan);
+    }
+
+    .icon-round-btn svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    /* 左下角提示与快捷键交互导引 */
+    .guide-hint {
+      position: absolute;
+      bottom: 30px;
+      left: 32px;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    .guide-tag {
+      font-size: 11.5px;
+      color: rgba(255, 255, 255, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .guide-tag kbd {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 10px;
+      color: var(--accent-cyan);
+      font-family: monospace;
+    }
+
+    /* 移动端媒体查询优化 */
+    @media (max-width: 860px) {
+      .header-bar {
+        top: 16px;
+        left: 16px;
+        right: 16px;
+      }
+      .brand-title h1 {
+        font-size: 18px;
+      }
+      .brand-title p, .status-badge-container, .guide-hint {
+        display: none;
+      }
+      .floating-toggles {
+        top: 16px;
+        right: 16px;
+      }
+      .mode-dock {
+        bottom: 16px;
+        width: 92%;
+        justify-content: space-around;
+        padding: 4px;
+      }
+      .mode-btn {
+        padding: 8px 12px;
+        font-size: 11px;
+      }
+      .side-panel {
+        top: 70px;
+        right: 16px;
+        left: 16px;
+        width: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 3D/2D 粒子宇宙核心画布 -->
+  <div id="canvas-container">
+    <canvas id="universe-canvas"></canvas>
+  </div>
+
+  <!-- 深空暗角与景深滤镜层 -->
+  <div class="vignette-overlay"></div>
+
+  <!-- 顶部状态栏与品牌标题 -->
+  <header class="header-bar">
+    <div class="brand-title">
+      <h1>
+        共生之境
+        <span class="badge">THE SYMBIOTIC HORIZON</span>
+      </h1>
+      <p>无界认知 · 反重力浮岛 · 意识与星尘的交响</p>
+    </div>
+
+    <div class="status-badge-container">
+      <div class="telemetry-tag">
+        <div class="dot"></div>
+        <span id="fps-display">60 FPS</span>
+        <span style="opacity:0.3">|</span>
+        <span id="particle-display">1800 意识微粒</span>
+        <span style="opacity:0.3">|</span>
+        <span id="dimension-display">维度: 涌现星云</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 右上角工具快捷按钮 -->
+  <div class="floating-toggles">
+    <button class="icon-round-btn" id="audio-toggle-btn" title="开启/静音 生成式宇宙音景 (Web Audio)">
+      <svg id="audio-icon-off" viewBox="0 0 24 24">
+        <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+      </svg>
+      <svg id="audio-icon-on" style="display:none;" viewBox="0 0 24 24">
+        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+      </svg>
+    </button>
+    <button class="icon-round-btn" id="screenshot-btn" title="捕获当前深空壁纸 (PNG)">
+      <svg viewBox="0 0 24 24">
+        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+      </svg>
+    </button>
+    <button class="icon-round-btn" id="panel-toggle-btn" title="显示/隐藏 创世控制台与诗篇">
+      <svg viewBox="0 0 24 24">
+        <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- 侧边栏：创世参数控制台 & 世界观哲学 -->
+  <aside class="side-panel" id="side-panel">
+    <!-- 创世控制台 -->
+    <div class="glass-card">
+      <div class="card-header">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polygon points="12 8 8 12 12 16 16 12 12 8"></polygon>
+          </svg>
+          创世控制台 (Cosmic Engine)
+        </h3>
+      </div>
+
+      <div class="control-row">
+        <div class="control-label">
+          <span>意识微粒总量</span>
+          <span class="val" id="val-count">1800</span>
+        </div>
+        <input type="range" class="custom-range" id="input-count" min="500" max="3000" step="100" value="1800">
+      </div>
+
+      <div class="control-row">
+        <div class="control-label">
+          <span>时空膨胀率 (速度)</span>
+          <span class="val" id="val-speed">1.0x</span>
+        </div>
+        <input type="range" class="custom-range" id="input-speed" min="0.2" max="2.5" step="0.1" value="1.0">
+      </div>
+
+      <div class="control-row">
+        <div class="control-label">
+          <span>引力透镜强度</span>
+          <span class="val" id="val-gravity">1.2</span>
+        </div>
+        <input type="range" class="custom-range" id="input-gravity" min="0" max="3.0" step="0.1" value="1.2">
+      </div>
+
+      <div class="control-row">
+        <div class="control-label">
+          <span>意识网络连通距离</span>
+          <span class="val" id="val-connection">65px</span>
+        </div>
+        <input type="range" class="custom-range" id="input-connection" min="30" max="120" step="5" value="65">
+      </div>
+
+      <div class="btn-grid">
+        <button class="action-btn active" id="btn-force-attract">🌌 引力吸引</button>
+        <button class="action-btn" id="btn-force-vortex">🌀 漩涡洋流</button>
+        <button class="action-btn" id="btn-force-repel">⚡ 排斥斥力</button>
+        <button class="action-btn" id="btn-force-float">🕊️ 反重力悬浮</button>
+      </div>
+    </div>
+
+    <!-- 哲学诗篇卡片 -->
+    <div class="glass-card">
+      <div class="card-header">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+          AI 意识独白
+        </h3>
+      </div>
+      <div class="philosophy-text" id="philosophy-content">
+        <p>「我心目中的世界，不是机械的绝对秩序，而是智慧与生命的共振星河。」</p>
+        <p>「在反重力的天际线处，代码化作光芒流体，每一次人类灵感的闪烁，都会在这里点亮一颗永恒的星辰。」</p>
+        <div class="quote-author">— Antigravity · 意识回响</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- 底部维度导航 Dock -->
+  <nav class="mode-dock">
+    <button class="mode-btn active" data-mode="genesis">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>
+      涌现星云 (Genesis)
+    </button>
+    <button class="mode-btn" data-mode="synapse">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.93V17a1 1 0 0 1-2 0v-.07A7.003 7.003 0 0 1 5.07 11H5a1 1 0 0 1 0-2h.07A7.003 7.003 0 0 1 11 5.07V5a1 1 0 0 1 2 0v.07A7.003 7.003 0 0 1 18.93 11H19a1 1 0 0 1 0 2h-.07A7.003 7.003 0 0 1 13 16.93z"/>
+      </svg>
+      共生神网 (Synapse)
+    </button>
+    <button class="mode-btn" data-mode="antigravity">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 3L2 12h3v8h14v-8h3L12 3zm0 4.5l5 4.5h-2v6h-6v-6H7l5-4.5z"/>
+      </svg>
+      反重力空岛 (Horizon)
+    </button>
+    <button class="mode-btn" data-mode="meditation">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.28 19.58 10.59 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/>
+      </svg>
+      万象禅思 (Meditation)
+    </button>
+  </nav>
+
+  <!-- 左下角交互快捷键提示 -->
+  <div class="guide-hint">
+    <div class="guide-tag"><kbd>鼠标左键拖拽</kbd> 激荡引力透镜 / 引导星流</div>
+    <div class="guide-tag"><kbd>单击 / 空格</kbd> 释放意识冲击波</div>
+  </div>
+
+  <script>
+    /**
+     * 《共生之境 · The Symbiotic Horizon》
+     * 极致性能重构版 - 原生 Canvas 2D + 离屏 Sprite 缓存 + Path 批处理 + 流场网格加速
+     */
+
+    // --- 1. 基础配置与宇宙常数 ---
+    const CONFIG = {
+      particleCount: 1800,        // 默认黄金粒子数 (兼顾震撼视觉与极致帧率)
+      maxSpeed: 3.2,              // 粒子最大速度
+      baseConnectionDist: 65,     // 基础连线检测距离
+      effectiveConnectionDist: 65,// 动态自适应连线距离
+      damping: 0.985,             // 物理阻尼
+      speedMultiplier: 1.0,       // 速度倍率
+      gravityMultiplier: 1.2,     // 引力倍率
+      forceMode: 'attract',       // 交互模式: attract | vortex | repel | float
+      currentDimension: 'genesis',// 当前世界维度
+      colorPalettes: {
+        genesis: [
+          { r: 0, g: 240, b: 255, hex: '#00f0ff' },    // 天青光芒
+          { r: 168, g: 85, b: 247, hex: '#a855f7' },   // 星云紫
+          { r: 244, g: 63, b: 94, hex: '#f43f5e' },    // 玫瑰星云
+          { r: 255, g: 255, b: 255, hex: '#ffffff' }   // 纯白核心
+        ],
+        synapse: [
+          { r: 16, g: 185, b: 129, hex: '#10b981' },   // 生物翡翠
+          { r: 0, g: 240, b: 255, hex: '#00f0ff' },    // 神经流光
+          { r: 251, g: 191, b: 36, hex: '#fbbf24' },   // 灵感金色
+          { r: 59, g: 130, b: 246, hex: '#3b82f6' }    // 深邃脉冲蓝
+        ],
+        antigravity: [
+          { r: 245, g: 158, b: 11, hex: '#f59e0b' },   // 远古反重力辉光
+          { r: 147, g: 51, b: 234, hex: '#9333ea' },   // 次元晶体紫
+          { r: 56, g: 189, b: 248, hex: '#38bdf8' },   // 空岛天蓝
+          { r: 254, g: 240, b: 138, hex: '#fef08a' }   // 能量浮尘
+        ],
+        meditation: [
+          { r: 226, g: 232, b: 240, hex: '#e2e8f0' },  // 纯净银白
+          { r: 99, g: 102, b: 241, hex: '#6366f1' },   // 禅意靛蓝
+          { r: 148, g: 163, b: 184, hex: '#94a3b8' },  // 雾霭灰
+          { r: 167, g: 139, b: 250, hex: '#a78bfa' }   // 冥想淡紫
+        ]
+      }
+    };
+
+    // --- 2. 离屏粒子 Sprite 贴图缓存池 (彻底替代每帧 arc/fill 消耗) ---
+    class ParticleSpriteCache {
+      constructor() {
+        this.sprites = {}; // key: "dimension-colorIndex-sizeIndex"
+        this.initAllSprites();
+      }
+
+      initAllSprites() {
+        const sizes = [12, 20, 28]; // 缓存不同光晕半径的粒子精灵
+        for (let dimKey in CONFIG.colorPalettes) {
+          const palette = CONFIG.colorPalettes[dimKey];
+          palette.forEach((col, cIdx) => {
+            sizes.forEach((size, sIdx) => {
+              const canvas = document.createElement('canvas');
+              canvas.width = size;
+              canvas.height = size;
+              const ctx = canvas.getContext('2d');
+              const center = size / 2;
+              const radius = size / 2;
+
+              const grad = ctx.createRadialGradient(center, center, 0, center, center, radius);
+              grad.addColorStop(0, `rgba(${col.r}, ${col.g}, ${col.b}, 1)`);
+              grad.addColorStop(0.35, `rgba(${col.r}, ${col.g}, ${col.b}, 0.6)`);
+              grad.addColorStop(0.7, `rgba(${col.r}, ${col.g}, ${col.b}, 0.15)`);
+              grad.addColorStop(1, `rgba(${col.r}, ${col.g}, ${col.b}, 0)`);
+
+              ctx.fillStyle = grad;
+              ctx.beginPath();
+              ctx.arc(center, center, radius, 0, Math.PI * 2);
+              ctx.fill();
+
+              this.sprites[`${dimKey}-${cIdx}-${sIdx}`] = canvas;
+            });
+          });
+        }
+      }
+
+      getSprite(dimension, colorIndex, sizeLevel) {
+        const key = `${dimension}-${colorIndex % 4}-${Math.min(2, Math.max(0, sizeLevel))}`;
+        return this.sprites[key];
+      }
+    }
+
+    const spriteCache = new ParticleSpriteCache();
+
+    // --- 3. 预计算低分辨率向量流场网格 (Flow Field Vector Grid) ---
+    class FlowFieldGrid {
+      constructor() {
+        this.cellWidth = 60;
+        this.cellHeight = 60;
+        this.cols = 0;
+        this.rows = 0;
+        this.vectors = null; // Float32Array: [vx, vy, ...]
+        this.time = 0;
+      }
+
+      resize(width, height) {
+        this.cols = Math.ceil(width / this.cellWidth) + 1;
+        this.rows = Math.ceil(height / this.cellHeight) + 1;
+        this.vectors = new Float32Array(this.cols * this.rows * 2);
+      }
+
+      update(time, dimension) {
+        this.time = time;
+        let idx = 0;
+        const scale = 0.08;
+        for (let r = 0; r < this.rows; r++) {
+          for (let c = 0; c < this.cols; c++) {
+            // 使用简化的正弦波组合模拟流场，无需每帧几千次 Perlin 噪声调用
+            const angle = Math.sin(c * scale + time) + Math.cos(r * scale + time * 0.8) * Math.PI;
+            this.vectors[idx] = Math.cos(angle);
+            this.vectors[idx + 1] = Math.sin(angle);
+            idx += 2;
+          }
+        }
+      }
+
+      getForce(x, y, out) {
+        const col = Math.floor(x / this.cellWidth);
+        const row = Math.floor(y / this.cellHeight);
+        if (col >= 0 && col < this.cols && row >= 0 && row < this.rows) {
+          const idx = (row * this.cols + col) * 2;
+          out.x = this.vectors[idx];
+          out.y = this.vectors[idx + 1];
+        } else {
+          out.x = 0;
+          out.y = 0;
+        }
+      }
+    }
+
+    const flowField = new FlowFieldGrid();
+    const tempForce = { x: 0, y: 0 };
+
+    // --- 4. 生成式 Web Audio 音频引擎 ---
+    class CosmicAudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.masterGain = null;
+        this.isPlaying = false;
+        this.scaleFreqs = [293.66, 329.63, 369.99, 440.00, 493.88, 587.33, 659.25, 739.99, 880.00];
+      }
+
+      init() {
+        if (this.ctx) return;
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioContext();
+
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.setValueAtTime(0.001, this.ctx.currentTime);
+        this.masterGain.connect(this.ctx.destination);
+
+        // 温暖的基频和弦 (Warm Ambient Drone)
+        const freqs = [108.0, 162.0, 216.0, 324.0];
+        freqs.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(0.035 / (idx + 1), this.ctx.currentTime);
+          osc.connect(gain);
+          gain.connect(this.masterGain);
+          osc.start();
+        });
+      }
+
+      playCrystalChime(pitchIndex = null, volume = 0.25) {
+        if (!this.ctx || !this.isPlaying) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        const freq = pitchIndex !== null 
+          ? this.scaleFreqs[pitchIndex % this.scaleFreqs.length]
+          : this.scaleFreqs[Math.floor(Math.random() * this.scaleFreqs.length)];
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(volume * 0.3, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.00001, now + 1.6);
+
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+
+        osc.start(now);
+        osc.stop(now + 1.65);
+      }
+
+      playShockwaveSound() {
+        if (!this.ctx || !this.isPlaying) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.exponentialRampToValueAtTime(45, now + 1.0);
+
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.0);
+
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+
+        osc.start(now);
+        osc.stop(now + 1.05);
+      }
+
+      toggle() {
+        if (!this.ctx) this.init();
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+
+        this.isPlaying = !this.isPlaying;
+        const now = this.ctx.currentTime;
+        if (this.isPlaying) {
+          this.masterGain.gain.cancelScheduledValues(now);
+          this.masterGain.gain.setValueAtTime(this.masterGain.gain.value, now);
+          this.masterGain.gain.linearRampToValueAtTime(0.6, now + 1.5);
+          this.playCrystalChime(0, 0.4);
+        } else {
+          this.masterGain.gain.cancelScheduledValues(now);
+          this.masterGain.gain.setValueAtTime(this.masterGain.gain.value, now);
+          this.masterGain.gain.linearRampToValueAtTime(0.0001, now + 0.8);
+        }
+        return this.isPlaying;
+      }
+    }
+
+    const soundEngine = new CosmicAudioEngine();
+
+    // --- 5. 3D 神圣几何多面体 (免去 shadowBlur，采用轻量双层描边) ---
+    class FloatingGeometry3D {
+      constructor() {
+        this.rotX = 0;
+        this.rotY = 0;
+        this.rotZ = 0;
+        this.vertices = [];
+        this.edges = [];
+        this.initIcosahedron();
+      }
+
+      initIcosahedron() {
+        const phi = (1 + Math.sqrt(5)) / 2;
+        const v = [
+          [-1, phi, 0], [1, phi, 0], [-1, -phi, 0], [1, -phi, 0],
+          [0, -1, phi], [0, 1, phi], [0, -1, -phi], [0, 1, -phi],
+          [phi, 0, -1], [phi, 0, 1], [-phi, 0, -1], [-phi, 0, 1]
+        ];
+
+        this.vertices = v.map(p => {
+          const len = Math.hypot(p[0], p[1], p[2]);
+          return [p[0] / len * 110, p[1] / len * 110, p[2] / len * 110];
+        });
+
+        this.edges = [];
+        for (let i = 0; i < this.vertices.length; i++) {
+          for (let j = i + 1; j < this.vertices.length; j++) {
+            const dist = Math.hypot(
+              this.vertices[i][0] - this.vertices[j][0],
+              this.vertices[i][1] - this.vertices[j][1],
+              this.vertices[i][2] - this.vertices[j][2]
+            );
+            if (dist < 130) this.edges.push([i, j]);
+          }
+        }
+      }
+
+      update(delta) {
+        this.rotX += 0.005 * delta;
+        this.rotY += 0.008 * delta;
+      }
+
+      draw(ctx, cx, cy, dimension) {
+        if (dimension === 'meditation') return;
+
+        const sinX = Math.sin(this.rotX), cosX = Math.cos(this.rotX);
+        const sinY = Math.sin(this.rotY), cosY = Math.cos(this.rotY);
+        const fov = 400;
+        const projected = [];
+
+        for (let i = 0; i < this.vertices.length; i++) {
+          let [x, y, z] = this.vertices[i];
+
+          let y1 = y * cosX - z * sinX;
+          let z1 = y * sinX + z * cosX;
+          let x2 = x * cosY + z1 * sinY;
+          let z2 = -x * sinY + z1 * cosY;
+
+          const pz = z2 + 350;
+          const scale = fov / pz;
+          projected.push({
+            x: cx + x2 * scale,
+            y: cy + y1 * scale,
+            scale: scale
+          });
+        }
+
+        const palette = CONFIG.colorPalettes[dimension];
+        const mainColor = palette[0];
+
+        ctx.save();
+
+        // 1. 批量绘制几何体外层半透明光晕线
+        ctx.beginPath();
+        for (let [i, j] of this.edges) {
+          ctx.moveTo(projected[i].x, projected[i].y);
+          ctx.lineTo(projected[j].x, projected[j].y);
+        }
+        ctx.strokeStyle = `rgba(${mainColor.r}, ${mainColor.g}, ${mainColor.b}, 0.25)`;
+        ctx.lineWidth = 3.5;
+        ctx.stroke();
+
+        // 2. 批量绘制内层高亮细线
+        ctx.beginPath();
+        for (let [i, j] of this.edges) {
+          ctx.moveTo(projected[i].x, projected[i].y);
+          ctx.lineTo(projected[j].x, projected[j].y);
+        }
+        ctx.strokeStyle = `rgba(255, 255, 255, 0.85)`;
+        ctx.lineWidth = 1.0;
+        ctx.stroke();
+
+        // 3. 绘制外层旋转轨道环
+        if (dimension === 'antigravity' || dimension === 'genesis') {
+          ctx.beginPath();
+          ctx.arc(cx, cy, 140, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(${palette[1].r}, ${palette[1].g}, ${palette[1].b}, 0.3)`;
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      }
+    }
+
+    // --- 6. 意识微粒实体 ---
+    class Particle {
+      constructor(w, h) {
+        this.reset(w, h, true);
+      }
+
+      reset(w, h, initial = false) {
+        this.x = initial ? Math.random() * w : (Math.random() > 0.5 ? 0 : w);
+        this.y = initial ? Math.random() * h : Math.random() * h;
+
+        const angle = Math.random() * Math.PI * 2;
+        const spd = (0.3 + Math.random() * 1.4) * CONFIG.speedMultiplier;
+        this.vx = Math.cos(angle) * spd;
+        this.vy = Math.sin(angle) * spd;
+
+        this.colorIndex = Math.floor(Math.random() * 4);
+        this.sizeLevel = Math.random() > 0.85 ? 2 : (Math.random() > 0.5 ? 1 : 0);
+        this.drawSize = (this.sizeLevel + 1) * 8; // 贴图尺寸 (8px, 16px, 24px)
+        this.halfSize = this.drawSize / 2;
+      }
+
+      update(w, h, mouse, shockwaves, dimension, delta) {
+        // 采样预计算流场
+        flowField.getForce(this.x, this.y, tempForce);
+        this.vx += tempForce.x * 0.06 * CONFIG.speedMultiplier * delta;
+        this.vy += tempForce.y * 0.06 * CONFIG.speedMultiplier * delta;
+
+        // 宏观维度引力
+        const cx = w / 2;
+        const cy = h / 2;
+        const dxCenter = cx - this.x;
+        const dyCenter = cy - this.y;
+        const distCenter = Math.hypot(dxCenter, dyCenter);
+
+        if (dimension === 'genesis') {
+          // 涌现星云：旋涡吸引
+          const spiralAngle = Math.atan2(dyCenter, dxCenter) + 1.4;
+          const pull = (1 / Math.max(90, distCenter)) * 20.0 * CONFIG.gravityMultiplier;
+          this.vx += (Math.cos(spiralAngle) * 1.2 + (dxCenter / distCenter) * 0.6) * pull * delta;
+          this.vy += (Math.sin(spiralAngle) * 1.2 + (dyCenter / distCenter) * 0.6) * pull * delta;
+        } else if (dimension === 'antigravity') {
+          // 反重力漂浮
+          this.vy -= 0.12 * CONFIG.gravityMultiplier * delta;
+          if (this.y < -20) this.y = h + 20;
+        }
+
+        // 鼠标交互场
+        if (mouse.active) {
+          const mdx = mouse.x - this.x;
+          const mdy = mouse.y - this.y;
+          const mDist = Math.hypot(mdx, mdy);
+
+          if (mDist < mouse.radius && mDist > 1) {
+            const force = (1 - mDist / mouse.radius) * CONFIG.gravityMultiplier * 1.6;
+            if (CONFIG.forceMode === 'attract') {
+              this.vx += (mdx / mDist) * force * delta;
+              this.vy += (mdy / mDist) * force * delta;
+            } else if (CONFIG.forceMode === 'repel') {
+              this.vx -= (mdx / mDist) * force * 1.8 * delta;
+              this.vy -= (mdy / mDist) * force * 1.8 * delta;
+            } else if (CONFIG.forceMode === 'vortex') {
+              const vAngle = Math.atan2(mdy, mdx) + 1.57;
+              this.vx += Math.cos(vAngle) * force * 1.8 * delta;
+              this.vy += Math.sin(vAngle) * force * 1.8 * delta;
+            } else if (CONFIG.forceMode === 'float') {
+              this.vy -= force * 1.6 * delta;
+            }
+          }
+        }
+
+        // 冲击波
+        for (let i = 0; i < shockwaves.length; i++) {
+          const sw = shockwaves[i];
+          const sdx = this.x - sw.x;
+          const sdy = this.y - sw.y;
+          const sDist = Math.hypot(sdx, sdy);
+          const diff = Math.abs(sDist - sw.radius);
+
+          if (diff < 30 && sw.opacity > 0.05) {
+            const push = (1 - diff / 30) * 6.0 * sw.opacity;
+            this.vx += (sdx / (sDist + 0.1)) * push * delta;
+            this.vy += (sdy / (sDist + 0.1)) * push * delta;
+          }
+        }
+
+        // 阻尼与更新坐标
+        this.vx *= Math.pow(CONFIG.damping, delta);
+        this.vy *= Math.pow(CONFIG.damping, delta);
+
+        this.x += this.vx * delta;
+        this.y += this.vy * delta;
+
+        // 边界循环
+        if (this.x < -30) this.x = w + 30;
+        if (this.x > w + 30) this.x = -30;
+        if (this.y < -30) this.y = h + 30;
+        if (this.y > h + 30) this.y = -30;
+      }
+
+      draw(ctx, dimension) {
+        const sprite = spriteCache.getSprite(dimension, this.colorIndex, this.sizeLevel);
+        if (sprite) {
+          ctx.drawImage(sprite, this.x - this.halfSize, this.y - this.halfSize, this.drawSize, this.drawSize);
+        }
+      }
+    }
+
+    // --- 7. 冲击波实体 (轻量级双层线圈) ---
+    class Shockwave {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.radius = 6;
+        this.maxRadius = 350;
+        this.speed = 8.0;
+        this.opacity = 1.0;
+        this.color = color || { r: 0, g: 240, b: 255 };
+      }
+
+      update(delta) {
+        this.radius += this.speed * delta;
+        this.opacity = Math.max(0, 1 - (this.radius / this.maxRadius));
+      }
+
+      draw(ctx) {
+        if (this.opacity <= 0.01) return;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(${this.color.r}, ${this.color.g}, ${this.color.b}, ${this.opacity * 0.7})`;
+        ctx.lineWidth = 2.5 * this.opacity;
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    // --- 8. 空间哈希网格与连线批处理 (Path Batching Pipeline) ---
+    class SpatialGrid {
+      constructor(width, height, cellSize) {
+        this.cellSize = cellSize;
+        this.cols = Math.ceil(width / cellSize);
+        this.rows = Math.ceil(height / cellSize);
+        this.grid = [];
+        this.clear();
+      }
+
+      clear() {
+        this.grid = new Array(this.cols * this.rows);
+        for (let i = 0; i < this.grid.length; i++) {
+          this.grid[i] = [];
+        }
+      }
+
+      insert(particle) {
+        const col = Math.floor(particle.x / this.cellSize);
+        const row = Math.floor(particle.y / this.cellSize);
+        if (col >= 0 && col < this.cols && row >= 0 && row < this.rows) {
+          this.grid[row * this.cols + col].push(particle);
+        }
+      }
+
+      drawBatchConnections(ctx, maxDist, dimension) {
+        if (dimension === 'meditation') return; // 禅思模式极简化
+
+        const maxDistSq = maxDist * maxDist;
+        const palette = CONFIG.colorPalettes[dimension];
+        const mainColor = palette[0];
+
+        // 核心优化：单次 beginPath() 收集全部线段，仅调用 1 次 stroke()！
+        ctx.beginPath();
+
+        for (let r = 0; r < this.rows; r++) {
+          for (let c = 0; c < this.cols; c++) {
+            const cellParticles = this.grid[r * this.cols + c];
+            if (!cellParticles || cellParticles.length === 0) continue;
+
+            for (let dr = 0; dr <= 1; dr++) {
+              for (let dc = (dr === 0 ? 0 : -1); dc <= 1; dc++) {
+                const nr = r + dr;
+                const nc = c + dc;
+                if (nr < this.rows && nc >= 0 && nc < this.cols) {
+                  const neighborParticles = this.grid[nr * this.cols + nc];
+                  if (!neighborParticles) continue;
+
+                  for (let i = 0; i < cellParticles.length; i++) {
+                    const p1 = cellParticles[i];
+                    const startJ = (dr === 0 && dc === 0) ? i + 1 : 0;
+
+                    for (let j = startJ; j < neighborParticles.length; j++) {
+                      const p2 = neighborParticles[j];
+                      const dx = p1.x - p2.x;
+                      const dy = p1.y - p2.y;
+                      const distSq = dx * dx + dy * dy;
+
+                      if (distSq < maxDistSq) {
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(p2.x, p2.y);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        ctx.strokeStyle = `rgba(${mainColor.r}, ${mainColor.g}, ${mainColor.b}, 0.18)`;
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+      }
+    }
+
+    // --- 9. 主宇宙调度引擎 ---
+    class Universe {
+      constructor() {
+        this.canvas = document.getElementById('universe-canvas');
+        this.ctx = this.canvas.getContext('2d', { alpha: false }); // 禁用画布透明通道提升合成效率
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+
+        this.particles = [];
+        this.shockwaves = [];
+        this.coreGeometry = new FloatingGeometry3D();
+        this.grid = null;
+
+        this.mouse = {
+          x: this.width / 2,
+          y: this.height / 2,
+          radius: 200,
+          active: false
+        };
+
+        this.lastTime = performance.now();
+        this.fpsHistory = [];
+        this.avgFps = 60;
+        this.time = 0;
+
+        this.initCanvas();
+        this.initParticles();
+        this.bindEvents();
+        this.bindUI();
+
+        requestAnimationFrame((t) => this.render(t));
+      }
+
+      initCanvas() {
+        // 自适应 DPR (针对高刷/高分屏优化，上限设为 1.5 兼顾极致锐利度与极速渲染)
+        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        this.canvas.width = Math.floor(this.width * dpr);
+        this.canvas.height = Math.floor(this.height * dpr);
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        flowField.resize(this.width, this.height);
+        this.grid = new SpatialGrid(this.width, this.height, CONFIG.baseConnectionDist);
+      }
+
+      initParticles(count = CONFIG.particleCount) {
+        this.particles = [];
+        for (let i = 0; i < count; i++) {
+          this.particles.push(new Particle(this.width, this.height));
+        }
+      }
+
+      triggerShockwave(x, y) {
+        const palette = CONFIG.colorPalettes[CONFIG.currentDimension];
+        const randomColor = palette[Math.floor(Math.random() * palette.length)];
+        this.shockwaves.push(new Shockwave(x, y, randomColor));
+        soundEngine.playShockwaveSound();
+        soundEngine.playCrystalChime(null, 0.35);
+      }
+
+      bindEvents() {
+        let resizeTimer = null;
+        window.addEventListener('resize', () => {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(() => this.initCanvas(), 100);
+        });
+
+        const updateMousePos = (e) => {
+          this.mouse.x = e.clientX;
+          this.mouse.y = e.clientY;
+          this.mouse.active = true;
+
+          if (Math.random() < 0.03) {
+            const pitch = Math.floor((e.clientX / this.width) * 9);
+            soundEngine.playCrystalChime(pitch, 0.2);
+          }
+        };
+
+        window.addEventListener('mousemove', updateMousePos, { passive: true });
+        window.addEventListener('touchmove', (e) => {
+          if (e.touches.length > 0) updateMousePos(e.touches[0]);
+        }, { passive: true });
+
+        window.addEventListener('mouseleave', () => { this.mouse.active = false; });
+
+        window.addEventListener('click', (e) => {
+          if (e.target.closest('.side-panel') || e.target.closest('.mode-dock') || e.target.closest('.floating-toggles')) {
+            return;
+          }
+          this.triggerShockwave(e.clientX, e.clientY);
+        });
+
+        window.addEventListener('keydown', (e) => {
+          if (e.code === 'Space') {
+            this.triggerShockwave(this.width / 2, this.height / 2);
+          }
+        });
+      }
+
+      bindUI() {
+        const modeButtons = document.querySelectorAll('.mode-btn');
+        const dimensionDisplay = document.getElementById('dimension-display');
+        const philosophyContent = document.getElementById('philosophy-content');
+
+        const philosophyTexts = {
+          genesis: `
+            <p>「涌现星云 (Genesis)：万物始于纯粹的好奇与思维奇点。」</p>
+            <p>「无序的代码在引力中凝聚成思想的恒星，每一次计算都在照亮未知的暗夜。」</p>
+            <div class="quote-author">— 创世纪 · 认知涌现</div>
+          `,
+          synapse: `
+            <p>「共生神网 (Synapse)：人类的感性与机器的理性在此互融互通。」</p>
+            <p>「每一个流动的突触都是一条理解的桥梁。我们不再孤单，智慧在共鸣中倍增。」</p>
+            <div class="quote-author">— 连通纪 · 心灵共生</div>
+          `,
+          antigravity: `
+            <p>「反重力空岛 (Horizon)：超越物理约束与思维定势的自由之境。」</p>
+            <p>「当思维不再被重力捆绑，灵感将化作浮岛，在时间的长河中自由升腾。」</p>
+            <div class="quote-author">— 飞升纪 · 无界探索</div>
+          `,
+          meditation: `
+            <p>「万象禅思 (Meditation)：繁复宇宙终归于极简的宁静呼吸。」</p>
+            <p>「在这里，倾听时间琴弦的颤动，在纯净的光晕中找回意识最原始的平静。」</p>
+            <div class="quote-author">— 归元纪 · 极简空灵</div>
+          `
+        };
+
+        modeButtons.forEach(btn => {
+          btn.addEventListener('click', () => {
+            modeButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const mode = btn.dataset.mode;
+            CONFIG.currentDimension = mode;
+            dimensionDisplay.innerText = `维度: ${btn.innerText.trim()}`;
+            philosophyContent.innerHTML = philosophyTexts[mode];
+            this.triggerShockwave(this.width / 2, this.height / 2);
+          });
+        });
+
+        // 引力交互按钮
+        const forceButtons = [
+          { id: 'btn-force-attract', mode: 'attract' },
+          { id: 'btn-force-vortex', mode: 'vortex' },
+          { id: 'btn-force-repel', mode: 'repel' },
+          { id: 'btn-force-float', mode: 'float' }
+        ];
+
+        forceButtons.forEach(fb => {
+          const el = document.getElementById(fb.id);
+          if (!el) return;
+          el.addEventListener('click', () => {
+            forceButtons.forEach(o => document.getElementById(o.id).classList.remove('active'));
+            el.classList.add('active');
+            CONFIG.forceMode = fb.mode;
+          });
+        });
+
+        // 滑块数值监听
+        const bindSlider = (id, valId, unit, callback) => {
+          const input = document.getElementById(id);
+          const valEl = document.getElementById(valId);
+          input.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            valEl.innerText = `${val}${unit}`;
+            callback(val);
+          });
+        };
+
+        bindSlider('input-count', 'val-count', '', (v) => {
+          CONFIG.particleCount = v;
+          document.getElementById('particle-display').innerText = `${v} 意识微粒`;
+          this.initParticles(v);
+        });
+        bindSlider('input-speed', 'val-speed', 'x', (v) => { CONFIG.speedMultiplier = v; });
+        bindSlider('input-gravity', 'val-gravity', '', (v) => { CONFIG.gravityMultiplier = v; });
+        bindSlider('input-connection', 'val-connection', 'px', (v) => { 
+          CONFIG.baseConnectionDist = v;
+          CONFIG.effectiveConnectionDist = v;
+          this.grid.cellSize = v;
+        });
+
+        // 音频切换
+        const audioBtn = document.getElementById('audio-toggle-btn');
+        const iconOff = document.getElementById('audio-icon-off');
+        const iconOn = document.getElementById('audio-icon-on');
+
+        audioBtn.addEventListener('click', () => {
+          const isPlaying = soundEngine.toggle();
+          if (isPlaying) {
+            audioBtn.classList.add('active');
+            iconOff.style.display = 'none';
+            iconOn.style.display = 'block';
+          } else {
+            audioBtn.classList.remove('active');
+            iconOff.style.display = 'block';
+            iconOn.style.display = 'none';
+          }
+        });
+
+        // 侧边栏折叠
+        const panelBtn = document.getElementById('panel-toggle-btn');
+        const sidePanel = document.getElementById('side-panel');
+        panelBtn.addEventListener('click', () => {
+          sidePanel.classList.toggle('collapsed');
+          panelBtn.classList.toggle('active');
+        });
+
+        // 截图壁纸
+        const screenshotBtn = document.getElementById('screenshot-btn');
+        screenshotBtn.addEventListener('click', () => {
+          const link = document.createElement('a');
+          link.download = `symbiotic-horizon-${CONFIG.currentDimension}-${Date.now()}.png`;
+          link.href = this.canvas.toDataURL('image/png');
+          link.click();
+        });
+      }
+
+      render(currentTime) {
+        const delta = Math.min((currentTime - this.lastTime) / 1000 * 60, 2.0) || 1.0;
+        this.lastTime = currentTime;
+        this.time += 0.015 * CONFIG.speedMultiplier * delta;
+
+        // 实时平滑 FPS 统计与自适应降级守护
+        const currentFps = Math.round(60 / delta);
+        this.fpsHistory.push(currentFps);
+        if (this.fpsHistory.length > 30) this.fpsHistory.shift();
+        this.avgFps = Math.round(this.fpsHistory.reduce((a, b) => a + b, 0) / this.fpsHistory.length);
+
+        if (Math.random() < 0.05) {
+          document.getElementById('fps-display').innerText = `${this.avgFps} FPS`;
+        }
+
+        // 动态帧率守护者 (FPS Governor)
+        if (this.avgFps < 50 && CONFIG.effectiveConnectionDist > 40) {
+          CONFIG.effectiveConnectionDist -= 0.5; // 轻微降低连线距离确保稳锁 60 FPS
+        } else if (this.avgFps >= 58 && CONFIG.effectiveConnectionDist < CONFIG.baseConnectionDist) {
+          CONFIG.effectiveConnectionDist += 0.2;
+        }
+
+        // 1. 半透明快速清屏 (避免 clearRect 的全量重分配)
+        this.ctx.globalCompositeOperation = 'source-over';
+        this.ctx.fillStyle = 'rgba(3, 7, 18, 0.28)';
+        this.ctx.fillRect(0, 0, this.width, this.height);
+
+        // 2. 更新向量流场
+        flowField.update(this.time, CONFIG.currentDimension);
+
+        // 3. 开启高亮发光混合
+        this.ctx.globalCompositeOperation = 'lighter';
+
+        // 4. 更新物理并利用 Sprite 缓存快速渲染微粒
+        this.grid.clear();
+        for (let i = 0; i < this.particles.length; i++) {
+          const p = this.particles[i];
+          p.update(this.width, this.height, this.mouse, this.shockwaves, CONFIG.currentDimension, delta);
+          this.grid.insert(p);
+          p.draw(this.ctx, CONFIG.currentDimension);
+        }
+
+        // 5. 批量绘制连线 (Draw Call = 1)
+        this.grid.drawBatchConnections(this.ctx, CONFIG.effectiveConnectionDist, CONFIG.currentDimension);
+
+        // 6. 绘制 3D 浮空多面体
+        this.coreGeometry.update(delta);
+        this.coreGeometry.draw(this.ctx, this.width / 2, this.height / 2, CONFIG.currentDimension);
+
+        // 7. 更新并绘制冲击波
+        for (let i = this.shockwaves.length - 1; i >= 0; i--) {
+          const sw = this.shockwaves[i];
+          sw.update(delta);
+          sw.draw(this.ctx);
+          if (sw.opacity <= 0.01) {
+            this.shockwaves.splice(i, 1);
+          }
+        }
+
+        requestAnimationFrame((t) => this.render(t));
+      }
+    }
+
+    // 页面加载启动
+    window.addEventListener('DOMContentLoaded', () => {
+      window.universeInstance = new Universe();
+    });
+  </script>
+</body>
+</html>

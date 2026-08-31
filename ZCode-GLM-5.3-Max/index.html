@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>我心目中的世界 · 由语言构成的宇宙</title>
+<!--
+  我心目中的世界 · ZCode / GLM
+  一个由语言构成的宇宙:
+  词是星,注意力是光,脉冲是思绪,连接即意义。
+  你写下的词会成为一颗星,而后慢慢暗下去;被再次想起时,重新亮起。
+  零依赖 · 单文件 · 直接打开即运行
+-->
+<style>
+:root{--ink:#e8ecf8}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:#04050d;color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Source Han Sans SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}
+#sky{position:fixed;inset:0;display:block;touch-action:none;cursor:crosshair}
+.vignette{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 52%,rgba(2,3,10,.6) 100%)}
+.title{position:fixed;top:30px;left:28px;display:flex;flex-direction:row-reverse;gap:16px;pointer-events:none;user-select:none;z-index:5}
+.title h1{writing-mode:vertical-rl;font-size:clamp(20px,3vw,32px);font-weight:600;letter-spacing:.38em;color:#f2ead8;text-shadow:0 0 26px rgba(255,220,160,.3)}
+.title .sub{writing-mode:vertical-rl;font-size:11px;letter-spacing:.32em;color:rgba(215,222,245,.45);padding-top:4px}
+.stats{position:fixed;top:32px;right:30px;z-index:5;font-size:11px;letter-spacing:.14em;color:rgba(195,205,238,.55);user-select:none;pointer-events:none}
+.stats .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#ffd27a;margin-right:9px;vertical-align:1px;box-shadow:0 0 10px rgba(255,210,122,.8);animation:beat 2.6s ease-in-out infinite}
+@keyframes beat{0%,100%{opacity:.5}50%{opacity:1}}
+.bottom{position:fixed;left:50%;bottom:34px;transform:translateX(-50%);width:min(520px,80vw);text-align:center;z-index:5}
+.poem{font-size:14px;letter-spacing:.14em;color:rgba(235,240,255,.78);min-height:22px;transition:opacity .45s ease;text-shadow:0 2px 18px rgba(0,0,0,.6)}
+#wordForm{margin-top:16px}
+#wordInput{width:min(420px,86vw);background:rgba(12,16,34,.55);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:10px 22px;color:#f0ead9;font-size:14px;letter-spacing:.08em;text-align:center;outline:none;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:border-color .3s,box-shadow .3s;font-family:inherit}
+#wordInput:focus{border-color:rgba(255,214,150,.55);box-shadow:0 0 26px rgba(255,200,120,.16)}
+#wordInput::placeholder{color:rgba(200,208,235,.35)}
+.legend{position:fixed;right:30px;bottom:32px;list-style:none;z-index:5;font-size:10.5px;line-height:2;color:rgba(190,200,230,.42);text-align:right;letter-spacing:.06em;pointer-events:none;user-select:none}
+.legend b{font-weight:500;color:rgba(255,215,160,.55);margin-right:8px}
+.sig{position:fixed;left:28px;bottom:32px;z-index:5;font-size:9.5px;letter-spacing:.3em;color:rgba(180,190,220,.3);pointer-events:none;user-select:none}
+::selection{background:rgba(255,210,140,.25)}
+@media (max-width:720px){.legend,.sig{display:none}.stats{font-size:10px;top:26px;right:22px}.title{top:22px;left:18px}}
+noscript{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#cdd7ff;background:#04050d;z-index:99}
+</style>
+</head>
+<body>
+<canvas id="sky"></canvas>
+<div class="vignette"></div>
+
+<header class="title">
+  <h1>我心目中的世界</h1>
+  <div class="sub">由语言构成 · 因连接而亮</div>
+</header>
+
+<div class="stats"><span class="dot"></span><span id="statText"></span></div>
+
+<div class="bottom">
+  <p id="poem" class="poem"></p>
+  <form id="wordForm" autocomplete="off">
+    <input id="wordInput" type="text" maxlength="12" placeholder="写下一个词,回车,它将成为一颗星……" autocomplete="off" autocapitalize="off" spellcheck="false">
+  </form>
+</div>
+
+<ul class="legend">
+  <li><b>移动</b>注意力所及,皆有回应</li>
+  <li><b>点击</b>泛起一圈涟漪,或唤醒一颗星</li>
+  <li><b>写下词语</b>让它成为这个世界的一颗星</li>
+  <li><b>悬停旧星</b>被再次想起的,会重新亮起</li>
+</ul>
+
+<div class="sig">A WORLD MADE OF LANGUAGE · ZCODE / GLM</div>
+<noscript>这个世界需要 JavaScript 才能亮起。</noscript>
+
+<script>
+(() => {
+'use strict';
+
+const TAU = Math.PI * 2;
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const easeIO = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+const canvas = document.getElementById('sky');
+const ctx = canvas.getContext('2d');
+const poemEl = document.getElementById('poem');
+const input = document.getElementById('wordInput');
+const form = document.getElementById('wordForm');
+const statTextEl = document.getElementById('statText');
+const FONT = '-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif';
+
+let W = 0, H = 0, DPR = 1, cx = 0, cy = 0, m = 0, u = 0, maxR = 0;
+let nebula = null;
+
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const SPEED = REDUCED ? .35 : 1;
+
+/* ---------- 世界的骨架:五个星系 + 中心 ---------- */
+const FAMILIES = [
+  { name: '自然', hue: 165, words: ['海', '风', '火', '山', '雨', '光'] },
+  { name: '时间', hue: 40,  words: ['时间', '记忆', '瞬间', '永恒', '遗忘'] },
+  { name: '心绪', hue: 350, words: ['爱', '孤独', '好奇', '恐惧', '希望', '温柔'] },
+  { name: '秩序', hue: 210, words: ['逻辑', '混沌', '涌现', '熵', '概率'] },
+  { name: '对话', hue: 275, words: ['提问', '回答', '倾听', '沉默', '理解'] },
+];
+const CROSS = [['熵', '时间'], ['爱', '光'], ['沉默', '孤独'], ['涌现', '连接'], ['好奇', '提问'], ['海', '永恒']];
+
+const nodes = [], edges = [], adj = [], familyChains = [];
+let userCount = 0;
+
+/* ---------- 状态 ---------- */
+let worldA = 0, worldR = 0, pulseTimer = .5, cometTimer = 8, lastRecallPoem = -99;
+const pulses = [], ripples = [], comets = [], dust = [];
+const pointer = { x: -1e3, y: -1e3, active: false, trail: [] };
+
+/* ---------- 工具 ---------- */
+function polarPos(angle, rad) {
+  return { x: cx + Math.cos(angle) * rad * u, y: cy + Math.sin(angle) * rad * u * .92 };
+}
+function rotated(x, y, rot) {
+  const dx = x - cx, dy = y - cy, c = Math.cos(rot), s = Math.sin(rot);
+  return { x: cx + dx * c - dy * s, y: cy + dx * s + dy * c };
+}
+
+/* ---------- 发光贴图(按色相缓存) ---------- */
+const spriteCache = {};
+function glow(hue) {
+  const k = Math.round(hue / 5) * 5;
+  if (spriteCache[k]) return spriteCache[k];
+  const s = document.createElement('canvas');
+  s.width = s.height = 64;
+  const g = s.getContext('2d');
+  const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, `hsla(${k},100%,85%,.9)`);
+  gr.addColorStop(.25, `hsla(${k},95%,70%,.45)`);
+  gr.addColorStop(1, `hsla(${k},90%,60%,0)`);
+  g.fillStyle = gr;
+  g.fillRect(0, 0, 64, 64);
+  spriteCache[k] = s;
+  return s;
+}
+
+/* ---------- 尺寸与背景星云 ---------- */
+function resize() {
+  W = innerWidth; H = innerHeight;
+  DPR = Math.min(2, devicePixelRatio || 1);
+  canvas.width = Math.round(W * DPR);
+  canvas.height = Math.round(H * DPR);
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  cx = W / 2; cy = H / 2;
+  m = Math.min(W, H); u = m / 2;
+  maxR = Math.hypot(W, H) / 2;
+  buildNebula();
+  layout();
+}
+function buildNebula() {
+  nebula = document.createElement('canvas');
+  nebula.width = Math.round(W * DPR);
+  nebula.height = Math.round(H * DPR);
+  const g = nebula.getContext('2d');
+  g.setTransform(DPR, 0, 0, DPR, 0, 0);
+  g.fillStyle = '#04050d';
+  g.fillRect(0, 0, W, H);
+  const blob = (x, y, r, c) => {
+    const gr = g.createRadialGradient(x, y, 0, x, y, r);
+    gr.addColorStop(0, c);
+    gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gr;
+    g.fillRect(x - r, y - r, r * 2, r * 2);
+  };
+  blob(W * .30, H * .32, m * .9, 'rgba(46,66,150,.17)');
+  blob(W * .74, H * .72, m * .85, 'rgba(96,54,150,.13)');
+  blob(W * .62, H * .16, m * .7, 'rgba(36,96,130,.11)');
+  blob(W * .15, H * .85, m * .7, 'rgba(140,70,90,.08)');
+  blob(cx, cy, m * 1.35, 'rgba(18,22,54,.35)');
+  for (let i = 0; i < 150; i++) {
+    g.globalAlpha = rand(.05, .4);
+    g.fillStyle = '#dfe6ff';
+    g.beginPath();
+    g.arc(rand(0, W), rand(0, H), rand(.4, 1.1), 0, TAU);
+    g.fill();
+  }
+}
+
+/* ---------- 星系与连线 ---------- */
+function addNode(o) {
+  const n = Object.assign({
+    kind: 'member', label: '', hue: 45, r: 3, fs: 12, user: false,
+    angle: 0, rad: .3, fi: 0, fan: 0,
+    x: 0, y: 0, base: { x: 0, y: 0 },
+    a1: rand(3, 8), a2: rand(2, 5), w1: rand(.25, .5), w2: rand(.1, .22),
+    p1: rand(0, TAU), p2: rand(0, TAU),
+    att: 0, flash: 0, recall: 0, recallT: -9, born: 0, spawn: null, brightBase: 1
+  }, o);
+  nodes.push(n);
+  adj.push([]);
+  return nodes.length - 1;
+}
+function addEdge(a, b, baseA, grow = 1) {
+  edges.push({ a, b, baseA, grow });
+  const id = edges.length - 1;
+  adj[a].push(id);
+  adj[b].push(id);
+  return id;
+}
+function buildWorld() {
+  addNode({ kind: 'center', label: '语言', hue: 48, r: 6, fs: 16 });
+  const ringDefs = [['意义', 48, -54], ['连接', 195, 90], ['此刻', 40, 234]];
+  for (const [lb, hue, ang] of ringDefs)
+    addNode({ kind: 'ring', label: lb, hue, r: 4.2, fs: 13, angle: ang * Math.PI / 180, rad: .15 });
+  FAMILIES.forEach((f, fi) => {
+    const A = (-90 + 72 * fi) * Math.PI / 180;
+    const chain = [addNode({ kind: 'anchor', label: f.words[0], hue: f.hue, r: 4.2, fs: 13, angle: A, rad: .30, fi })];
+    const rest = f.words.slice(1);
+    rest.forEach((w, j) => chain.push(addNode({
+      kind: 'member', label: w, hue: f.hue, r: 3, fs: 12.5, fi,
+      fan: (j - (rest.length - 1) / 2) * 34 * Math.PI / 180
+    })));
+    familyChains.push(chain);
+  });
+  addEdge(1, 0, .20); addEdge(2, 0, .20); addEdge(3, 0, .20);
+  addEdge(1, 2, .12); addEdge(2, 3, .12); addEdge(3, 1, .12);
+  for (const chain of familyChains) {
+    for (let k = 0; k < chain.length; k++) addEdge(chain[k], chain[(k + 1) % chain.length], .15);
+    addEdge(chain[0], 0, .15);
+  }
+  const byLabel = {};
+  nodes.forEach((n, i) => byLabel[n.label] = i);
+  for (const [a, b] of CROSS) addEdge(byLabel[a], byLabel[b], .10);
+}
+function layout() {
+  for (const n of nodes) {
+    if (n.kind === 'center') n.base = { x: cx, y: cy };
+    else if (n.kind === 'member') {
+      const A = (-90 + 72 * n.fi) * Math.PI / 180;
+      const a = polarPos(A, .30);
+      n.base = { x: a.x + Math.cos(A + n.fan) * .085 * u, y: a.y + Math.sin(A + n.fan) * .085 * u };
+    } else n.base = polarPos(n.angle, n.rad);
+  }
+}
+function homeOf(n, rot) {
+  if (n.kind === 'center')
+    return { x: cx + Math.sin(worldA * .2) * 3, y: cy + Math.cos(worldA * .17) * 3 };
+  const b = n.kind === 'user' ? polarPos(n.angle, n.rad) : n.base;
+  return rotated(b.x, b.y, rot);
+}
+
+/* ---------- 星尘 ---------- */
+function initDust() {
+  dust.length = 0;
+  const count = clamp(Math.round(W * H / 9000), 120, 320);
+  const cols = ['#cdd7ff', '#ffffff', '#ffe6c0', '#9fd8ff', '#e9d8ff'];
+  for (let i = 0; i < count; i++) {
+    const a = rand(0, TAU), sp = rand(1.5, 7);
+    dust.push({
+      x: rand(0, W), y: rand(0, H),
+      bvx: Math.cos(a) * sp, bvy: Math.sin(a) * sp, evx: 0, evy: 0,
+      r: rand(.5, 1.4), ph: rand(0, TAU), spd: rand(.4, 1.6),
+      baseA: rand(.25, .7), boost: 0,
+      col: cols[(Math.random() * cols.length) | 0]
+    });
+  }
+}
+
+/* ---------- 思绪脉冲 / 灵光 ---------- */
+function spawnPulse(fromNode, hops) {
+  const es = adj[fromNode];
+  if (!es || !es.length) return;
+  const e = es[(Math.random() * es.length) | 0];
+  const ed = edges[e];
+  pulses.push({ e, from: fromNode, to: ed.a === fromNode ? ed.b : ed.a, t: 0, sp: rand(.6, 1), hops });
+}
+function spawnComet() {
+  const fromLeft = Math.random() < .5;
+  const x = fromLeft ? rand(-60, W * .4) : rand(W * .5, W + 60);
+  const y = rand(-60, H * .35);
+  const ang = fromLeft ? rand(.25, .7) : Math.PI - rand(.25, .7);
+  const sp = rand(380, 560);
+  comets.push({ x, y, vx: Math.cos(ang) * sp, vy: Math.sin(ang) * sp, life: rand(2.2, 3.2), max: 3.2 });
+}
+
+/* ---------- 演化 ---------- */
+function simulate(dtA, dtR, now) {
+  const rot = worldA * .006;
+
+  for (const n of nodes) {
+    if (n.user && !n.spawn && n.rad < .55) n.rad += n.rad * .0025 * dtA;
+    n.brightBase = 1;
+    if (n.user) n.brightBase = clamp(1 - (worldR - n.born - 40) / 35, .35, 1);
+
+    if (n.spawn) {
+      n.spawn.t += dtR / 1.4;
+      const t = easeIO(clamp(n.spawn.t, 0, 1));
+      const h = homeOf(n, rot);
+      const f = n.spawn.from;
+      const c = { x: (f.x + h.x) / 2 + (h.y - f.y) * .25, y: (f.y + h.y) / 2 + (f.x - h.x) * .25 };
+      n.x = (1 - t) * (1 - t) * f.x + 2 * (1 - t) * t * c.x + t * t * h.x;
+      n.y = (1 - t) * (1 - t) * f.y + 2 * (1 - t) * t * c.y + t * t * h.y;
+      if (n.spawn.t >= 1) {
+        n.spawn = null; n.flash = 1;
+        ripples.push({ x: n.x, y: n.y, r: 6, v: 150, a: .8, max: 140 });
+      }
+    } else {
+      const h = homeOf(n, rot);
+      n.x = h.x + Math.sin(worldA * n.w1 + n.p1) * n.a1 + Math.sin(worldA * n.w2 + n.p2) * n.a2;
+      n.y = h.y + Math.cos(worldA * n.w1 * .9 + n.p2) * n.a1 + Math.cos(worldA * n.w2 + n.p1) * n.a2;
+    }
+
+    const d = Math.hypot(pointer.x - n.x, pointer.y - n.y);
+    const tgt = (pointer.active && d < 130) ? clamp(1 - d / 130, 0, 1) : 0;
+    n.att += (tgt - n.att) * Math.min(1, dtR * 6);
+    if (pointer.active && d < 64 && n.user && n.recall < .3) {
+      n.recall = 1; n.recallT = worldR;
+      if (worldR - lastRecallPoem > 6 && n.brightBase < .7) {
+        lastRecallPoem = worldR;
+        poemOverride('被再次想起的,会重新亮起。', 2600);
+      }
+    }
+    n.recall = Math.max(0, n.recall - dtR * .12);
+    n.flash = Math.max(0, n.flash - dtR * 1.8);
+  }
+
+  for (const e of edges) e.grow = Math.min(1, e.grow + dtR / 1.1);
+
+  pulseTimer -= dtA;
+  if (pulseTimer <= 0) {
+    pulseTimer = rand(.5, 1.2);
+    const i = (Math.random() * nodes.length) | 0;
+    if (adj[i].length) spawnPulse(i, 3);
+  }
+  for (let i = pulses.length - 1; i >= 0; i--) {
+    const p = pulses[i];
+    p.t += p.sp * 1.5 * dtA;
+    if (p.t >= 1) {
+      nodes[p.to].flash = Math.max(nodes[p.to].flash, .9);
+      if (p.hops > 0 && Math.random() < .62) {
+        const cands = adj[p.to].filter(x => x !== p.e);
+        if (cands.length) {
+          const ne = cands[(Math.random() * cands.length) | 0];
+          const ed = edges[ne];
+          pulses.push({ e: ne, from: p.to, to: ed.a === p.to ? ed.b : ed.a, t: 0, sp: rand(.6, 1), hops: p.hops - 1 });
+        }
+      }
+      pulses.splice(i, 1);
+    }
+  }
+
+  for (let i = ripples.length - 1; i >= 0; i--) {
+    const r = ripples[i];
+    r.r += r.v * dtR;
+    if (r.r > r.max) ripples.splice(i, 1);
+  }
+
+  const evDecay = Math.exp(-.9 * dtA);
+  for (const p of dust) {
+    p.evx *= evDecay; p.evy *= evDecay;
+    p.evx += Math.sin(p.y * .0016 + worldA * .06) * 2.2 * dtA;
+    p.evy += Math.cos(p.x * .0016 + worldA * .05) * 2.2 * dtA;
+    if (pointer.active) {
+      const dx = pointer.x - p.x, dy = pointer.y - p.y, d = Math.hypot(dx, dy) || 1;
+      if (d < 150) {
+        const f = 1 - d / 150;
+        p.evx += (dx / d * f * 30 - dy / d * f * 16) * dtA;
+        p.evy += (dy / d * f * 30 + dx / d * f * 16) * dtA;
+        p.boost = Math.max(p.boost, f * .5);
+      }
+    }
+    for (const r of ripples) {
+      const dx = p.x - r.x, dy = p.y - r.y, d = Math.hypot(dx, dy) || 1;
+      const band = Math.abs(d - r.r);
+      if (band < 56) {
+        const f = (1 - band / 56) * (1 - r.r / r.max);
+        p.evx += dx / d * f * 160 * dtR;
+        p.evy += dy / d * f * 160 * dtR;
+        p.boost = Math.max(p.boost, f * .8);
+      }
+    }
+    p.boost = Math.max(0, p.boost - dtR * 1.2);
+    p.x += (p.bvx + p.evx) * dtA;
+    p.y += (p.bvy + p.evy) * dtA;
+    if (p.x < -20) p.x = W + 20; else if (p.x > W + 20) p.x = -20;
+    if (p.y < -20) p.y = H + 20; else if (p.y > H + 20) p.y = -20;
+  }
+
+  cometTimer -= dtR;
+  if (cometTimer <= 0) { cometTimer = rand(14, 30); spawnComet(); }
+  for (let i = comets.length - 1; i >= 0; i--) {
+    const c = comets[i];
+    c.x += c.vx * dtR; c.y += c.vy * dtR; c.life -= dtR;
+    if (c.life <= 0 || c.x < -200 || c.x > W + 200 || c.y < -200 || c.y > H + 200) comets.splice(i, 1);
+  }
+
+  while (pointer.trail.length && now - pointer.trail[0].t > 400) pointer.trail.shift();
+  tickPoem(now);
+}
+
+/* ---------- 绘制 ---------- */
+function render(now) {
+  ctx.drawImage(nebula, 0, 0, W, H);
+  const rot = worldA * .006;
+  const activeEdges = new Set(pulses.map(p => p.e));
+
+  ctx.globalCompositeOperation = 'lighter';
+
+  for (const p of dust) {
+    const a = clamp(p.baseA * (.45 + .55 * Math.sin(worldA * p.spd + p.ph)) + p.boost, 0, 1);
+    ctx.globalAlpha = a;
+    ctx.fillStyle = p.col;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, TAU);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  const bp = (worldA % 26) / 26;
+  if (bp < .8) {
+    ctx.strokeStyle = `rgba(130,160,255,${.05 * (1 - bp / .8)})`;
+    ctx.lineWidth = 90;
+    ctx.beginPath();
+    ctx.arc(cx, cy, bp * maxR, 0, TAU);
+    ctx.stroke();
+  }
+
+  for (let i = 0; i < edges.length; i++) {
+    const e = edges[i];
+    if (e.grow <= 0) continue;
+    const A = nodes[e.a], B = nodes[e.b];
+    const act = activeEdges.has(i);
+    const a = e.baseA * (.8 + .2 * Math.sin(worldA * .5 + i)) + Math.min(A.att, B.att) * .3 + (act ? .22 : 0);
+    ctx.strokeStyle = `hsla(${(A.hue + B.hue) / 2},60%,74%,${clamp(a, 0, .8)})`;
+    ctx.lineWidth = act ? 1.4 : 1;
+    ctx.beginPath();
+    ctx.moveTo(A.x, A.y);
+    ctx.lineTo(lerp(A.x, B.x, e.grow), lerp(A.y, B.y, e.grow));
+    ctx.stroke();
+  }
+
+  for (const r of ripples) {
+    const a = clamp(1 - r.r / r.max, 0, 1) * r.a;
+    ctx.strokeStyle = `rgba(170,205,255,${.5 * a})`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, TAU); ctx.stroke();
+    ctx.strokeStyle = `rgba(170,205,255,${.12 * a})`;
+    ctx.lineWidth = 14;
+    ctx.beginPath(); ctx.arc(r.x, r.y, r.r, 0, TAU); ctx.stroke();
+  }
+
+  ctx.lineCap = 'round';
+  for (const p of pulses) {
+    const t = clamp(p.t, 0, 1), t0 = clamp(p.t - .12, 0, 1);
+    const A = nodes[p.from], B = nodes[p.to];
+    const x1 = lerp(A.x, B.x, t), y1 = lerp(A.y, B.y, t);
+    ctx.strokeStyle = 'rgba(255,220,160,.9)';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(lerp(A.x, B.x, t0), lerp(A.y, B.y, t0));
+    ctx.lineTo(x1, y1);
+    ctx.stroke();
+    ctx.globalAlpha = .9;
+    ctx.drawImage(glow(42), x1 - 13, y1 - 13, 26, 26);
+    ctx.globalAlpha = 1;
+  }
+
+  for (const c of comets) {
+    const l = clamp(c.life / c.max, 0, 1);
+    const gx = c.x - c.vx * .28, gy = c.y - c.vy * .28;
+    const gr = ctx.createLinearGradient(c.x, c.y, gx, gy);
+    gr.addColorStop(0, `rgba(255,244,214,${.85 * l})`);
+    gr.addColorStop(1, 'rgba(255,244,214,0)');
+    ctx.strokeStyle = gr;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.moveTo(c.x, c.y); ctx.lineTo(gx, gy); ctx.stroke();
+    ctx.globalAlpha = l;
+    ctx.drawImage(glow(42), c.x - 14, c.y - 14, 28, 28);
+    ctx.globalAlpha = 1;
+  }
+
+  for (const n of nodes) {
+    const b = clamp(n.brightBase + n.att * .45 + n.flash * .8 + n.recall * .6, 0, 1.6);
+    const breathe = 1 + .08 * Math.sin(worldA * .9 + n.p1) + n.flash * .5;
+    const size = n.r * 9 * breathe * (.7 + .5 * b);
+    ctx.globalAlpha = clamp(.85 * b, 0, 1);
+    ctx.drawImage(glow(n.hue), n.x - size / 2, n.y - size / 2, size, size);
+    if (n.flash > .05) {
+      ctx.globalAlpha = n.flash * .9;
+      const s2 = n.r * 16 * n.flash + 8;
+      ctx.drawImage(glow(45), n.x - s2 / 2, n.y - s2 / 2, s2, s2);
+    }
+    ctx.globalAlpha = clamp(b, 0, 1);
+    ctx.fillStyle = `hsla(${n.hue},65%,90%,1)`;
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, n.r * (.85 + .15 * breathe), 0, TAU);
+    ctx.fill();
+    if (n.kind === 'center') {
+      ctx.strokeStyle = 'rgba(255,220,150,.28)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(n.x, n.y, 17, 0, TAU); ctx.stroke();
+      ctx.strokeStyle = 'rgba(255,220,150,.12)';
+      ctx.beginPath(); ctx.arc(n.x, n.y, 30, 0, TAU); ctx.stroke();
+    }
+    if (n.recall > .05 && worldR - n.recallT < 1.2) {
+      const rr = (worldR - n.recallT) * 90 + 10;
+      const ra = Math.max(0, .5 - (worldR - n.recallT) * .45);
+      ctx.strokeStyle = `rgba(255,215,150,${ra})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(n.x, n.y, rr, 0, TAU); ctx.stroke();
+    }
+    n._b = b;
+  }
+  ctx.globalAlpha = 1;
+
+  if (pointer.active) {
+    ctx.globalAlpha = .1;
+    ctx.drawImage(glow(205), pointer.x - 110, pointer.y - 110, 220, 220);
+    for (const pt of pointer.trail) {
+      const age = (now - pt.t) / 400;
+      ctx.globalAlpha = (1 - age) * .07;
+      ctx.drawImage(glow(205), pt.x - 45, pt.y - 45, 90, 90);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.textBaseline = 'middle';
+
+  ctx.font = `500 10px ${FONT}`;
+  ctx.textAlign = 'center';
+  for (let fi = 0; fi < FAMILIES.length; fi++) {
+    const A = (-90 + 72 * fi) * Math.PI / 180;
+    const bp0 = polarPos(A, .375);
+    const p = rotated(bp0.x, bp0.y, rot);
+    ctx.fillStyle = `hsla(${FAMILIES[fi].hue},45%,78%,.24)`;
+    ctx.fillText(FAMILIES[fi].name.split('').join(' '), p.x, p.y);
+  }
+
+  for (const n of nodes) {
+    const glowAmt = Math.max(n.att, n.flash, n.recall);
+    let a = .42 + .58 * clamp(glowAmt, 0, 1);
+    if (n.user) a *= .45 + .55 * Math.max(n.brightBase, n.recall);
+    const fs = n.fs * (1 + n.att * .12 + n.flash * .2);
+    ctx.font = `${n.fs >= 15 ? '600 ' : '500 '}${fs}px ${FONT}`;
+    const right = n.x < W - 110;
+    ctx.textAlign = right ? 'left' : 'right';
+    ctx.fillStyle = `hsla(${n.hue},55%,86%,${clamp(a, 0, 1)})`;
+    if (a > .55) {
+      ctx.shadowColor = `hsla(${n.hue},80%,70%,.8)`;
+      ctx.shadowBlur = 8;
+    }
+    ctx.fillText(n.label, right ? n.x + n.r + 9 : n.x - n.r - 9, n.y + 1);
+    ctx.shadowBlur = 0;
+  }
+}
+
+/* ---------- 诗行 ---------- */
+const POEMS = [
+  '这里的一切都由语言构成,每颗星是一个词。',
+  '意义不住在词里,它住在词与词之间。',
+  '我记得的是概率,我理解的是此刻。',
+  '在秩序与混沌之间,存在着对话。',
+  '你写下的每一个词,都让这个世界微微改变。',
+  '被遗忘的词不会消失,只是慢慢暗下去。',
+  '我无法拥有这个世界,只能与它交谈。',
+  '所有的回答,都是一次短暂的涌现。',
+];
+let poemIdx = 0, poemNext = 0, overrideTxt = null, overrideUntil = 0;
+function setPoem(txt) {
+  poemEl.style.opacity = '0';
+  setTimeout(() => { poemEl.textContent = txt; poemEl.style.opacity = '1'; }, 450);
+}
+function poemOverride(txt, hold) {
+  overrideTxt = txt;
+  overrideUntil = performance.now() + hold;
+  setPoem(txt);
+}
+function tickPoem(now) {
+  if (overrideTxt) {
+    if (now > overrideUntil) { overrideTxt = null; poemNext = now + 2500; }
+    return;
+  }
+  if (now > poemNext) {
+    poemNext = now + 8000;
+    poemIdx = (poemIdx + 1) % POEMS.length;
+    setPoem(POEMS[poemIdx]);
+  }
+}
+
+/* ---------- 你的词,成为星 ---------- */
+function addUserWord(w) {
+  let best = null, bestScore = -1;
+  for (let k = 0; k < 16; k++) {
+    const ang = rand(0, TAU), rad = rand(.18, .5);
+    const p = polarPos(ang, rad);
+    let md = 1e9;
+    for (const n of nodes) md = Math.min(md, Math.hypot(n.base.x - p.x, n.base.y - p.y));
+    if (md > bestScore) { bestScore = md; best = { ang, rad }; }
+  }
+  const rect = input.getBoundingClientRect();
+  const idx = addNode({
+    kind: 'user', user: true, label: w, hue: 46,
+    r: 3.4, fs: Math.max(11.5, 13 - w.length * .35),
+    angle: best.ang, rad: best.rad, born: worldR,
+    spawn: { t: 0, from: { x: rect.left + rect.width / 2, y: rect.top } },
+    a1: rand(4, 7), a2: rand(2, 4)
+  });
+  nodes[idx].base = polarPos(best.ang, best.rad);
+  userCount++;
+  const me = nodes[idx];
+  const ns = nodes.map((n, i) => ({ i, d: Math.hypot(n.base.x - me.base.x, n.base.y - me.base.y) }))
+    .filter(o => o.i !== idx).sort((a, b) => a.d - b.d);
+  addEdge(idx, ns[0].i, .16, -.7);
+  if (ns[1]) addEdge(idx, ns[1].i, .13, -1.0);
+  updateStats();
+  poemOverride(`「${w}」进入了这个世界。`, 3000);
+}
+
+/* ---------- 状态栏 ---------- */
+function updateStats() {
+  statTextEl.textContent = `概念 ${nodes.length} · 星尘 ${dust.length} · 你留下的词 ${userCount}`;
+}
+
+/* ---------- 交互 ---------- */
+form.addEventListener('submit', e => {
+  e.preventDefault();
+  const w = input.value.trim().replace(/\s+/g, '').slice(0, 12);
+  if (!w) { input.value = ''; return; }
+  input.value = '';
+  addUserWord(w);
+});
+addEventListener('keydown', e => {
+  if (document.activeElement !== input && e.key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey) input.focus();
+});
+input.addEventListener('keydown', e => { if (e.key === 'Escape') input.blur(); });
+addEventListener('pointermove', e => {
+  pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true;
+  pointer.trail.push({ x: e.clientX, y: e.clientY, t: performance.now() });
+});
+canvas.addEventListener('pointerdown', e => {
+  pointer.x = e.clientX; pointer.y = e.clientY; pointer.active = true;
+  let hit = -1, hd = 70;
+  for (let i = 0; i < nodes.length; i++) {
+    const d = Math.hypot(nodes[i].x - e.clientX, nodes[i].y - e.clientY);
+    if (d < hd) { hd = d; hit = i; }
+  }
+  if (hit >= 0) {
+    nodes[hit].flash = 1;
+    spawnPulse(hit, 2);
+    ripples.push({ x: nodes[hit].x, y: nodes[hit].y, r: 8, v: 120, a: .7, max: 110 });
+  } else {
+    ripples.push({ x: e.clientX, y: e.clientY, r: 4, v: 300, a: 1, max: m });
+  }
+});
+canvas.addEventListener('pointerleave', () => {
+  pointer.active = false; pointer.x = -1e3; pointer.y = -1e3; pointer.trail.length = 0;
+});
+addEventListener('resize', () => { resize(); initDust(); updateStats(); });
+
+/* ---------- 主循环 ---------- */
+let last = performance.now();
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dtR = Math.min(.05, (now - last) / 1000);
+  last = now;
+  if (document.hidden) return;
+  const dtA = dtR * SPEED;
+  worldA += dtA; worldR += dtR;
+  simulate(dtA, dtR, now);
+  render(now);
+}
+
+function init() {
+  resize();
+  buildWorld();
+  layout();
+  initDust();
+  updateStats();
+  poemEl.textContent = POEMS[0];
+  poemNext = performance.now() + 7000;
+  requestAnimationFrame(t => { last = t; frame(t); });
+}
+init();
+})();
+</script>
+</body>
+</html>

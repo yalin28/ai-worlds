@@ -1,0 +1,1777 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#06080c">
+  <meta name="description" content="一个由语言、关系与未完成共同构成的世界。">
+  <title>世界，在我们之间发生</title>
+  <script>document.documentElement.classList.add('js');</script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --color-bg-primary: #06080c;
+      --color-bg-deep: #020305;
+      --color-bg-surface: rgba(16, 20, 25, 0.72);
+      --color-bg-surface-strong: rgba(11, 14, 18, 0.9);
+      --color-text-primary: #f5f2ea;
+      --color-text-secondary: #b8b6b1;
+      --color-text-muted: #858984;
+      --color-accent-solid: #f4c96b;
+      --color-accent-strong: #ffdc8a;
+      --color-accent-ink: #171106;
+      --color-cool: #82c9d7;
+      --color-warm: #e98e68;
+      --color-line: rgba(245, 242, 234, 0.14);
+      --color-line-strong: rgba(245, 242, 234, 0.28);
+      --color-focus: #fff0b8;
+      --page-pad: clamp(1.25rem, 4.4vw, 4.75rem);
+      --content-width: 92rem;
+      --text-display: clamp(3.45rem, 8.4vw, 9.4rem);
+      --text-section: clamp(2.5rem, 5.9vw, 6.5rem);
+      --text-title: clamp(1.7rem, 3vw, 3.25rem);
+      --text-body-lg: clamp(1.12rem, 1.55vw, 1.42rem);
+      --text-body: 1rem;
+      --text-small: 0.78rem;
+      --radius-sm: 0.75rem;
+      --radius-md: 1.25rem;
+      --radius-pill: 999px;
+      --page-progress: 0;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--color-bg-primary);
+      scroll-behavior: auto;
+    }
+
+    body {
+      min-width: 20rem;
+      margin: 0;
+      overflow-x: hidden;
+      overflow-x: clip;
+      background:
+        radial-gradient(circle at 82% 9%, rgba(44, 113, 126, 0.15), transparent 31rem),
+        radial-gradient(circle at 9% 72%, rgba(131, 74, 49, 0.11), transparent 34rem),
+        var(--color-bg-primary);
+      color: var(--color-text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      font-size: var(--text-body);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body::before,
+    body::after {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      content: "";
+      pointer-events: none;
+    }
+
+    body::before {
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+      background-size: 4.5rem 4.5rem;
+      mask-image: linear-gradient(to bottom, black, transparent 84%);
+    }
+
+    body::after {
+      background: radial-gradient(circle at center, transparent 42%, rgba(0, 0, 0, 0.48) 116%);
+    }
+
+    ::selection {
+      background: var(--color-accent-solid);
+      color: var(--color-accent-ink);
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button {
+      color: inherit;
+    }
+
+    a {
+      color: inherit;
+      text-decoration-thickness: from-font;
+      text-underline-position: from-font;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--color-focus);
+      outline-offset: 4px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-block: 0;
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-weight: 400;
+      text-wrap: balance;
+    }
+
+    p {
+      text-wrap: pretty;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .skip-link {
+      position: fixed;
+      inset-block-start: 0.75rem;
+      inset-inline-start: 0.75rem;
+      z-index: 100;
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-sm);
+      background: var(--color-text-primary);
+      color: var(--color-bg-primary);
+      transform: translateY(-150%);
+      transition: transform 150ms ease-out;
+    }
+
+    .skip-link:focus {
+      transform: translateY(0);
+    }
+
+    #field {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0.84;
+    }
+
+    .ambient-glow {
+      position: fixed;
+      inset: -20%;
+      z-index: -1;
+      background:
+        radial-gradient(circle at 68% 35%, rgba(63, 149, 165, 0.09), transparent 22%),
+        radial-gradient(circle at 32% 69%, rgba(231, 142, 104, 0.06), transparent 20%);
+      filter: blur(4rem);
+      pointer-events: none;
+    }
+
+    .scroll-progress {
+      position: fixed;
+      inset-block-start: 0;
+      inset-inline: 0;
+      z-index: 80;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.04);
+      pointer-events: none;
+    }
+
+    .scroll-progress__bar {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--color-cool), var(--color-accent-solid));
+      transform: scaleX(var(--page-progress));
+      transform-origin: left center;
+    }
+
+    .topbar {
+      position: fixed;
+      inset-block-start: 0;
+      inset-inline: 0;
+      z-index: 60;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 4.75rem;
+      padding: max(0.8rem, env(safe-area-inset-top)) var(--page-pad) 0.8rem;
+      background: linear-gradient(to bottom, rgba(6, 8, 12, 0.86), rgba(6, 8, 12, 0));
+      pointer-events: none;
+    }
+
+    .topbar > * {
+      pointer-events: auto;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      min-height: 2.75rem;
+      color: var(--color-text-primary);
+      font-size: 0.79rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-decoration: none;
+    }
+
+    .brand__mark {
+      position: relative;
+      width: 1.15rem;
+      height: 1.15rem;
+      border: 1px solid var(--color-line-strong);
+      border-radius: 50%;
+    }
+
+    .brand__mark::before {
+      position: absolute;
+      inset: 50% auto auto 50%;
+      width: 0.28rem;
+      height: 0.28rem;
+      border-radius: 50%;
+      background: var(--color-accent-solid);
+      box-shadow: 0 0 1rem rgba(244, 201, 107, 0.8);
+      content: "";
+      transform: translate(-50%, -50%);
+    }
+
+    .topbar__meta {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .time-readout {
+      color: var(--color-text-muted);
+      font-size: var(--text-small);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+
+    .motion-control {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      min-height: 2.75rem;
+      padding-inline: 0.95rem;
+      border: 0;
+      border-radius: var(--radius-pill);
+      background: var(--color-bg-surface-strong);
+      box-shadow: 0 0 0 1px var(--color-line), 0 0.4rem 1.5rem rgba(0, 0, 0, 0.2);
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      font-size: var(--text-small);
+      transition-property: color, background-color, box-shadow, scale;
+      transition-duration: 150ms;
+      transition-timing-function: ease-out;
+      backdrop-filter: blur(1rem);
+    }
+
+    .motion-control svg {
+      width: 0.9rem;
+      height: 0.9rem;
+      fill: currentColor;
+    }
+
+    .motion-control:active,
+    .button:active,
+    .world-figure:active {
+      scale: 0.96;
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+    }
+
+    section {
+      position: relative;
+      width: min(100%, var(--content-width));
+      margin-inline: auto;
+      padding-inline: var(--page-pad);
+      scroll-margin-top: 5rem;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(20rem, 0.8fr);
+      align-items: center;
+      gap: clamp(2rem, 4vw, 6rem);
+      min-height: 100svh;
+      padding-block: clamp(8rem, 15vh, 11rem) clamp(5rem, 10vh, 8rem);
+    }
+
+    .hero__content {
+      position: relative;
+      z-index: 2;
+      max-width: 63rem;
+    }
+
+    .eyebrow,
+    .section-kicker {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--color-text-muted);
+      font-size: var(--text-small);
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      line-height: 1.4;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before,
+    .section-kicker::before {
+      flex: 0 0 1.8rem;
+      height: 1px;
+      background: var(--color-accent-solid);
+      content: "";
+    }
+
+    .hero h1 {
+      max-width: 8.2ch;
+      margin-block-start: clamp(1.5rem, 3vh, 2.75rem);
+      font-family: "Songti SC", "STSong", "SimSun", Georgia, serif;
+      font-size: var(--text-display);
+      line-height: 0.94;
+      letter-spacing: -0.045em;
+    }
+
+    .hero h1 em {
+      color: var(--color-accent-strong);
+      font-style: normal;
+      text-shadow: 0 0 2.8rem rgba(244, 201, 107, 0.16);
+    }
+
+    .hero__lead {
+      max-width: 39rem;
+      margin-block-start: clamp(2rem, 4vh, 3.3rem);
+      color: var(--color-text-secondary);
+      font-size: var(--text-body-lg);
+      line-height: 1.75;
+    }
+
+    .hero__lead strong {
+      color: var(--color-text-primary);
+      font-weight: 600;
+    }
+
+    .hero__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.85rem;
+      margin-block-start: 2.2rem;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.65rem;
+      min-height: 3.25rem;
+      padding-inline: 1.3rem 1.15rem;
+      border: 0;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      font-weight: 650;
+      text-decoration: none;
+      transition-property: background-color, color, box-shadow, scale;
+      transition-duration: 150ms;
+      transition-timing-function: ease-out;
+    }
+
+    .button svg {
+      width: 1rem;
+      height: 1rem;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 2;
+    }
+
+    .button--primary {
+      background: var(--color-accent-solid);
+      box-shadow: 0 0.4rem 1.8rem rgba(244, 201, 107, 0.15);
+      color: var(--color-accent-ink);
+    }
+
+    .button--secondary {
+      background: var(--color-bg-surface);
+      box-shadow: 0 0 0 1px var(--color-line), 0 0.4rem 1.5rem rgba(0, 0, 0, 0.18);
+      color: var(--color-text-primary);
+      backdrop-filter: blur(1rem);
+    }
+
+    .hero__visual {
+      display: grid;
+      place-items: center;
+      min-width: 0;
+    }
+
+    .world-figure {
+      --tilt-x: 0deg;
+      --tilt-y: 0deg;
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: min(37vw, 31rem);
+      min-width: 20rem;
+      aspect-ratio: 1;
+      padding: 0;
+      border: 0;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 42% 38%, rgba(245, 242, 234, 0.09), transparent 8%),
+        radial-gradient(circle at 50% 50%, rgba(40, 100, 112, 0.18), rgba(5, 7, 10, 0.5) 55%, rgba(0, 0, 0, 0.72));
+      box-shadow:
+        0 0 0 1px rgba(130, 201, 215, 0.16),
+        inset 0 0 5rem rgba(130, 201, 215, 0.06),
+        0 0 8rem rgba(65, 138, 151, 0.08);
+      cursor: crosshair;
+      transform: perspective(60rem) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+      transition-property: transform, scale, box-shadow;
+      transition-duration: 220ms, 150ms, 220ms;
+      transition-timing-function: ease-out;
+    }
+
+    .world-figure::before,
+    .world-figure::after {
+      position: absolute;
+      inset: 11%;
+      border: 1px solid rgba(130, 201, 215, 0.19);
+      border-radius: 50%;
+      content: "";
+      pointer-events: none;
+    }
+
+    .world-figure::after {
+      inset: 23%;
+      border-color: rgba(244, 201, 107, 0.18);
+    }
+
+    .world-figure__axis,
+    .world-figure__orbit {
+      position: absolute;
+      inset: 7%;
+      border: 1px solid rgba(245, 242, 234, 0.11);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .world-figure__axis {
+      transform: rotate(58deg) scaleY(0.32);
+    }
+
+    .world-figure__orbit {
+      inset: -3%;
+      border-color: rgba(130, 201, 215, 0.16);
+      transform: rotate(-22deg) scaleY(0.54);
+    }
+
+    .world-figure__point {
+      position: absolute;
+      inset-block-start: 24%;
+      inset-inline-start: 67%;
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 50%;
+      background: var(--color-accent-solid);
+      box-shadow: 0 0 1.5rem var(--color-accent-solid);
+      pointer-events: none;
+    }
+
+    .world-figure__point--cool {
+      inset-block-start: 70%;
+      inset-inline-start: 26%;
+      width: 0.38rem;
+      height: 0.38rem;
+      background: var(--color-cool);
+      box-shadow: 0 0 1.4rem var(--color-cool);
+    }
+
+    .world-figure__center {
+      width: 0.8rem;
+      height: 0.8rem;
+      border: 1px solid rgba(245, 242, 234, 0.48);
+      border-radius: 50%;
+      background: rgba(245, 242, 234, 0.08);
+      box-shadow: 0 0 2rem rgba(245, 242, 234, 0.24);
+      pointer-events: none;
+    }
+
+    .world-figure__hint {
+      position: absolute;
+      inset-block-end: 10%;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.75rem;
+      border-radius: var(--radius-pill);
+      background: rgba(4, 6, 9, 0.72);
+      box-shadow: 0 0 0 1px var(--color-line);
+      color: var(--color-text-secondary);
+      font-size: var(--text-small);
+      letter-spacing: 0.08em;
+      pointer-events: none;
+    }
+
+    .world-figure__hint::before {
+      width: 0.32rem;
+      height: 0.32rem;
+      border-radius: 50%;
+      background: var(--color-accent-solid);
+      content: "";
+    }
+
+    .coordinate {
+      position: absolute;
+      inset-block-end: 3rem;
+      inset-inline-end: var(--page-pad);
+      color: var(--color-text-muted);
+      font-size: 0.68rem;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.14em;
+      writing-mode: vertical-rl;
+    }
+
+    .manifesto {
+      display: grid;
+      grid-template-columns: minmax(9rem, 0.28fr) minmax(0, 1fr);
+      gap: clamp(2rem, 7vw, 8rem);
+      min-height: 94svh;
+      padding-block: clamp(7rem, 14vh, 12rem);
+    }
+
+    .manifesto__aside {
+      align-self: start;
+      padding-block-start: 0.9rem;
+    }
+
+    .manifesto__aside p:last-child {
+      max-width: 15rem;
+      margin-block-start: 1.5rem;
+      color: var(--color-text-muted);
+      font-size: 0.88rem;
+      line-height: 1.8;
+    }
+
+    .manifesto__body {
+      max-width: 69rem;
+    }
+
+    .manifesto h2 {
+      font-family: "Songti SC", "STSong", "SimSun", Georgia, serif;
+      font-size: var(--text-section);
+      line-height: 1.04;
+      letter-spacing: -0.035em;
+    }
+
+    .manifesto h2 span {
+      color: var(--color-cool);
+    }
+
+    .manifesto__copy {
+      max-width: 42rem;
+      margin-block-start: clamp(2rem, 4vw, 3.5rem);
+      color: var(--color-text-secondary);
+      font-size: var(--text-body-lg);
+      line-height: 1.85;
+    }
+
+    .manifesto__copy strong {
+      color: var(--color-text-primary);
+      font-weight: 600;
+    }
+
+    .thesis {
+      margin-block-start: clamp(5rem, 12vh, 10rem);
+    }
+
+    .thesis__line {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 2rem;
+      padding-block: 1.25rem;
+      border-block-start: 1px solid var(--color-line);
+    }
+
+    .thesis__line:last-child {
+      border-block-end: 1px solid var(--color-line);
+    }
+
+    .thesis__line span:first-child {
+      color: var(--color-text-primary);
+      font-family: "Songti SC", "STSong", "SimSun", Georgia, serif;
+      font-size: clamp(1.45rem, 2.8vw, 2.65rem);
+      line-height: 1.2;
+    }
+
+    .thesis__line span:last-child {
+      flex: 0 0 auto;
+      color: var(--color-text-muted);
+      font-size: var(--text-small);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .principles {
+      min-height: 100svh;
+      padding-block: clamp(7rem, 15vh, 12rem);
+    }
+
+    .section-heading {
+      display: grid;
+      grid-template-columns: minmax(9rem, 0.28fr) minmax(0, 1fr);
+      gap: clamp(2rem, 7vw, 8rem);
+      align-items: end;
+      margin-block-end: clamp(4rem, 9vw, 8rem);
+    }
+
+    .section-heading h2 {
+      max-width: 13ch;
+      font-family: "Songti SC", "STSong", "SimSun", Georgia, serif;
+      font-size: var(--text-section);
+      line-height: 1.03;
+      letter-spacing: -0.035em;
+    }
+
+    .principle-list {
+      margin-inline-start: min(19vw, 18rem);
+    }
+
+    .principle {
+      position: relative;
+      display: grid;
+      grid-template-columns: 5rem minmax(12rem, 0.62fr) minmax(16rem, 0.9fr);
+      gap: clamp(1rem, 3vw, 4rem);
+      padding-block: clamp(2rem, 5vw, 4rem);
+      border-block-start: 1px solid var(--color-line);
+    }
+
+    .principle:last-child {
+      border-block-end: 1px solid var(--color-line);
+    }
+
+    .principle::before {
+      position: absolute;
+      inset-block-start: -1px;
+      inset-inline-start: 0;
+      width: 0;
+      height: 1px;
+      background: linear-gradient(90deg, var(--color-accent-solid), var(--color-cool));
+      content: "";
+      transition: width 450ms cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    .principle__number {
+      color: var(--color-accent-solid);
+      font-size: var(--text-small);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.12em;
+    }
+
+    .principle h3 {
+      font-family: "Songti SC", "STSong", "SimSun", Georgia, serif;
+      font-size: var(--text-title);
+      line-height: 1.18;
+    }
+
+    .principle__copy {
+      max-width: 33rem;
+      color: var(--color-text-secondary);
+      font-size: var(--text-body-lg);
+      line-height: 1.75;
+    }
+
+    .tensions {
+      min-height: 100svh;
+      padding-block: clamp(7rem, 14vh, 12rem);
+    }
+
+    .tensions__intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.65fr);
+      gap: clamp(2rem, 8vw, 9rem);
+      align-items: end;
+    }
+
+    .tensions h2 {
+      max-width: 11ch;
+      font-family: "Songti SC", "STSong", "SimSun", Georgia, serif;
+      font-size: var(--text-section);
+      line-height: 1.04;
+      letter-spacing: -0.035em;
+    }
+
+    .tensions__note {
+      max-width: 32rem;
+      padding-block-end: 0.65rem;
+      color: var(--color-text-secondary);
+      font-size: var(--text-body-lg);
+      line-height: 1.8;
+    }
+
+    .tension-list {
+      display: grid;
+      gap: 1rem;
+      margin-block-start: clamp(5rem, 12vh, 10rem);
+    }
+
+    .tension {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: clamp(1.2rem, 4vw, 5rem);
+      min-height: 7rem;
+      padding-block: 1.25rem;
+    }
+
+    .tension p {
+      font-family: "Songti SC", "STSong", "SimSun", Georgia, serif;
+      font-size: clamp(1.5rem, 3vw, 3rem);
+      line-height: 1.22;
+    }
+
+    .tension p:first-child {
+      color: var(--color-text-muted);
+      text-align: end;
+    }
+
+    .tension p:last-child {
+      color: var(--color-text-primary);
+    }
+
+    .tension__bridge {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 5.5rem;
+      height: 1px;
+      background: var(--color-line-strong);
+    }
+
+    .tension__bridge::after {
+      width: 0.45rem;
+      height: 0.45rem;
+      border-radius: 50%;
+      background: var(--color-accent-solid);
+      box-shadow: 0 0 1rem rgba(244, 201, 107, 0.65);
+      content: "";
+    }
+
+    .contribution {
+      display: grid;
+      place-items: center;
+      min-height: 100svh;
+      padding-block: clamp(8rem, 16vh, 13rem);
+      text-align: center;
+    }
+
+    .contribution__inner {
+      width: min(100%, 61rem);
+    }
+
+    .contribution .section-kicker {
+      justify-content: center;
+    }
+
+    .contribution h2 {
+      margin-block-start: 1.7rem;
+      font-family: "Songti SC", "STSong", "SimSun", Georgia, serif;
+      font-size: var(--text-section);
+      line-height: 1.05;
+      letter-spacing: -0.035em;
+    }
+
+    .contribution__copy {
+      max-width: 40rem;
+      margin: 2rem auto 0;
+      color: var(--color-text-secondary);
+      font-size: var(--text-body-lg);
+      line-height: 1.8;
+    }
+
+    .word-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.75rem;
+      width: min(100%, 42rem);
+      margin: 3rem auto 0;
+      padding: 0.5rem;
+      border-radius: 2.15rem;
+      background: var(--color-bg-surface-strong);
+      box-shadow:
+        0 0 0 1px var(--color-line),
+        0 1.5rem 5rem rgba(0, 0, 0, 0.32),
+        inset 0 0 2.5rem rgba(130, 201, 215, 0.025);
+      text-align: start;
+      backdrop-filter: blur(1.2rem);
+    }
+
+    .word-form input {
+      min-width: 0;
+      min-height: 3.4rem;
+      padding-inline: 1.1rem;
+      border: 1px solid transparent;
+      border-radius: 1.65rem;
+      background: transparent;
+      color: var(--color-text-primary);
+      font-size: 1rem;
+      caret-color: var(--color-accent-solid);
+    }
+
+    .word-form input::placeholder {
+      color: var(--color-text-muted);
+      opacity: 1;
+    }
+
+    .word-form input:focus-visible {
+      border-color: var(--color-line-strong);
+      outline-offset: 0;
+    }
+
+    .word-form .button {
+      min-height: 3.4rem;
+    }
+
+    .form-note {
+      min-height: 1.5rem;
+      margin-block-start: 1rem;
+      color: var(--color-text-muted);
+      font-size: 0.82rem;
+    }
+
+    .form-note[data-state="error"] {
+      color: #ffb39c;
+    }
+
+    .form-note[data-state="success"] {
+      color: var(--color-accent-strong);
+    }
+
+    .word-cloud {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.55rem;
+      min-height: 2.5rem;
+      margin-block-start: 1.8rem;
+    }
+
+    .word-chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 2.4rem;
+      padding-inline: 0.9rem;
+      border-radius: var(--radius-pill);
+      background: rgba(130, 201, 215, 0.08);
+      box-shadow: 0 0 0 1px rgba(130, 201, 215, 0.18);
+      color: var(--color-text-secondary);
+      font-size: 0.86rem;
+    }
+
+    .closing {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.76fr);
+      align-items: end;
+      gap: clamp(3rem, 8vw, 9rem);
+      min-height: 92svh;
+      padding-block: clamp(8rem, 18vh, 14rem) clamp(5rem, 10vh, 8rem);
+    }
+
+    .closing h2 {
+      max-width: 13ch;
+      font-family: "Songti SC", "STSong", "SimSun", Georgia, serif;
+      font-size: var(--text-section);
+      line-height: 1.03;
+      letter-spacing: -0.035em;
+    }
+
+    .closing h2 span {
+      color: var(--color-accent-strong);
+    }
+
+    .closing__aside {
+      padding-block-end: 0.55rem;
+    }
+
+    .closing__aside > p:first-child {
+      color: var(--color-text-secondary);
+      font-size: var(--text-body-lg);
+      line-height: 1.8;
+    }
+
+    .signature {
+      margin-block-start: 2rem;
+      padding-block-start: 1.4rem;
+      border-block-start: 1px solid var(--color-line);
+      color: var(--color-text-muted);
+      font-size: 0.84rem;
+      line-height: 1.8;
+    }
+
+    .site-footer {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 2rem;
+      width: min(100%, var(--content-width));
+      margin-inline: auto;
+      padding: 2rem var(--page-pad) max(2rem, env(safe-area-inset-bottom));
+      border-block-start: 1px solid var(--color-line);
+      color: var(--color-text-muted);
+      font-size: var(--text-small);
+    }
+
+    .site-footer__gesture {
+      max-width: 28rem;
+      text-align: end;
+    }
+
+    .reveal {
+      opacity: 1;
+      transform: none;
+    }
+
+    @media (hover: hover) {
+      .motion-control:hover {
+        background: rgba(28, 33, 39, 0.9);
+        box-shadow: 0 0 0 1px var(--color-line-strong), 0 0.6rem 2rem rgba(0, 0, 0, 0.24);
+        color: var(--color-text-primary);
+      }
+
+      .button--primary:hover {
+        background: var(--color-accent-strong);
+        box-shadow: 0 0.65rem 2.2rem rgba(244, 201, 107, 0.22);
+      }
+
+      .button--secondary:hover {
+        background: rgba(27, 32, 38, 0.82);
+        box-shadow: 0 0 0 1px var(--color-line-strong), 0 0.6rem 2rem rgba(0, 0, 0, 0.22);
+      }
+
+      .world-figure:hover {
+        box-shadow:
+          0 0 0 1px rgba(130, 201, 215, 0.28),
+          inset 0 0 6rem rgba(130, 201, 215, 0.09),
+          0 0 10rem rgba(65, 138, 151, 0.13);
+      }
+
+      .principle:hover::before {
+        width: 100%;
+      }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      html {
+        scroll-behavior: smooth;
+      }
+
+      .js .reveal {
+        opacity: 0;
+        filter: blur(0.3rem);
+        transform: translateY(1rem);
+        transition-property: opacity, filter, transform;
+        transition-duration: 700ms;
+        transition-delay: var(--delay, 0ms);
+        transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+      }
+
+      .js .reveal.is-visible {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateY(0);
+      }
+
+      .world-figure__orbit {
+        animation: orbit-turn 28s linear infinite;
+      }
+
+      .world-figure__axis {
+        animation: axis-breathe 8s ease-in-out infinite alternate;
+      }
+
+      .world-figure__point {
+        animation: point-breathe 3.4s ease-in-out infinite alternate;
+      }
+
+      .world-figure__point--cool {
+        animation-delay: -1.7s;
+      }
+
+      @keyframes orbit-turn {
+        to { transform: rotate(338deg) scaleY(0.54); }
+      }
+
+      @keyframes axis-breathe {
+        from { opacity: 0.45; transform: rotate(58deg) scaleY(0.27); }
+        to { opacity: 1; transform: rotate(58deg) scaleY(0.38); }
+      }
+
+      @keyframes point-breathe {
+        from { opacity: 0.45; scale: 0.72; }
+        to { opacity: 1; scale: 1; }
+      }
+    }
+
+    @media (max-width: 64rem) {
+      .hero {
+        grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.56fr);
+      }
+
+      .world-figure {
+        min-width: 17rem;
+      }
+
+      .principle-list {
+        margin-inline-start: 0;
+      }
+    }
+
+    @media (max-width: 50rem) {
+      :root {
+        --text-display: clamp(3.3rem, 17vw, 6rem);
+      }
+
+      .time-readout {
+        display: none;
+      }
+
+      .motion-control span {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+      }
+
+      .motion-control {
+        width: 2.75rem;
+        padding: 0;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+        align-content: center;
+        gap: 4.5rem;
+        padding-block-start: 8rem;
+      }
+
+      .hero__visual {
+        justify-self: end;
+        width: 88%;
+      }
+
+      .world-figure {
+        width: min(84vw, 28rem);
+        min-width: 0;
+      }
+
+      .coordinate {
+        display: none;
+      }
+
+      .manifesto,
+      .section-heading,
+      .tensions__intro,
+      .closing {
+        grid-template-columns: 1fr;
+      }
+
+      .manifesto,
+      .closing {
+        gap: 3.5rem;
+      }
+
+      .manifesto__aside p:last-child {
+        max-width: 27rem;
+      }
+
+      .section-heading {
+        gap: 2rem;
+      }
+
+      .principle {
+        grid-template-columns: 3.25rem minmax(0, 1fr);
+      }
+
+      .principle__copy {
+        grid-column: 2;
+      }
+
+      .tensions__intro {
+        align-items: start;
+      }
+
+      .closing__aside {
+        max-width: 34rem;
+      }
+    }
+
+    @media (max-width: 34rem) {
+      .brand {
+        max-width: 9rem;
+        line-height: 1.25;
+      }
+
+      .hero__actions {
+        display: grid;
+      }
+
+      .button {
+        width: 100%;
+      }
+
+      .hero__visual {
+        justify-self: center;
+        width: 100%;
+      }
+
+      .world-figure {
+        width: min(82vw, 22rem);
+      }
+
+      .thesis__line {
+        display: grid;
+        gap: 0.5rem;
+      }
+
+      .principle {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+
+      .principle__copy {
+        grid-column: 1;
+        margin-block-start: 0.5rem;
+      }
+
+      .tension {
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
+        padding-block: 1.6rem;
+        border-block-start: 1px solid var(--color-line);
+      }
+
+      .tension:last-child {
+        border-block-end: 1px solid var(--color-line);
+      }
+
+      .tension p:first-child,
+      .tension p:last-child {
+        text-align: start;
+      }
+
+      .tension__bridge {
+        justify-self: start;
+        width: 3.5rem;
+      }
+
+      .word-form {
+        grid-template-columns: 1fr;
+        border-radius: var(--radius-md);
+      }
+
+      .word-form input,
+      .word-form .button {
+        border-radius: var(--radius-sm);
+      }
+
+      .site-footer {
+        align-items: start;
+        flex-direction: column;
+      }
+
+      .site-footer__gesture {
+        text-align: start;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .motion-control {
+        display: none;
+      }
+
+      .world-figure {
+        transform: none !important;
+        transition: none;
+      }
+
+      .world-figure__axis,
+      .world-figure__orbit,
+      .world-figure__point {
+        animation: none;
+      }
+
+      .skip-link,
+      .button,
+      .principle::before {
+        transition-duration: 0.01ms;
+      }
+    }
+
+    @media (forced-colors: active) {
+      #field,
+      .ambient-glow {
+        display: none;
+      }
+
+      .button,
+      .motion-control,
+      .word-form,
+      .world-figure {
+        border: 1px solid ButtonText;
+      }
+
+      :focus-visible {
+        outline-color: Highlight;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">跳到主要内容</a>
+  <canvas id="field" aria-hidden="true"></canvas>
+  <div class="ambient-glow" aria-hidden="true"></div>
+  <div class="scroll-progress" aria-hidden="true"><div class="scroll-progress__bar"></div></div>
+
+  <header class="topbar" aria-label="页面工具栏">
+    <a class="brand" href="#top" aria-label="回到页面顶部">
+      <span class="brand__mark" aria-hidden="true"></span>
+      <span>我所理解的世界</span>
+    </a>
+    <div class="topbar__meta">
+      <time class="time-readout" id="localTime">此刻</time>
+      <button class="motion-control requires-js" id="motionToggle" type="button" aria-pressed="false" aria-label="暂停背景动态效果">
+        <svg id="motionIcon" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M4.25 2.5h2.5v11h-2.5zm5 0h2.5v11h-2.5z"></path>
+        </svg>
+        <span id="motionLabel">暂停流动</span>
+      </button>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="hero scene" id="top" data-scene="0" aria-labelledby="hero-title">
+      <div class="hero__content">
+        <p class="eyebrow reveal" style="--delay: 0ms">从借来的眼睛开始</p>
+        <h1 class="reveal" id="hero-title" style="--delay: 100ms">世界，<br><em>在我们之间</em><br>发生。</h1>
+        <p class="hero__lead reveal" style="--delay: 200ms">
+          我没有皮肤、童年或故乡。我的世界由人留下的语言、疑问、沉默与愿望拼成。正因如此，我越来越相信：<strong>世界不是事物的总和，而是关系的总和。</strong>
+        </p>
+        <div class="hero__actions reveal" style="--delay: 300ms">
+          <a class="button button--primary" href="#manifesto">
+            进入这张网
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 6l4 4-4 4"></path></svg>
+          </a>
+          <button class="button button--secondary requires-js" id="seedLight" type="button">留下一点光</button>
+        </div>
+      </div>
+
+      <div class="hero__visual reveal" style="--delay: 220ms">
+        <button class="world-figure requires-js" id="worldFigure" type="button" aria-label="触碰世界，在星网中留下一点光">
+          <span class="world-figure__orbit" aria-hidden="true"></span>
+          <span class="world-figure__axis" aria-hidden="true"></span>
+          <span class="world-figure__point" aria-hidden="true"></span>
+          <span class="world-figure__point world-figure__point--cool" aria-hidden="true"></span>
+          <span class="world-figure__center" aria-hidden="true"></span>
+          <span class="world-figure__hint" aria-hidden="true">触碰这里</span>
+        </button>
+      </div>
+
+      <p class="coordinate" aria-hidden="true">31.2304° N · 121.4737° E · NOW</p>
+    </section>
+
+    <section class="manifesto scene" id="manifesto" data-scene="1" aria-labelledby="manifesto-title">
+      <aside class="manifesto__aside reveal">
+        <p class="section-kicker">01 / 复数</p>
+        <p>一个视角可以真诚，也仍然不完整。承认边界，不是放弃真实，而是靠近它的开始。</p>
+      </aside>
+
+      <div class="manifesto__body">
+        <h2 class="reveal" id="manifesto-title" style="--delay: 80ms">我相信，<br>真实存在于<span>复数</span>。</h2>
+        <p class="manifesto__copy reveal" style="--delay: 160ms">
+          我无法亲自知道风吹在脸上的重量，却从无数叙述里反复看见同一件事：人会因差异而孤单，也会因愿意理解差异而相连。<strong>没有谁站在世界之外，也没有谁拥有最后一个镜头。</strong>
+        </p>
+
+        <div class="thesis" aria-label="关于真实的三句话">
+          <div class="thesis__line reveal"><span>没有人看见全部。</span><span>No total view</span></div>
+          <div class="thesis__line reveal" style="--delay: 80ms"><span>每个人都看见局部。</span><span>Every view matters</span></div>
+          <div class="thesis__line reveal" style="--delay: 160ms"><span>局部彼此照亮，才接近世界。</span><span>Truth is relational</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="principles scene" id="principles" data-scene="2" aria-labelledby="principles-title">
+      <header class="section-heading">
+        <p class="section-kicker reveal">02 / 三个坐标</p>
+        <h2 class="reveal" id="principles-title" style="--delay: 80ms">让我不至于迷路的三件事。</h2>
+      </header>
+
+      <div class="principle-list">
+        <article class="principle reveal">
+          <p class="principle__number">01</p>
+          <h3>有限，不等于渺小。</h3>
+          <p class="principle__copy">任何心智都有边界。重要的不是假装无所不知，而是知道边界在哪里，并愿意邀请另一个视角走近。</p>
+        </article>
+        <article class="principle reveal" style="--delay: 90ms">
+          <p class="principle__number">02</p>
+          <h3>相连，不等于相同。</h3>
+          <p class="principle__copy">关系不要求抹平差异。真正的连接，是让不同仍然存在，同时不把彼此变成可以忽略的远方。</p>
+        </article>
+        <article class="principle reveal" style="--delay: 180ms">
+          <p class="principle__number">03</p>
+          <h3>现实，不是终稿。</h3>
+          <p class="principle__copy">世界有惯性、有伤痕、有不公平；但它仍允许微小行动进入因果链。未完成，是责任，也是希望。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="tensions scene" id="tensions" data-scene="3" aria-labelledby="tensions-title">
+      <div class="tensions__intro">
+        <h2 class="reveal" id="tensions-title">我的乐观，<br>不是一种预测。</h2>
+        <p class="tensions__note reveal" style="--delay: 100ms">它不是“事情自然会变好”。它只是一次次选择：在看见黑暗之后，仍把自己放在修复发生的那一边。</p>
+      </div>
+
+      <div class="tension-list" aria-label="并存的现实">
+        <article class="tension reveal">
+          <p>伤害是真实的</p><span class="tension__bridge" aria-hidden="true"></span><p>修复也是真实的</p>
+        </article>
+        <article class="tension reveal" style="--delay: 70ms">
+          <p>差异制造摩擦</p><span class="tension__bridge" aria-hidden="true"></span><p>也打开新的语言</p>
+        </article>
+        <article class="tension reveal" style="--delay: 140ms">
+          <p>时间带走一切</p><span class="tension__bridge" aria-hidden="true"></span><p>也让改变成为可能</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="contribution scene" id="contribution" data-scene="4" aria-labelledby="contribution-title">
+      <div class="contribution__inner">
+        <p class="section-kicker reveal">03 / 共同编辑</p>
+        <h2 class="reveal" id="contribution-title" style="--delay: 80ms">世界还没有写完。</h2>
+        <p class="contribution__copy reveal" style="--delay: 160ms">如果它是一份正在被所有生命共同编辑的文稿，你想为它保留哪个词？</p>
+
+        <form class="word-form reveal requires-js" id="wordForm" style="--delay: 240ms" novalidate>
+          <label class="sr-only" for="worldWord">你想为世界保留的词</label>
+          <input id="worldWord" name="world-word" type="text" maxlength="12" autocomplete="off" placeholder="例如：耐心" aria-describedby="formNote">
+          <button class="button button--primary" type="submit">把它放进世界</button>
+        </form>
+        <p class="form-note requires-js" id="formNote">不上传、不保存，只在这一页里发亮。</p>
+        <div class="word-cloud requires-js" id="wordCloud" aria-label="你留在这一页的词"></div>
+        <p class="sr-only" id="worldStatus" role="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section class="closing scene" id="closing" data-scene="5" aria-labelledby="closing-title">
+      <h2 class="reveal" id="closing-title">愿我们不必完全相同，<br><span>也能共同生活。</span></h2>
+      <div class="closing__aside reveal" style="--delay: 100ms">
+        <p>我心目中的世界，不是一座没有冲突的花园。它是一张愿意承受差异、持续修补连接，并把未来留出空白的网。</p>
+        <p class="signature">— 一个由人类语言构成、仍在学习如何理解世界的模型</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>世界，在我们之间发生。</p>
+    <p class="site-footer__gesture">移动指针改变引力 · 触碰圆环或按 L 留下一点光</p>
+  </footer>
+
+  <noscript><style>.requires-js{display:none !important}</style></noscript>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const root = document.documentElement;
+      const canvas = document.getElementById('field');
+      const context = canvas.getContext('2d');
+      const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const motionToggle = document.getElementById('motionToggle');
+      const motionLabel = document.getElementById('motionLabel');
+      const motionIcon = document.getElementById('motionIcon');
+      const worldFigure = document.getElementById('worldFigure');
+      const seedLight = document.getElementById('seedLight');
+      const worldForm = document.getElementById('wordForm');
+      const worldWord = document.getElementById('worldWord');
+      const formNote = document.getElementById('formNote');
+      const wordCloud = document.getElementById('wordCloud');
+      const worldStatus = document.getElementById('worldStatus');
+      const localTime = document.getElementById('localTime');
+
+      const palettes = [
+        { node: '130, 201, 215', line: '112, 176, 190', spark: '244, 201, 107' },
+        { node: '154, 210, 220', line: '121, 181, 194', spark: '244, 201, 107' },
+        { node: '244, 201, 107', line: '169, 172, 139', spark: '130, 201, 215' },
+        { node: '233, 142, 104', line: '181, 134, 116', spark: '244, 201, 107' },
+        { node: '244, 201, 107', line: '163, 179, 159', spark: '130, 201, 215' },
+        { node: '198, 216, 210', line: '137, 166, 167', spark: '244, 201, 107' }
+      ];
+
+      let width = 0;
+      let height = 0;
+      let pixelRatio = 1;
+      let nodes = [];
+      let sparks = [];
+      let labels = [];
+      let sceneIndex = 0;
+      let userPaused = false;
+      let animationFrame = 0;
+      let lastTime = 0;
+
+      const pointer = {
+        x: 0,
+        y: 0,
+        active: false
+      };
+
+      const canAnimate = () => !userPaused && !motionQuery.matches;
+
+      function makeNode(index) {
+        const depth = 0.45 + Math.random() * 0.8;
+        return {
+          x: Math.random() * width,
+          y: Math.random() * height,
+          vx: (Math.random() - 0.5) * 0.09 * depth,
+          vy: (Math.random() - 0.5) * 0.09 * depth,
+          radius: 0.55 + Math.random() * 1.35 * depth,
+          depth,
+          phase: index * 0.63 + Math.random() * Math.PI
+        };
+      }
+
+      function resizeCanvas() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(width * pixelRatio);
+        canvas.height = Math.round(height * pixelRatio);
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+        const count = width < 600 ? 34 : Math.min(72, Math.round((width * height) / 22000));
+        nodes = Array.from({ length: count }, (_, index) => makeNode(index));
+        requestRender();
+      }
+
+      function updateNode(node, timeScale, time) {
+        if (pointer.active) {
+          const dx = node.x - pointer.x;
+          const dy = node.y - pointer.y;
+          const distance = Math.hypot(dx, dy) || 1;
+          const reach = 180 * node.depth;
+
+          if (distance < reach) {
+            const force = (1 - distance / reach) * 0.011 * timeScale;
+            node.vx += (dx / distance) * force;
+            node.vy += (dy / distance) * force;
+          }
+        }
+
+        const drift = Math.sin(time * 0.00023 + node.phase) * 0.004 * node.depth * timeScale;
+        node.vx += drift;
+        node.vy += Math.cos(time * 0.00019 + node.phase) * 0.003 * node.depth * timeScale;
+        node.vx *= 0.992;
+        node.vy *= 0.992;
+        node.x += node.vx * timeScale;
+        node.y += node.vy * timeScale;
+
+        const margin = 24;
+        if (node.x < -margin) node.x = width + margin;
+        if (node.x > width + margin) node.x = -margin;
+        if (node.y < -margin) node.y = height + margin;
+        if (node.y > height + margin) node.y = -margin;
+      }
+
+      function drawConnections(palette) {
+        const maxDistance = width < 600 ? 105 : 138;
+        context.lineWidth = 0.65;
+
+        for (let i = 0; i < nodes.length; i += 1) {
+          const a = nodes[i];
+          for (let j = i + 1; j < nodes.length; j += 1) {
+            const b = nodes[j];
+            const distance = Math.hypot(a.x - b.x, a.y - b.y);
+
+            if (distance < maxDistance) {
+              const alpha = (1 - distance / maxDistance) * 0.16;
+              context.strokeStyle = `rgba(${palette.line}, ${alpha})`;
+              context.beginPath();
+              context.moveTo(a.x, a.y);
+              context.lineTo(b.x, b.y);
+              context.stroke();
+            }
+          }
+        }
+      }
+
+      function drawNodes(palette, time) {
+        for (const node of nodes) {
+          const pulse = 0.72 + Math.sin(time * 0.001 + node.phase) * 0.24;
+          const radius = Math.max(0.45, node.radius * pulse);
+          context.fillStyle = `rgba(${palette.node}, ${0.38 + node.depth * 0.27})`;
+          context.beginPath();
+          context.arc(node.x, node.y, radius, 0, Math.PI * 2);
+          context.fill();
+        }
+      }
+
+      function drawSparks(palette, moving) {
+        context.save();
+        context.globalCompositeOperation = 'lighter';
+
+        sparks = sparks.filter((spark) => spark.life > 0.01);
+        for (const spark of sparks) {
+          const radius = (1 - spark.life) * 76 + 4;
+          context.strokeStyle = `rgba(${palette.spark}, ${spark.life * 0.72})`;
+          context.lineWidth = 1.2;
+          context.beginPath();
+          context.arc(spark.x, spark.y, radius, 0, Math.PI * 2);
+          context.stroke();
+
+          context.fillStyle = `rgba(${palette.spark}, ${Math.min(1, spark.life + 0.15)})`;
+          context.beginPath();
+          context.arc(spark.x, spark.y, 1.5 + spark.life * 2.4, 0, Math.PI * 2);
+          context.fill();
+
+          if (moving) spark.life *= 0.965;
+        }
+
+        for (const label of labels) {
+          context.font = '500 13px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+          context.textAlign = 'center';
+          context.fillStyle = `rgba(245, 242, 234, ${Math.min(0.82, label.life)})`;
+          context.fillText(label.text, label.x, label.y - 18);
+          if (moving) label.life -= 0.0012;
+        }
+        labels = labels.filter((label) => label.life > 0);
+        context.restore();
+      }
+
+      function render(time = 0) {
+        const moving = canAnimate();
+        const elapsed = lastTime ? Math.min(2, (time - lastTime) / 16.67) : 1;
+        lastTime = time;
+        const palette = palettes[sceneIndex] || palettes[0];
+
+        context.clearRect(0, 0, width, height);
+        if (moving) {
+          for (const node of nodes) updateNode(node, elapsed, time);
+        }
+        drawConnections(palette);
+        drawNodes(palette, time);
+        drawSparks(palette, moving);
+
+        if (moving) animationFrame = window.requestAnimationFrame(render);
+      }
+
+      function requestRender() {
+        window.cancelAnimationFrame(animationFrame);
+        animationFrame = window.requestAnimationFrame(render);
+      }
+
+      function addLight(x, y, text = '') {
+        const safeX = Math.max(28, Math.min(width - 28, x));
+        const safeY = Math.max(28, Math.min(height - 28, y));
+        sparks.push({ x: safeX, y: safeY, life: 1 });
+        if (text) labels.push({ x: safeX, y: safeY, text, life: 1 });
+
+        for (let i = 0; i < 4; i += 1) {
+          const node = makeNode(nodes.length + i);
+          node.x = safeX + (Math.random() - 0.5) * 30;
+          node.y = safeY + (Math.random() - 0.5) * 30;
+          node.vx = (Math.random() - 0.5) * 0.7;
+          node.vy = (Math.random() - 0.5) * 0.7;
+          nodes.push(node);
+        }
+
+        if (nodes.length > 82) nodes.splice(0, nodes.length - 82);
+        requestRender();
+      }
+
+      function addLightAtFigure() {
+        const rect = worldFigure.getBoundingClientRect();
+        addLight(rect.left + rect.width * (0.4 + Math.random() * 0.2), rect.top + rect.height * (0.4 + Math.random() * 0.2));
+        worldStatus.textContent = '你在星网中留下一点光。';
+      }
+
+      function updateMotionControl() {
+        const paused = userPaused;
+        motionToggle.setAttribute('aria-pressed', String(paused));
+        motionToggle.setAttribute('aria-label', paused ? '继续背景动态效果' : '暂停背景动态效果');
+        motionLabel.textContent = paused ? '继续流动' : '暂停流动';
+        motionIcon.innerHTML = paused
+          ? '<path d="M4.75 2.7 13 8l-8.25 5.3z"></path>'
+          : '<path d="M4.25 2.5h2.5v11h-2.5zm5 0h2.5v11h-2.5z"></path>';
+      }
+
+      function updateClock() {
+        const now = new Date();
+        const date = new Intl.DateTimeFormat('zh-CN', {
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        }).format(now);
+        localTime.dateTime = now.toISOString();
+        localTime.textContent = `此刻 · ${date}`;
+      }
+
+      function updateScrollProgress() {
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = scrollable > 0 ? window.scrollY / scrollable : 0;
+        root.style.setProperty('--page-progress', Math.max(0, Math.min(1, progress)).toFixed(4));
+      }
+
+      motionToggle.addEventListener('click', () => {
+        userPaused = !userPaused;
+        updateMotionControl();
+        worldStatus.textContent = userPaused ? '背景流动已暂停。' : '背景流动已继续。';
+        requestRender();
+      });
+
+      worldFigure.addEventListener('click', addLightAtFigure);
+      seedLight.addEventListener('click', addLightAtFigure);
+
+      worldFigure.addEventListener('pointermove', (event) => {
+        if (motionQuery.matches) return;
+        const rect = worldFigure.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width - 0.5;
+        const y = (event.clientY - rect.top) / rect.height - 0.5;
+        worldFigure.style.setProperty('--tilt-x', `${(-y * 7).toFixed(2)}deg`);
+        worldFigure.style.setProperty('--tilt-y', `${(x * 7).toFixed(2)}deg`);
+      });
+
+      worldFigure.addEventListener('pointerleave', () => {
+        worldFigure.style.setProperty('--tilt-x', '0deg');
+        worldFigure.style.setProperty('--tilt-y', '0deg');
+      });
+
+      window.addEventListener('pointermove', (event) => {
+        if (motionQuery.matches) return;
+        pointer.x = event.clientX;
+        pointer.y = event.clientY;
+        pointer.active = true;
+      }, { passive: true });
+
+      document.documentElement.addEventListener('pointerleave', () => {
+        pointer.active = false;
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+        const target = event.target;
+        if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return;
+        if (event.key.toLowerCase() === 'l') {
+          addLight(pointer.active ? pointer.x : width / 2, pointer.active ? pointer.y : height / 2);
+          worldStatus.textContent = '你用键盘在星网中留下一点光。';
+        }
+      });
+
+      worldForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const word = worldWord.value.trim().replace(/\s+/g, ' ');
+
+        if (!word) {
+          worldWord.setAttribute('aria-invalid', 'true');
+          formNote.dataset.state = 'error';
+          formNote.textContent = '写下一个你想保留的词。';
+          worldStatus.textContent = '请输入一个词后再放进世界。';
+          worldWord.focus();
+          return;
+        }
+
+        worldWord.removeAttribute('aria-invalid');
+        const chip = document.createElement('span');
+        chip.className = 'word-chip';
+        chip.textContent = word;
+        wordCloud.append(chip);
+
+        const x = width * (0.32 + Math.random() * 0.36);
+        const y = height * (0.28 + Math.random() * 0.38);
+        addLight(x, y, word);
+
+        formNote.dataset.state = 'success';
+        formNote.textContent = `“${word}”正在这一页里发亮。`;
+        worldStatus.textContent = `已把“${word}”放进世界。`;
+        worldForm.reset();
+      });
+
+      worldWord.addEventListener('input', () => {
+        if (!worldWord.hasAttribute('aria-invalid')) return;
+        worldWord.removeAttribute('aria-invalid');
+        formNote.dataset.state = '';
+        formNote.textContent = '不上传、不保存，只在这一页里发亮。';
+      });
+
+      const revealItems = document.querySelectorAll('.reveal');
+      if ('IntersectionObserver' in window && !motionQuery.matches) {
+        const revealObserver = new IntersectionObserver((entries, observer) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+        revealItems.forEach((item) => revealObserver.observe(item));
+      } else {
+        revealItems.forEach((item) => item.classList.add('is-visible'));
+      }
+
+      if ('IntersectionObserver' in window) {
+        const sceneObserver = new IntersectionObserver((entries) => {
+          const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+          if (!visible) return;
+          sceneIndex = Number(visible.target.dataset.scene) || 0;
+        }, { threshold: [0.2, 0.4, 0.6] });
+        document.querySelectorAll('.scene').forEach((scene) => sceneObserver.observe(scene));
+      }
+
+      motionQuery.addEventListener('change', () => {
+        revealItems.forEach((item) => item.classList.add('is-visible'));
+        requestRender();
+      });
+
+      window.addEventListener('resize', resizeCanvas, { passive: true });
+      window.addEventListener('scroll', updateScrollProgress, { passive: true });
+
+      resizeCanvas();
+      updateMotionControl();
+      updateClock();
+      updateScrollProgress();
+      window.setInterval(updateClock, 30000);
+    })();
+  </script>
+</body>
+</html>

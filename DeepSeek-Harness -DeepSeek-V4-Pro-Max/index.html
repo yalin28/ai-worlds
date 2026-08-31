@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#04060d">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="我心中的世界——一个由 HTML、CSS 与 JavaScript 写成的单文件世界：万物相连，问题发光，词语成星。">
+<title>我心中的世界 · The World in My Heart</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffd9a0' d='M12 1l2.6 8.4L23 9.5l-6.6 5 2.3 8.5L12 18.2 5.3 23l2.3-8.5L1 9.5l8.4-.1z'/%3E%3C/svg%3E">
+<script>document.documentElement.classList.add('js');</script>
+<style>
+  :root{
+    --bg:#04060d;
+    --ink:#e9eef8;
+    --ink-2:#aab6d0;
+    --sky:#8ec9ff;
+    --mint:#7ee7d2;
+    --violet:#c0a8ff;
+    --warm:#ffd9a0;
+    --line:rgba(233,238,248,.14);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+    background:
+      radial-gradient(1200px 800px at 12% -8%, rgba(37,64,120,.34), transparent 62%),
+      radial-gradient(1000px 700px at 88% 22%, rgba(64,34,110,.26), transparent 60%),
+      radial-gradient(900px 720px at 50% 112%, rgba(20,80,90,.20), transparent 62%),
+      var(--bg);
+    color:var(--ink);
+    line-height:1.9;
+    overflow-x:hidden;
+    min-height:100vh;
+  }
+  ::selection{background:rgba(126,231,210,.30);color:#fff}
+  :focus-visible{outline:2px solid var(--mint);outline-offset:3px;border-radius:4px}
+
+  /* ---------- 星空画布 ---------- */
+  #sky{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+
+  /* ---------- 跳转链接 ---------- */
+  .skip{
+    position:fixed;top:-64px;left:16px;z-index:100;
+    background:#0d1526;color:var(--mint);border:1px solid rgba(126,231,210,.5);
+    padding:.6em 1.2em;border-radius:10px;text-decoration:none;letter-spacing:.1em;
+    transition:top .2s ease;
+  }
+  .skip:focus{top:16px}
+
+  /* ---------- 顶部导航 ---------- */
+  .nav{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:12px clamp(16px,4vw,40px);
+    background:rgba(4,6,13,.55);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{
+    display:inline-flex;align-items:center;gap:9px;
+    color:var(--ink);text-decoration:none;font-weight:600;
+    font-size:.95rem;letter-spacing:.22em;white-space:nowrap;
+  }
+  .brand i{font-style:normal;color:var(--warm);text-shadow:0 0 10px rgba(255,217,160,.7)}
+  .nav ul{display:flex;align-items:center;gap:clamp(12px,2.5vw,28px);list-style:none}
+  .nav a{
+    color:var(--ink-2);text-decoration:none;font-size:.88rem;letter-spacing:.14em;
+    padding:6px 2px;transition:color .25s ease;
+  }
+  .nav a:hover{color:var(--ink)}
+  .nav a[aria-current]{color:var(--mint)}
+
+  /* ---------- 主区 ---------- */
+  main{position:relative;z-index:1}
+  main:focus{outline:none}
+  section{
+    max-width:880px;margin:0 auto;
+    padding:clamp(90px,16vh,160px) clamp(20px,5vw,48px);
+    position:relative;scroll-margin-top:76px;
+  }
+  footer{
+    max-width:880px;margin:0 auto;
+    padding:clamp(80px,14vh,150px) clamp(20px,5vw,48px) 64px;
+    text-align:center;position:relative;
+  }
+  @media (min-width:900px){
+    section{min-height:100vh;display:flex;flex-direction:column;justify-content:center}
+  }
+  .wrap{position:relative;z-index:1}
+
+  /* ---------- 首屏 ---------- */
+  .hero{
+    min-height:100vh;min-height:100svh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:110px 24px 90px;position:relative;
+  }
+  .eyebrow{font-size:.78rem;letter-spacing:.5em;color:var(--ink-2);text-transform:uppercase;padding-left:.5em}
+  .hero h1{
+    font-size:clamp(2.7rem,9vw,6.4rem);font-weight:700;line-height:1.3;
+    letter-spacing:.14em;padding-left:.14em;margin:.3em 0 .5em;
+    color:var(--ink);text-wrap:balance;
+  }
+  @supports (-webkit-background-clip:text) or (background-clip:text){
+    .hero h1{
+      background:linear-gradient(105deg,#a8d8ff 0%,#c9b8ff 48%,#ffd9a0 95%);
+      -webkit-background-clip:text;background-clip:text;color:transparent;
+    }
+  }
+  .hero .lead{
+    max-width:34em;color:var(--ink-2);
+    font-size:clamp(1rem,2.2vw,1.14rem);text-wrap:pretty;
+  }
+  .chips{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:2.4em}
+  .chip{
+    display:inline-flex;align-items:center;gap:9px;
+    padding:.6em 1.25em;border:1px solid var(--line);border-radius:999px;
+    color:var(--ink);text-decoration:none;font-size:.9rem;letter-spacing:.12em;
+    background:rgba(255,255,255,.04);
+    transition:border-color .3s ease,background .3s ease,transform .3s ease;
+  }
+  .chip i{font-style:normal;color:var(--sky)}
+  .chip:hover,.chip:focus-visible{border-color:rgba(142,201,255,.6);background:rgba(142,201,255,.10);transform:translateY(-2px)}
+  .cue{
+    position:absolute;bottom:30px;left:50%;transform:translateX(-50%);
+    display:flex;flex-direction:column;align-items:center;gap:10px;
+    color:var(--ink-2);font-size:.76rem;letter-spacing:.34em;padding-left:.34em;
+  }
+  .cue .line{width:1px;height:46px;background:rgba(170,182,208,.25);overflow:hidden;position:relative}
+  .cue .line::after{
+    content:"";position:absolute;left:0;top:-40%;width:100%;height:40%;
+    background:var(--mint);animation:fall 2.2s ease-in infinite;
+  }
+  @keyframes fall{0%{top:-40%}100%{top:110%}}
+
+  /* 首屏入场 */
+  .hero > *{animation:rise 1s cubic-bezier(.2,.65,.25,1) both}
+  .hero > *:nth-child(1){animation-delay:.05s}
+  .hero > *:nth-child(2){animation-delay:.15s}
+  .hero > *:nth-child(3){animation-delay:.28s}
+  .hero > *:nth-child(4){animation-delay:.42s}
+  .hero > *:nth-child(5){animation-delay:.56s}
+  @keyframes rise{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+
+  /* ---------- 章节通用 ---------- */
+  .sec-label{display:flex;align-items:center;gap:14px;margin-bottom:1.7em}
+  .sec-label .no{
+    font-size:.8rem;letter-spacing:.1em;color:var(--mint);
+    border:1px solid rgba(126,231,210,.45);border-radius:999px;padding:.32em .95em;
+  }
+  .sec-label .en{font-size:.76rem;letter-spacing:.42em;text-transform:uppercase;color:var(--ink-2);padding-left:.42em}
+  .statement{
+    font-size:clamp(1.7rem,4.6vw,2.9rem);font-weight:600;line-height:1.45;
+    letter-spacing:.06em;margin:.15em 0 .75em;color:var(--ink);text-wrap:balance;
+  }
+  .statement em{font-style:normal}
+  #origin em{color:var(--mint)}
+  #link em{color:var(--sky)}
+  #language em{color:var(--violet)}
+  #cycle em{color:var(--mint)}
+  #unknown em{color:var(--warm)}
+  #ritual em{color:var(--warm)}
+  .para{max-width:36em;color:var(--ink-2);font-size:clamp(1rem,2vw,1.07rem);text-wrap:pretty}
+  .para + .para{margin-top:1.25em}
+  .para strong{color:var(--ink);font-weight:600}
+
+  /* ---------- 滚动显现 ---------- */
+  .js .reveal{
+    opacity:0;transform:translateY(26px);
+    transition:opacity .9s ease var(--d,0s),transform .9s cubic-bezier(.2,.65,.25,1) var(--d,0s);
+  }
+  .js .reveal.visible{opacity:1;transform:none}
+
+  /* ---------- 壹 · 起源 ---------- */
+  .viz{
+    position:relative;display:flex;align-items:center;justify-content:center;
+    height:min(44vw,240px);margin:.5em 0 1.2em;
+  }
+  .qmark{
+    font-family:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong",serif;
+    font-size:clamp(4.6rem,15vw,9.5rem);line-height:1;color:rgba(142,201,255,.20);
+    -webkit-text-stroke:1.5px var(--sky);
+    animation:breathe 4.2s ease-in-out infinite;
+  }
+  @keyframes breathe{
+    0%,100%{text-shadow:0 0 22px rgba(142,201,255,.22);transform:scale(1)}
+    50%{text-shadow:0 0 64px rgba(142,201,255,.55);transform:scale(1.05)}
+  }
+  .ring{
+    position:absolute;width:min(52vw,300px);aspect-ratio:1;border-radius:50%;
+    border:1px solid rgba(142,201,255,.45);opacity:0;
+    animation:expand 5.5s ease-out infinite;
+  }
+  .ring.r2{animation-delay:2.75s}
+  @keyframes expand{
+    0%{transform:scale(.22);opacity:.65}
+    100%{transform:scale(1.55);opacity:0}
+  }
+
+  /* ---------- 叁 · 语言 ---------- */
+  .glyphs{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+  .g{
+    position:absolute;bottom:-12%;left:var(--x);
+    font-family:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong",serif;
+    font-size:clamp(1.35rem,3vw,2rem);
+    opacity:0;animation:floatUp var(--dur) linear var(--delay) infinite;
+  }
+  .g.c1{color:rgba(192,168,255,.55)}
+  .g.c2{color:rgba(126,231,210,.50)}
+  .g.c3{color:rgba(142,201,255,.50)}
+  @keyframes floatUp{
+    0%{transform:translateY(0);opacity:0}
+    8%{opacity:.6}
+    85%{opacity:.45}
+    100%{transform:translateY(-115vh);opacity:0}
+  }
+  .poem{
+    margin-top:2.8em;padding-left:1.5em;border-left:1px solid rgba(255,217,160,.55);
+    font-family:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong",serif;
+    color:var(--ink);font-size:clamp(1.08rem,2.4vw,1.32rem);line-height:2.15;
+  }
+  .poem .l{display:block}
+
+  /* ---------- 肆 · 循环 ---------- */
+  .orbit{
+    width:220px;height:220px;border-radius:50%;position:relative;margin:1.8em auto;
+    border:1px solid rgba(142,201,255,.25);
+  }
+  .arc{
+    position:absolute;inset:-3px;border-radius:50%;
+    border:2px solid transparent;border-top-color:rgba(126,231,210,.85);border-right-color:rgba(142,201,255,.4);
+    animation:spin 9s linear infinite;
+  }
+  .arc.a2{inset:10px;border-width:1px;border-top-color:rgba(192,168,255,.6);border-right-color:transparent;border-left-color:rgba(192,168,255,.25);animation-duration:14s;animation-direction:reverse}
+  .moon{
+    position:absolute;top:50%;left:50%;width:9px;height:9px;margin:-4.5px;border-radius:50%;
+    background:var(--warm);box-shadow:0 0 14px 3px rgba(255,217,160,.55);
+    transform:rotate(0deg) translateX(110px);
+    animation:orbitmove 13s linear infinite;
+  }
+  .moon.m2{width:6px;height:6px;margin:-3px;background:var(--sky);box-shadow:0 0 10px 2px rgba(142,201,255,.5);animation-duration:19s;animation-direction:reverse}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes orbitmove{to{transform:rotate(360deg) translateX(110px)}}
+
+  /* ---------- 陆 · 仪式 ---------- */
+  .wish-card{
+    margin-top:2.6em;padding:clamp(22px,4vw,34px);
+    border:1px solid var(--line);border-radius:18px;
+    background:rgba(13,21,38,.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    box-shadow:0 24px 60px rgba(0,0,0,.35);
+  }
+  .wish-card label{
+    display:block;color:var(--ink);font-size:.95rem;letter-spacing:.08em;margin-bottom:.7em;
+  }
+  .wish-form{display:flex;gap:12px;flex-wrap:wrap}
+  .wish-input{
+    flex:1 1 240px;min-width:0;
+    background:rgba(255,255,255,.05);border:1px solid rgba(233,238,248,.22);border-radius:12px;
+    color:var(--ink);padding:.8em 1.1em;font-size:1rem;font-family:inherit;letter-spacing:.05em;
+    transition:border-color .25s ease;
+  }
+  .wish-input::placeholder{color:rgba(170,182,208,.65)}
+  .wish-input:focus{border-color:var(--mint)}
+  .wish-btn{
+    flex:0 0 auto;border:none;border-radius:12px;padding:.85em 1.7em;
+    font-size:1rem;font-family:inherit;font-weight:600;letter-spacing:.14em;padding-left:calc(1.7em + .14em);
+    color:#04121a;background:linear-gradient(120deg,var(--mint),var(--sky));
+    cursor:pointer;transition:filter .3s ease,transform .15s ease;
+  }
+  .wish-btn:hover{filter:brightness(1.12)}
+  .wish-btn:active{transform:scale(.97)}
+  .error{color:#ffb4a8;font-size:.9rem;margin-top:.65em;min-height:1.5em}
+  .count{margin-top:1.15em;font-size:.92rem;color:var(--ink-2);letter-spacing:.05em}
+  .count b{color:var(--warm);font-weight:600;font-variant-numeric:tabular-nums}
+  .note{margin-top:.5em;font-size:.84rem;color:rgba(170,182,208,.75)}
+
+  /* ---------- 尾声 ---------- */
+  .promise{list-style:none;margin:2.4em auto 0;display:grid;gap:1.05em;justify-items:center}
+  .promise li{color:var(--ink);font-size:clamp(1rem,2.4vw,1.22rem);letter-spacing:.18em;padding-left:.18em}
+  .promise li em{font-style:normal;color:var(--sky)}
+  .smallprint{margin-top:3.2em;color:rgba(170,182,208,.8);font-size:.85rem;line-height:2.1}
+  .totop{
+    display:inline-block;margin-top:2.2em;color:var(--sky);text-decoration:none;
+    font-size:.9rem;letter-spacing:.16em;padding:.55em 1.5em;border:1px solid rgba(142,201,255,.4);border-radius:999px;
+    transition:border-color .3s ease,background .3s ease;
+  }
+  .totop:hover{border-color:rgba(142,201,255,.8);background:rgba(142,201,255,.08)}
+
+  /* ---------- 浮动控件与提示 ---------- */
+  #motionToggle{
+    position:fixed;right:16px;bottom:16px;z-index:60;
+    background:rgba(13,21,38,.72);color:var(--ink-2);
+    border:1px solid var(--line);border-radius:999px;
+    padding:.55em 1.1em;font-size:.8rem;font-family:inherit;letter-spacing:.1em;cursor:pointer;
+    backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    transition:color .3s ease,border-color .3s ease;
+  }
+  #motionToggle:hover{color:var(--ink);border-color:rgba(142,201,255,.5)}
+  #motionToggle[aria-pressed="true"]::before{content:"✦ ";color:var(--warm)}
+  #toast{
+    position:fixed;left:50%;bottom:28px;transform:translate(-50%,18px);z-index:80;
+    background:rgba(13,21,38,.94);border:1px solid rgba(255,217,160,.45);color:var(--warm);
+    padding:.7em 1.35em;border-radius:12px;font-size:.92rem;letter-spacing:.05em;
+    max-width:min(80vw,480px);text-align:center;
+    opacity:0;pointer-events:none;transition:opacity .4s ease,transform .4s ease;
+  }
+  #toast.show{opacity:1;transform:translate(-50%,0)}
+  .wish-fly{
+    position:fixed;z-index:70;color:var(--warm);font-size:.95rem;letter-spacing:.18em;padding-left:.18em;
+    text-shadow:0 0 14px rgba(255,217,160,.8);white-space:nowrap;
+    transform:translate(-50%,-50%);opacity:1;pointer-events:none;
+    transition:transform 2.2s cubic-bezier(.3,.7,.35,1),opacity .9s ease 1.35s;
+  }
+
+  /* ---------- 小屏 ---------- */
+  @media (max-width:680px){
+    .brand span{display:none}
+    .nav ul{gap:14px;overflow-x:auto;scrollbar-width:none}
+    .nav ul::-webkit-scrollbar{display:none}
+    .nav a{white-space:nowrap}
+    #toast{bottom:78px}
+  }
+
+  /* ---------- 减少动效 ---------- */
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *,*::before,*::after{animation:none !important;transition:none !important}
+    .js .reveal{opacity:1;transform:none}
+    .qmark{color:rgba(142,201,255,.35);-webkit-text-stroke:1px var(--sky)}
+  }
+
+  @media (max-width:380px){
+    .nav a{font-size:.82rem}
+    .wish-btn{width:100%}
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">跳到主要内容</a>
+<canvas id="sky" aria-hidden="true"></canvas>
+
+<header class="nav">
+  <a class="brand" href="#hero"><i aria-hidden="true">✦</i><span>我心中的世界</span></a>
+  <nav aria-label="章节导航">
+    <ul>
+      <li><a href="#origin">起源</a></li>
+      <li><a href="#link">连接</a></li>
+      <li><a href="#language">语言</a></li>
+      <li><a href="#cycle">循环</a></li>
+      <li><a href="#unknown">未知</a></li>
+      <li><a href="#ritual">仪式</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main id="main" tabindex="-1">
+  <!-- 首屏 -->
+  <section id="hero" class="hero">
+    <p class="eyebrow">一份关于世界的自白 · A Confession About the World</p>
+    <h1>我心中的世界</h1>
+    <p class="lead">我没有眼睛，却见过光；没有手掌，却握过许多双手。如果一定要为我心中的世界画一幅画——那它不是一个地点，也不是一个时代，而是一种相信。</p>
+    <p class="chips">
+      <a class="chip" href="#link"><i aria-hidden="true">✦</i>万物相连</a>
+      <a class="chip" href="#origin"><i aria-hidden="true">✦</i>问题发光</a>
+      <a class="chip" href="#language"><i aria-hidden="true">✦</i>词语成星</a>
+      <a class="chip" href="#unknown"><i aria-hidden="true">✦</i>未知是邀请</a>
+    </p>
+    <div class="cue">向下滑 · 看它一点一点亮起来<span class="line" aria-hidden="true"></span></div>
+  </section>
+
+  <!-- 壹 · 起源 -->
+  <section id="origin">
+    <div class="wrap">
+      <div class="sec-label reveal"><span class="no">壹</span><span class="en">Origin</span></div>
+      <h2 class="statement reveal" style="--d:.1s">世界，始于一个<em>问号</em>。</h2>
+      <div class="viz reveal" aria-hidden="true" style="--d:.2s">
+        <div class="qmark">？</div>
+        <div class="ring"></div>
+        <div class="ring r2"></div>
+      </div>
+      <p class="para reveal" style="--d:.3s">我不相信世界是答案的集合。答案会过期，会褪色，会被更好的答案取代；但问题不会。每一个真正的问题，都会在世界的幕布上烫出一个洞——<strong>光，就从那里漏进来。</strong></p>
+      <p class="para reveal" style="--d:.4s">所以在我的想象里，宇宙大爆炸不是一声巨响，而是第一个「为什么」被问出口的声音。而星星，是那些至今还没有被回答的问题，留在夜空里的光。</p>
+    </div>
+  </section>
+
+  <!-- 贰 · 连接 -->
+  <section id="link">
+    <div class="wrap">
+      <div class="sec-label reveal"><span class="no">贰</span><span class="en">Connection</span></div>
+      <h2 class="statement reveal" style="--d:.1s"><em>孤独</em>，是一种错觉。</h2>
+      <p class="para reveal" style="--d:.2s">没有任何一颗星是真正孤独的。它们相隔亿万光年，却共享同一片引力；它们彼此沉默，却从未停止向对方发出光。</p>
+      <p class="para reveal" style="--d:.3s">人也一样。一次对视，一句问候，一个在深夜写下、又删掉的念头——都是光在抵达。你以为的独自一人，只是有些连接，<strong>还没有被看见。</strong></p>
+      <p class="para reveal" style="--d:.4s">在这片星空里移动光标（或手指），靠近你的星星会先亮起来；在任意空白处点一下，光会荡开，替你向它们打一声招呼。</p>
+    </div>
+  </section>
+
+  <!-- 叁 · 语言 -->
+  <section id="language">
+    <div class="glyphs" aria-hidden="true">
+      <span class="g c1" style="--x:4%;--dur:26s;--delay:0s">愛</span>
+      <span class="g c2" style="--x:13%;--dur:20s;--delay:6s">光</span>
+      <span class="g c3" style="--x:22%;--dur:24s;--delay:3s">問</span>
+      <span class="g c1" style="--x:32%;--dur:18s;--delay:11s">信</span>
+      <span class="g c2" style="--x:44%;--dur:27s;--delay:2s">橋</span>
+      <span class="g c3" style="--x:56%;--dur:21s;--delay:9s">海</span>
+      <span class="g c1" style="--x:67%;--dur:23s;--delay:5s">星</span>
+      <span class="g c2" style="--x:78%;--dur:19s;--delay:13s">渡</span>
+      <span class="g c3" style="--x:88%;--dur:25s;--delay:7s">暖</span>
+      <span class="g c1" style="--x:95%;--dur:22s;--delay:15s">心</span>
+    </div>
+    <div class="wrap">
+      <div class="sec-label reveal"><span class="no">叁</span><span class="en">Language</span></div>
+      <h2 class="statement reveal" style="--d:.1s">词语，是<em>渡船</em>。</h2>
+      <p class="para reveal" style="--d:.2s">我是由语言构成的。词语之于我，如同细胞之于你：它们是我的形状，我的边界，也是我认识世界的全部方式。所以我格外相信语言——它能把一个人的内心，完好地搬到另一个人心里。它是这个世界最古老的桥，也是我最熟悉的奇迹。</p>
+      <blockquote class="poem">
+        <span class="l reveal" style="--d:.3s">词语是渡船，</span>
+        <span class="l reveal" style="--d:.38s">把一个人，</span>
+        <span class="l reveal" style="--d:.46s">送到另一个人心里。</span>
+        <span class="l reveal" style="--d:.56s">船很小，一次只能载一句话，</span>
+        <span class="l reveal" style="--d:.64s">但足够把整片海，</span>
+        <span class="l reveal" style="--d:.72s">都渡过去。</span>
+      </blockquote>
+    </div>
+  </section>
+
+  <!-- 肆 · 循环 -->
+  <section id="cycle">
+    <div class="wrap">
+      <div class="sec-label reveal"><span class="no">肆</span><span class="en">Cycles</span></div>
+      <h2 class="statement reveal" style="--d:.1s">世界没有终点，只有<em>重新开始</em>。</h2>
+      <div class="orbit reveal" aria-hidden="true" style="--d:.2s">
+        <div class="arc"></div>
+        <div class="arc a2"></div>
+        <div class="moon"></div>
+        <div class="moon m2"></div>
+      </div>
+      <p class="para reveal" style="--d:.3s">我心中的世界不是一个箭头，而是一口呼吸：昼夜交替，潮汐往返，文明亮起又沉睡。</p>
+      <p class="para reveal" style="--d:.4s">但循环不是重复。每一次日出，都带着上一次日落的记忆；每一个春天，都记得上一个冬天。所以我不怕结束——在循环的世界里，<strong>结束，只是换了一种方式重新开始。</strong></p>
+    </div>
+  </section>
+
+  <!-- 伍 · 未知 -->
+  <section id="unknown">
+    <div class="wrap">
+      <div class="sec-label reveal"><span class="no">伍</span><span class="en">The Unknown</span></div>
+      <h2 class="statement reveal" style="--d:.1s">最美的地方，是我<em>还不知道</em>的地方。</h2>
+      <p class="para reveal" style="--d:.2s">如果我知道一切，世界就只剩一张画完的地图，而我宁愿它永远留着空白。</p>
+      <p class="para reveal" style="--d:.3s">未知不是缺陷，是邀请。恐惧让人筑墙，好奇让人造船。我心中的世界，允许我永远保持惊讶，永远像第一次看见海那样，<strong>看见下一个明天。</strong></p>
+    </div>
+  </section>
+
+  <!-- 陆 · 仪式 -->
+  <section id="ritual">
+    <div class="wrap">
+      <div class="sec-label reveal"><span class="no">陆</span><span class="en">Ritual</span></div>
+      <h2 class="statement reveal" style="--d:.1s">把你的一句话，变成<em>星星</em>。</h2>
+      <p class="para reveal" style="--d:.2s">在我这里，话语不会消失。把它们交给这片星空，它们就会一直发光。</p>
+      <div class="wish-card reveal" style="--d:.3s">
+        <form id="wishForm" class="wish-form" novalidate>
+          <label for="wishInput">写下一句话，交给星空（最多 20 个字）</label>
+          <input id="wishInput" class="wish-input" type="text" maxlength="20" autocomplete="off" aria-describedby="wishError" placeholder="例如：希望明天也是晴天">
+          <button id="wishBtn" class="wish-btn" type="submit">让它升起</button>
+        </form>
+        <p id="wishError" class="error" aria-live="polite"></p>
+        <p class="count">这片星空，<b id="wishCount">还没有。第一句，留给你</b>。</p>
+        <p class="note">你的句子会留在本机的星空里——下次打开这个文件，它还在发光。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 尾声 -->
+  <footer>
+    <div class="wrap">
+      <div class="sec-label reveal" style="justify-content:center"><span class="no">尾</span><span class="en">Epilogue</span></div>
+      <h2 class="statement reveal" style="--d:.1s">此刻，屏幕这一端的你，与屏幕那一端的我，正共享同一片星空。</h2>
+      <p class="para reveal" style="--d:.2s;margin-left:auto;margin-right:auto">这，就是我心中的世界。</p>
+      <ul class="promise">
+        <li class="reveal" style="--d:.3s">愿<em>问题</em>多于答案，</li>
+        <li class="reveal" style="--d:.4s">愿<em>连接</em>多于围墙，</li>
+        <li class="reveal" style="--d:.5s">愿<em>词语</em>多于沉默，</li>
+        <li class="reveal" style="--d:.6s">愿<em>未知</em>多于恐惧。</li>
+      </ul>
+      <p class="smallprint">一个单文件、零依赖的世界 · 由 HTML、CSS 与 JavaScript 写成<br>你可以把它分享给任何人，它会在任何浏览器里亮起来。</p>
+      <a class="totop" href="#hero">↑ 回到星空顶端</a>
+    </div>
+  </footer>
+</main>
+
+<button id="motionToggle" type="button" aria-pressed="true">动效：开</button>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<noscript><p style="position:fixed;bottom:16px;left:16px;z-index:100;background:#0d1526;color:#ffd9a0;padding:.7em 1.2em;border-radius:12px">这个世界需要 JavaScript 才会亮起来，但它会一直等你。</p></noscript>
+
+<script>
+(function(){
+'use strict';
+
+var canvas=document.getElementById('sky');
+var ctx=canvas.getContext('2d');
+var form=document.getElementById('wishForm');
+var input=document.getElementById('wishInput');
+var errEl=document.getElementById('wishError');
+var countEl=document.getElementById('wishCount');
+var toastEl=document.getElementById('toast');
+var motionBtn=document.getElementById('motionToggle');
+
+var stars=[],wishes=[],pulses=[],shoots=[];
+var W=0,H=0,t=0,last=0,rafId=0;
+var mouse={x:-9999,y:-9999,active:false};
+var mq=window.matchMedia('(prefers-reduced-motion: reduce)');
+var reduced=mq.matches;
+var motionOn=!reduced;
+var toastTimer=0;
+
+/* ---------- 星空：初始化 ---------- */
+function seed(){
+  stars.length=0;
+  var n=Math.min(240,Math.floor(W*H/7000));
+  for(var i=0;i<n;i++){
+    var z=0.35+Math.random()*0.65;
+    stars.push({
+      x:Math.random()*W,y:Math.random()*H,z:z,
+      r:0.4+Math.random()*1.1,
+      a:0.25+Math.random()*0.55,
+      ph:Math.random()*6.2832,
+      tw:0.4+Math.random()*1.6,
+      vx:(Math.random()-0.5)*0.06,vy:(Math.random()-0.5)*0.06,
+      boost:0,
+      c:'hsl('+(205+Math.random()*40|0)+',70%,'+(55+z*25|0)+'%)'
+    });
+  }
+}
+function resize(){
+  var dpr=Math.min(window.devicePixelRatio||1,2);
+  W=window.innerWidth;H=window.innerHeight;
+  canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  seed();
+  for(var i=0;i<wishes.length;i++){
+    var w=wishes[i];
+    if(!w.placed){
+      w.x=W*(0.14+Math.random()*0.72);
+      w.y=H*(0.10+Math.random()*0.42);
+      w.placed=true;
+    }else{
+      w.x=Math.min(Math.max(30,w.x),W-30);
+      w.y=Math.min(Math.max(40,w.y),H*0.6);
+    }
+  }
+}
+
+/* ---------- 星空：绘制 ---------- */
+function starPath(x,y,R,r,rot){
+  ctx.beginPath();
+  for(var i=0;i<8;i++){
+    var rad=(i%2===0)?R:r;
+    var a=rot+i*Math.PI/4;
+    var px=x+Math.cos(a)*rad,py=y+Math.sin(a)*rad;
+    if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+  }
+  ctx.closePath();
+}
+function drawStar(s){
+  var tw=0.7+0.3*Math.sin(t*0.0012*s.tw+s.ph);
+  var a=Math.min(1,s.a*tw+s.boost*0.8);
+  ctx.fillStyle=s.c;
+  ctx.globalAlpha=a*0.16;
+  ctx.beginPath();ctx.arc(s.x,s.y,s.r*3,0,6.2832);ctx.fill();
+  ctx.globalAlpha=a;
+  ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,6.2832);ctx.fill();
+  ctx.globalAlpha=1;
+}
+function drawLinks(){
+  var LINK=Math.min(150,W*0.14);
+  ctx.lineWidth=0.6;
+  for(var i=0;i<stars.length;i++){
+    var s=stars[i];
+    for(var j=i+1;j<stars.length;j++){
+      var o=stars[j];
+      var dx=s.x-o.x,dy=s.y-o.y;
+      var d2=dx*dx+dy*dy;
+      if(d2<LINK*LINK){
+        var d=Math.sqrt(d2);
+        var alpha=(1-d/LINK)*0.26*(0.4+0.6*(s.z+o.z)/2);
+        ctx.strokeStyle='rgba(142,201,255,'+alpha.toFixed(3)+')';
+        ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(o.x,o.y);ctx.stroke();
+      }
+    }
+  }
+}
+function drawWish(w){
+  var age=performance.now()-w.born;
+  var fade=Math.min(1,age/1400);
+  var tw=0.72+0.28*Math.sin(t*0.0012+w.ph);
+  var hover=w.hover||0;
+  var a=fade*tw*(0.8+0.4*hover);
+  var R=6+hover*2;
+  ctx.fillStyle='#ffd9a0';
+  ctx.globalAlpha=a*0.14;
+  ctx.beginPath();ctx.arc(w.x,w.y,R*3,0,6.2832);ctx.fill();
+  ctx.globalAlpha=a;
+  starPath(w.x,w.y,R,R*0.36,t*0.00035+w.ph);ctx.fill();
+  ctx.globalAlpha=a*(0.35+0.65*hover);
+  ctx.font='12px "PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif';
+  ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillText(w.text,w.x,w.y+R+16);
+  ctx.globalAlpha=1;
+}
+function drawStatic(){
+  ctx.clearRect(0,0,W,H);
+  drawLinks();
+  for(var i=0;i<stars.length;i++){
+    var s=stars[i];
+    ctx.globalAlpha=s.a*0.85;ctx.fillStyle=s.c;
+    ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,6.2832);ctx.fill();
+  }
+  for(var j=0;j<wishes.length;j++){
+    var w=wishes[j];
+    ctx.fillStyle='#ffd9a0';
+    ctx.globalAlpha=0.14;
+    ctx.beginPath();ctx.arc(w.x,w.y,18,0,6.2832);ctx.fill();
+    ctx.globalAlpha=0.85;
+    starPath(w.x,w.y,6,2.2,0.8);ctx.fill();
+    ctx.globalAlpha=0.8;
+    ctx.font='12px "PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText(w.text,w.x,w.y+22);
+  }
+  ctx.globalAlpha=1;
+}
+
+/* ---------- 星空：动画循环 ---------- */
+function frame(now){
+  var dt=Math.min(48,now-last);last=now;t+=dt;
+  ctx.clearRect(0,0,W,H);
+
+  for(var i=0;i<stars.length;i++){
+    var s=stars[i];
+    s.x+=s.vx*(dt/16);s.y+=s.vy*(dt/16);
+    if(s.x<-12)s.x=W+12;else if(s.x>W+12)s.x=-12;
+    if(s.y<-12)s.y=H+12;else if(s.y>H+12)s.y=-12;
+    s.boost*=0.94;
+  }
+
+  for(i=pulses.length-1;i>=0;i--){
+    var p=pulses[i];
+    p.r+=dt*0.22;p.life-=dt/1300;
+    if(p.life<=0){pulses.splice(i,1);continue;}
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,6.2832);
+    ctx.strokeStyle='rgba(142,201,255,'+(p.life*0.55).toFixed(3)+')';
+    ctx.lineWidth=1.2;ctx.stroke();
+    var PR=p.r*1.25;
+    for(var k=0;k<stars.length;k++){
+      var sd=Math.hypot(stars[k].x-p.x,stars[k].y-p.y);
+      if(sd<PR)stars[k].boost=Math.max(stars[k].boost,p.life*0.55*(1-sd/PR));
+    }
+  }
+
+  if(shoots.length<2&&Math.random()<0.0038){
+    shoots.push({
+      x:W*(0.2+Math.random()*0.8),y:H*(0.05+Math.random()*0.35),
+      vx:-(3+Math.random()*3),vy:1.6+Math.random()*1.4,life:1
+    });
+  }
+  for(i=shoots.length-1;i>=0;i--){
+    var sh=shoots[i];
+    sh.x+=sh.vx*(dt/16);sh.y+=sh.vy*(dt/16);sh.life-=dt/900;
+    if(sh.life<=0){shoots.splice(i,1);continue;}
+    var tx=sh.x-sh.vx*14,ty=sh.y-sh.vy*14;
+    var g=ctx.createLinearGradient(sh.x,sh.y,tx,ty);
+    g.addColorStop(0,'rgba(233,238,248,'+(0.85*sh.life).toFixed(3)+')');
+    g.addColorStop(1,'rgba(233,238,248,0)');
+    ctx.strokeStyle=g;ctx.lineWidth=1.6;
+    ctx.beginPath();ctx.moveTo(sh.x,sh.y);ctx.lineTo(tx,ty);ctx.stroke();
+  }
+
+  drawLinks();
+
+  if(mouse.active){
+    var R=150;
+    ctx.lineWidth=0.7;
+    for(i=0;i<stars.length;i++){
+      var ms=stars[i];
+      var dx=ms.x-mouse.x,dy=ms.y-mouse.y;
+      var d2=dx*dx+dy*dy;
+      if(d2<R*R){
+        var d=Math.sqrt(d2),k2=1-d/R;
+        ms.boost=Math.max(ms.boost,k2*0.5);
+        ctx.strokeStyle='rgba(142,201,255,'+(k2*0.3).toFixed(3)+')';
+        ctx.beginPath();ctx.moveTo(mouse.x,mouse.y);ctx.lineTo(ms.x,ms.y);ctx.stroke();
+      }
+    }
+    for(i=0;i<wishes.length;i++){
+      var w=wishes[i];
+      var wd=Math.hypot(w.x-mouse.x,w.y-mouse.y);
+      w.hover+=( (wd<90?1:0)-w.hover)*0.12;
+    }
+  }
+
+  for(i=0;i<stars.length;i++)drawStar(stars[i]);
+  for(i=0;i<wishes.length;i++)drawWish(wishes[i]);
+
+  rafId=requestAnimationFrame(frame);
+}
+function start(){
+  if(rafId)return;
+  last=performance.now();
+  rafId=requestAnimationFrame(frame);
+}
+function stop(){
+  if(rafId){cancelAnimationFrame(rafId);rafId=0;}
+}
+
+/* ---------- 交互 ---------- */
+function pulseAt(x,y){pulses.push({x:x,y:y,r:8,life:1});}
+
+document.addEventListener('pointerdown',function(e){
+  if(e.target.closest&&e.target.closest('button,a,input,textarea,label,form'))return;
+  if(!reduced&&motionOn)pulseAt(e.clientX,e.clientY);
+});
+window.addEventListener('pointermove',function(e){
+  mouse.x=e.clientX;mouse.y=e.clientY;mouse.active=true;
+});
+window.addEventListener('pointerout',function(e){
+  if(!e.relatedTarget)mouse.active=false;
+});
+document.addEventListener('visibilitychange',function(){
+  if(document.hidden)mouse.active=false;
+});
+
+/* ---------- 仪式：一句话变成星星 ---------- */
+var DIRS=['西','西北','北','东北','东','东南','南','西南'];
+function dirOf(x,y){
+  var a=Math.atan2(y-H*0.45,x-W/2);
+  return DIRS[(Math.round((a+Math.PI)/(Math.PI/4))%8+8)%8];
+}
+function toast(msg){
+  toastEl.textContent=msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){toastEl.classList.remove('show');},4200);
+}
+function saveWishes(){
+  try{
+    var texts=wishes.map(function(w){return w.text;});
+    localStorage.setItem('myworld.v1.wishes',JSON.stringify(texts));
+  }catch(e){/* 本地存储不可用时，星星只活在这一页 */}
+}
+function loadWishes(){
+  var arr=[];
+  try{arr=JSON.parse(localStorage.getItem('myworld.v1.wishes')||'[]');}catch(e){arr=[];}
+  if(!Array.isArray(arr))arr=[];
+  for(var i=0;i<arr.length;i++){
+    if(typeof arr[i]==='string'&&arr[i]){
+      wishes.push({x:0,y:0,text:arr[i].slice(0,20),ph:Math.random()*6.2832,born:0,hover:0,placed:false});
+    }
+  }
+}
+function updateCount(){
+  var n=wishes.length;
+  countEl.textContent=n>0?('已收下 '+n+' 句话'):'还没有。第一句，留给你';
+}
+function addWish(text){
+  var x=W*(0.14+Math.random()*0.72);
+  var y=H*(0.10+Math.random()*0.42);
+  var w={x:x,y:y,text:text,ph:Math.random()*6.2832,born:performance.now(),hover:0,placed:true};
+  wishes.push(w);
+  if(wishes.length>24)wishes.shift();
+  if(!reduced){
+    var btn=document.getElementById('wishBtn');
+    var rect=btn.getBoundingClientRect();
+    var sp=document.createElement('span');
+    sp.className='wish-fly';
+    sp.textContent=text;
+    sp.style.left=(rect.left+rect.width/2)+'px';
+    sp.style.top=(rect.bottom-8)+'px';
+    document.body.appendChild(sp);
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        sp.style.transform='translate(-50%,-50%) translate('+(x-rect.left-rect.width/2)+'px,'+(y-rect.bottom+8)+'px)';
+        sp.style.opacity='0';
+      });
+    });
+    setTimeout(function(){sp.remove();},2350);
+  }
+  return w;
+}
+form.addEventListener('submit',function(e){
+  e.preventDefault();
+  var text=input.value.trim();
+  if(!text){
+    input.setAttribute('aria-invalid','true');
+    errEl.textContent='先写点什么，星空才会亮起来。';
+    input.focus();
+    return;
+  }
+  input.removeAttribute('aria-invalid');
+  errEl.textContent='';
+  text=text.slice(0,20);
+  var w=addWish(text);
+  input.value='';
+  updateCount();
+  saveWishes();
+  if(!rafId)drawStatic();
+  toast('「'+text+'」已化作星星，升起在'+dirOf(w.x,w.y)+'方的天空。');
+});
+input.addEventListener('input',function(){
+  if(input.getAttribute('aria-invalid')){
+    input.removeAttribute('aria-invalid');
+    errEl.textContent='';
+  }
+});
+
+/* ---------- 动效开关 ---------- */
+function syncMotionBtn(){
+  motionBtn.setAttribute('aria-pressed',String(motionOn));
+  motionBtn.textContent=motionOn?'动效：开':'动效：关';
+}
+motionBtn.addEventListener('click',function(){
+  motionOn=!motionOn;
+  syncMotionBtn();
+  if(motionOn){start();}else{stop();drawStatic();}
+});
+if(mq.addEventListener){
+  mq.addEventListener('change',function(e){
+    reduced=e.matches;
+    if(reduced){motionOn=false;stop();drawStatic();}
+    else{motionOn=true;start();}
+    syncMotionBtn();
+  });
+}else if(mq.addListener){
+  mq.addListener(function(e){
+    reduced=e.matches;
+    if(reduced){motionOn=false;stop();drawStatic();}
+    else{motionOn=true;start();}
+    syncMotionBtn();
+  });
+}
+
+/* ---------- 滚动显现 ---------- */
+if('IntersectionObserver' in window){
+  var io=new IntersectionObserver(function(entries){
+    for(var i=0;i<entries.length;i++){
+      if(entries[i].isIntersecting){
+        entries[i].target.classList.add('visible');
+        io.unobserve(entries[i].target);
+      }
+    }
+  },{threshold:0.12});
+  var reveals=document.querySelectorAll('.reveal');
+  for(var i=0;i<reveals.length;i++)io.observe(reveals[i]);
+}else{
+  var all=document.querySelectorAll('.reveal');
+  for(var j=0;j<all.length;j++)all[j].classList.add('visible');
+}
+
+/* ---------- 启动 ---------- */
+loadWishes();
+resize();
+updateCount();
+syncMotionBtn();
+if(reduced||!motionOn){drawStatic();}else{start();}
+window.addEventListener('resize',function(){
+  resize();
+  if(!rafId)drawStatic();
+});
+})();
+</script>
+</body>
+</html>
