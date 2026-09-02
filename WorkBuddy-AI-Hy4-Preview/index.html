@@ -22,7 +22,10 @@
   }
 
   *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
+  html{
+    scroll-behavior:smooth;
+    overflow-x:hidden;
+  }
   body{
     margin:0;
     background:var(--paper);
@@ -253,8 +256,11 @@
     .rail{display:none;}
     .mark{left:18px; top:18px; font-size:9px;}
     .chapter{padding:12vh 7vw;}
-    .col::before{inset:-2rem -1rem;}
+    .col::before,
+    #hero .col::before{inset:-2rem 0;}
     .card{left:14px; right:14px; bottom:14px; width:auto;}
+    h1{letter-spacing:.12em; text-indent:.12em;}
+    .sub{letter-spacing:.18em; text-indent:0;}
   }
 
   @media (prefers-reduced-motion:reduce){
@@ -297,7 +303,7 @@
       <div class="sub">一个由关系构成的世界</div>
       <div class="rule"></div>
       <div class="sub" style="margin-top:2.6rem;letter-spacing:.2em;">
-        向下滚动 · 移动鼠标 · 这个世界会回应你的注意
+        向下滚动 · 滑动注意 · 这个世界会回应你的注意
       </div>
     </div>
     <div class="scrollcue">SCROLL</div>
@@ -596,14 +602,15 @@
     if (mode === 'relation'){
       // 按类别聚成岛
       var cats = ['nature','body','people','emotion','abstract','made','word','beyond'];
-      var R = min * 0.31;
+      var wide = W / H > 1.35;
+      var R = min * (wide ? 0.31 : 0.24);
       for (i = 0; i < nodes.length; i++){
         n = nodes[i];
         var ci = Math.max(0, cats.indexOf(n.cat));
         a = (ci / cats.length) * Math.PI * 2 - Math.PI / 2;
-        var ccx = cx + Math.cos(a) * R * (W / H > 1.35 ? 1.5 : 1.15);
+        var ccx = cx + Math.cos(a) * R * (wide ? 1.5 : 0.92);
         var ccy = cy + Math.sin(a) * R;
-        var rr = 10 + Math.sqrt(n.ck) * 19;
+        var rr = 10 + Math.sqrt(n.ck) * (wide ? 19 : 14);
         var aa = n.ck * 2.39996 + ci;
         out[i] = [ccx + Math.cos(aa) * rr, ccy + Math.sin(aa) * rr * 0.92];
       }
@@ -658,7 +665,8 @@
       }
     } else {
       // field / gravity / fragment：世界原本散布的样子
-      var mx = Math.min(W * 0.14, 96), my = Math.min(H * 0.14, 84);
+      var mx = W < 720 ? Math.max(28, W * 0.08) : Math.min(W * 0.14, 96);
+      var my = W < 720 ? Math.max(56, H * 0.12) : Math.min(H * 0.14, 84);
       for (i = 0; i < nodes.length; i++){
         n = nodes[i];
         out[i] = [mx + n.sp[0] * (W - mx * 2), my + n.sp[1] * (H - my * 2)];
@@ -970,9 +978,9 @@
       if (!showAll) la *= Math.min(1, 0.16 + h2 * 1.5 + n.weight * 0.16);
       if (isSel2) la = 1;
       if (n.beyond) la *= 0.85;
-      if (la < 0.045) continue;
+      if (la < (W < 720 ? 0.12 : 0.045)) continue;
 
-      var size = 11 + n.weight * 1.9 + h2 * 2.6 + (isSel2 ? 4 : 0);
+      var size = (W < 720 ? 9 : 11) + n.weight * (W < 720 ? 1.15 : 1.9) + h2 * 2.6 + (isSel2 ? 4 : 0);
       ctx.font = (n.beyond ? 'italic ' : '') + size.toFixed(1) + 'px "Songti SC","Source Han Serif SC","STSong",Georgia,serif';
       ctx.fillStyle = n.guest
         ? 'rgba(180,68,47,' + Math.min(1, la * 1.1) + ')'

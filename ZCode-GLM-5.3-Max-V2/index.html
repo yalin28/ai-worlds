@@ -31,6 +31,7 @@
     color:rgba(255,255,255,.62);max-width:430px;
     text-shadow:0 1px 12px rgba(0,0,0,.5)}
   @keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @keyframes riseInBar{from{opacity:0;transform:translateX(-50%) translateY(14px)}to{opacity:1;transform:translateX(-50%)}}
 
   /* ── 时辰徽章 ─────────────────────── */
   .period{position:fixed;top:34px;right:36px;z-index:5;pointer-events:none;
@@ -64,7 +65,7 @@
     background:rgba(9,13,30,.46);border:1px solid rgba(255,255,255,.13);
     backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
     box-shadow:0 12px 40px rgba(0,0,0,.35);
-    animation:riseIn 1.4s 1.2s ease both}
+    animation:riseInBar 1.4s 1.2s ease both}
   .c-left{display:flex;align-items:center;gap:12px}
   .clock{font-size:14px;font-variant-numeric:tabular-nums;letter-spacing:.08em;
     color:rgba(255,255,255,.92);min-width:46px}
@@ -102,9 +103,10 @@
     header{top:20px;left:20px}
     header .sub{display:none}
     .period{top:22px;right:20px;padding:6px 10px 6px 14px}
-    .controls{gap:10px;padding:10px 12px;bottom:16px}
-    input[type=range]{width:min(220px,46vw)}
-    .hint{bottom:120px;font-size:11px;letter-spacing:.1em;white-space:normal;text-align:center;max-width:80vw}
+    .controls{flex-direction:column;gap:10px;padding:10px 12px;bottom:16px;width:calc(100vw - 28px)}
+    .c-left,.c-right{justify-content:center;flex-wrap:wrap}
+    input[type=range]{width:min(220px,56vw)}
+    .hint{bottom:128px;font-size:11px;letter-spacing:.1em;white-space:normal;text-align:center;max-width:80vw}
     .seed{display:none}
     .caption{top:14%}
   }

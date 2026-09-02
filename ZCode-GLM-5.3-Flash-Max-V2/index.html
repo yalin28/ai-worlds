@@ -20,10 +20,10 @@
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-html,body{margin:0;padding:0}
+html,body{margin:0;padding:0;overflow-x:hidden;overflow-x:clip}
 body{
   background:var(--bg);color:var(--ink);font-family:var(--sans);
-  overflow-x:hidden;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
   cursor:crosshair;
 }
 ::selection{background:rgba(159,181,255,.28);color:#fff}
@@ -87,6 +87,7 @@ main{position:relative;z-index:2}
 .panel{
   min-height:100vh;min-height:100svh;display:grid;place-items:center;position:relative;
   padding:110px 8vw;
+  overflow-x:hidden;overflow-x:clip;
 }
 .block{max-width:36em;position:relative;z-index:2}
 .overline{
@@ -170,6 +171,10 @@ body.scrolled .scroll-hint{opacity:0}
   .wordmark em{display:none}
   .ghost{font-size:16rem;right:-10%;opacity:.8}
   .panel{padding:96px 7vw}
+}
+@media (max-width:380px){
+  h1{font-size:2rem;letter-spacing:.06em}
+  .panel{padding:96px 6vw}
 }
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}

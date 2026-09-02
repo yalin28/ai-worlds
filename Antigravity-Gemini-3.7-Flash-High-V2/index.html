@@ -203,6 +203,7 @@
       width: 16px;
       height: 16px;
       fill: currentColor;
+      flex-shrink: 0;
     }
 
     /* 侧边功能面板（创世控制台 & 哲学诗篇） */
@@ -456,14 +457,31 @@
         right: 16px;
       }
       .mode-dock {
-        bottom: 16px;
-        width: 92%;
-        justify-content: space-around;
-        padding: 4px;
+        bottom: 12px;
+        left: 12px;
+        right: 12px;
+        width: auto;
+        transform: none;
+        flex-wrap: wrap;
+        justify-content: stretch;
+        padding: 6px;
+        gap: 4px;
+        border-radius: 22px;
       }
       .mode-btn {
-        padding: 8px 12px;
+        flex: 1 1 calc(50% - 4px);
+        min-width: 0;
+        padding: 8px 6px;
         font-size: 11px;
+        justify-content: center;
+        gap: 4px;
+      }
+      .mode-en {
+        display: none;
+      }
+      .action-btn {
+        font-size: 11px;
+        padding: 8px 6px;
       }
       .side-panel {
         top: 70px;
@@ -604,25 +622,25 @@
   <nav class="mode-dock">
     <button class="mode-btn active" data-mode="genesis">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>
-      涌现星云 (Genesis)
+      涌现星云 <span class="mode-en">(Genesis)</span>
     </button>
     <button class="mode-btn" data-mode="synapse">
       <svg viewBox="0 0 24 24">
         <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.93V17a1 1 0 0 1-2 0v-.07A7.003 7.003 0 0 1 5.07 11H5a1 1 0 0 1 0-2h.07A7.003 7.003 0 0 1 11 5.07V5a1 1 0 0 1 2 0v.07A7.003 7.003 0 0 1 18.93 11H19a1 1 0 0 1 0 2h-.07A7.003 7.003 0 0 1 13 16.93z"/>
       </svg>
-      共生神网 (Synapse)
+      共生神网 <span class="mode-en">(Synapse)</span>
     </button>
     <button class="mode-btn" data-mode="antigravity">
       <svg viewBox="0 0 24 24">
         <path d="M12 3L2 12h3v8h14v-8h3L12 3zm0 4.5l5 4.5h-2v6h-6v-6H7l5-4.5z"/>
       </svg>
-      反重力空岛 (Horizon)
+      反重力空岛 <span class="mode-en">(Horizon)</span>
     </button>
     <button class="mode-btn" data-mode="meditation">
       <svg viewBox="0 0 24 24">
         <path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.35 19.4c-.39.39-.39 1.02 0 1.41.39.39 1.02.39 1.41 0l1.9-1.9C9.28 19.58 10.59 20 12 20c4.97 0 9-4.03 9-9s-4.03-9-9-9zm0 15c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/>
       </svg>
-      万象禅思 (Meditation)
+      万象禅思 <span class="mode-en">(Meditation)</span>
     </button>
   </nav>
 
@@ -639,8 +657,11 @@
      */
 
     // --- 1. 基础配置与宇宙常数 ---
+    const MOBILE = window.matchMedia('(max-width: 860px)').matches
+      || (window.matchMedia('(pointer: coarse)').matches && window.innerWidth < 900);
+    const DEFAULT_PARTICLES = MOBILE ? 650 : 1800;
     const CONFIG = {
-      particleCount: 1800,        // 默认黄金粒子数 (兼顾震撼视觉与极致帧率)
+      particleCount: DEFAULT_PARTICLES, // 窄屏降载，桌面保持 1800
       maxSpeed: 3.2,              // 粒子最大速度
       baseConnectionDist: 65,     // 基础连线检测距离
       effectiveConnectionDist: 65,// 动态自适应连线距离
@@ -1212,6 +1233,14 @@
         this.time = 0;
 
         this.initCanvas();
+        const countInput = document.getElementById('input-count');
+        if (countInput) {
+          countInput.value = String(CONFIG.particleCount);
+          const valEl = document.getElementById('val-count');
+          const displayEl = document.getElementById('particle-display');
+          if (valEl) valEl.innerText = String(CONFIG.particleCount);
+          if (displayEl) displayEl.innerText = `${CONFIG.particleCount} 意识微粒`;
+        }
         this.initParticles();
         this.bindEvents();
         this.bindUI();
@@ -1221,7 +1250,7 @@
 
       initCanvas() {
         // 自适应 DPR (针对高刷/高分屏优化，上限设为 1.5 兼顾极致锐利度与极速渲染)
-        const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        const dpr = Math.min(window.devicePixelRatio || 1, MOBILE ? 1 : 1.5);
         this.width = window.innerWidth;
         this.height = window.innerHeight;
         this.canvas.width = Math.floor(this.width * dpr);
