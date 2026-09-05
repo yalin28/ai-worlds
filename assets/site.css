@@ -130,7 +130,7 @@ p { margin-block: 0 16px; text-wrap: pretty; }
 .world-switch option { background: var(--paper); color: var(--ink); }
 .select-chevron { position: absolute; inset-inline-end: 12px; inset-block-start: 50%; z-index: 1; width: 16px; height: 16px; transform: translateY(-50%); pointer-events: none; color: var(--ink); }
 .gallery-meta { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 0 28px 12px; border-bottom: 1px solid var(--line); color: var(--muted); font: 12px/1.6 var(--font-mono); }
-.world-panel { padding: 24px 28px 28px; background-image: radial-gradient(#8c977b35 0.7px, transparent 0.7px); background-size: 19px 19px; }
+.world-panel { padding: 24px 28px 28px; }
 .world-panel + .world-panel { border-top: 1px solid var(--line); }
 .world-panel[hidden] + .world-panel { border-top: 0; }
 .panel-heading { gap: 8px 24px; justify-content: space-between; }
