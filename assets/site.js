@@ -9,39 +9,147 @@ const updateMotion = () => {
   const enabled = !reducedMotion.matches;
   root.classList.toggle('motion-enabled', enabled);
   root.classList.toggle('motion-suspended', document.hidden);
-  if (!canAnimate()) {
+  if (reducedMotion.matches) {
+    activeAnimations.forEach((animation) => animation.cancel());
+    activeAnimations.clear();
+    settlePendingReveals();
+  } else if (document.hidden) {
     activeAnimations.forEach((animation) => animation.cancel());
     activeAnimations.clear();
   }
   motionListeners.forEach((sync) => sync());
 };
 
-const reveal = (elements) => {
-  if (!canAnimate()) return;
-  [...elements].forEach((element, index) => {
-    if (!element.animate) return;
+const REVEAL_SELECTOR = [
+  '.gallery-heading',
+  '.gallery-meta',
+  '.panel-heading',
+  '.panel-description',
+  '.prompt',
+  '.source-note',
+  '.world-card',
+  '.findings-section .section-heading',
+  '.finding',
+].join(',');
+const pendingReveals = new Set();
+const isMobile = () => window.matchMedia('(max-width: 36rem)').matches;
+const settleReveal = (element) => {
+  element.classList.add('is-revealed');
+  pendingReveals.delete(element);
+  revealObserver?.unobserve(element);
+};
+const settlePendingReveals = () => {
+  pendingReveals.forEach(settleReveal);
+};
+
+const playReveal = (elements) => {
+  const items = [...elements].filter((element) => pendingReveals.has(element) && !element.closest('[hidden]'));
+  if (!items.length) return;
+  items.sort((a, b) => {
+    const aRect = a.getBoundingClientRect();
+    const bRect = b.getBoundingClientRect();
+    return aRect.top - bRect.top || aRect.left - bRect.left;
+  });
+  if (!canAnimate()) {
+    items.forEach(settleReveal);
+    return;
+  }
+  const mobile = isMobile();
+  const distance = mobile ? 36 : 22;
+  const duration = mobile ? 820 : 700;
+  const from = mobile
+    ? { opacity: 0, transform: `translateY(${distance}px)` }
+    : { opacity: 0, transform: `translateY(${distance}px)`, filter: 'blur(4px)' };
+  const to = mobile
+    ? { opacity: 1, transform: 'translateY(0px)' }
+    : { opacity: 1, transform: 'translateY(0px)', filter: 'blur(0px)' };
+  const baseDelay = performance.now() < 1200 ? 160 : 0;
+  items.forEach((element, index) => {
+    pendingReveals.delete(element);
+    if (!element.animate) {
+      settleReveal(element);
+      return;
+    }
     const animation = element.animate(
-      [{ opacity: 0, transform: 'translateY(14px)' }, { opacity: 1, transform: 'translateY(0)' }],
-      { duration: 520, delay: Math.min(index, 5) * 90, easing: 'cubic-bezier(0.2, 0, 0, 1)', fill: 'backwards' },
+      [from, to],
+      {
+        duration,
+        delay: baseDelay + Math.min(index, 6) * 90,
+        easing: 'cubic-bezier(0.2, 0, 0, 1)',
+        fill: 'both',
+      },
     );
     activeAnimations.add(animation);
-    animation.onfinish = animation.oncancel = () => activeAnimations.delete(animation);
+    const finish = () => {
+      activeAnimations.delete(animation);
+      settleReveal(element);
+      animation.cancel();
+    };
+    animation.onfinish = finish;
+    animation.oncancel = () => {
+      activeAnimations.delete(animation);
+      settleReveal(element);
+    };
   });
 };
+
+const isReadyToReveal = (element) => {
+  if (element.closest('[hidden]')) return false;
+  const rect = element.getBoundingClientRect();
+  if (!rect.width || !rect.height) return false;
+  const inset = isMobile() ? 56 : 40;
+  return rect.top < window.innerHeight - inset;
+};
+
+const flushReveals = () => {
+  const ready = [];
+  const passed = [];
+  pendingReveals.forEach((element) => {
+    if (element.closest('[hidden]')) return;
+    const rect = element.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    if (rect.bottom < 40) passed.push(element);
+    else if (isReadyToReveal(element)) ready.push(element);
+  });
+  passed.forEach(settleReveal);
+  playReveal(ready);
+};
+
+const watchReveals = (elements, replay = false) => {
+  [...elements].forEach((element) => {
+    if (replay) element.classList.remove('is-revealed');
+    if (element.classList.contains('is-revealed')) return;
+    pendingReveals.add(element);
+    revealObserver?.observe(element);
+  });
+};
+
+let revealObserver = null;
+if ('IntersectionObserver' in window) {
+  revealObserver = new IntersectionObserver((entries) => {
+    const ready = entries
+      .filter((entry) => pendingReveals.has(entry.target) && entry.isIntersecting && isReadyToReveal(entry.target))
+      .map((entry) => entry.target);
+    ready.forEach((element) => revealObserver.unobserve(element));
+    playReveal(ready);
+  }, { threshold: [0, 0.08, 0.16, 0.28, 0.45, 0.65, 1] });
+}
 
 reducedMotion.addEventListener('change', updateMotion);
 document.addEventListener('visibilitychange', updateMotion);
 updateMotion();
-reveal(document.querySelectorAll('[data-enter]'));
-
-if ('IntersectionObserver' in window) {
-  const observer = new IntersectionObserver((entries) => {
-    const visible = entries.filter((entry) => entry.isIntersecting);
-    reveal(visible.map((entry) => entry.target));
-    visible.forEach((entry) => observer.unobserve(entry.target));
-  }, { threshold: 0.12 });
-  document.querySelectorAll('[data-reveal]').forEach((element) => observer.observe(element));
-}
+watchReveals(document.querySelectorAll(REVEAL_SELECTOR));
+requestAnimationFrame(() => requestAnimationFrame(flushReveals));
+window.addEventListener('resize', flushReveals, { passive: true });
+let scrollFlushQueued = false;
+window.addEventListener('scroll', () => {
+  if (scrollFlushQueued || !pendingReveals.size) return;
+  scrollFlushQueued = true;
+  requestAnimationFrame(() => {
+    scrollFlushQueued = false;
+    flushReveals();
+  });
+}, { passive: true });
 
 const gallery = document.querySelector('[data-world-gallery]');
 
@@ -60,8 +168,12 @@ if (gallery) {
     });
     select.value = selected.id;
     if (currentPanel !== selected) {
+      const switched = Boolean(currentPanel);
       currentPanel = selected;
-      reveal(selected.querySelectorAll('.world-card'));
+      if (switched) {
+        watchReveals(selected.querySelectorAll('.panel-heading, .panel-description, .prompt, .source-note, .world-card'), true);
+      }
+      requestAnimationFrame(() => requestAnimationFrame(flushReveals));
     }
     if (announce) {
       const count = selected.querySelectorAll('.world-card__link').length;

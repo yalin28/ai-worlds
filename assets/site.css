@@ -157,8 +157,11 @@ p { margin-block: 0 16px; text-wrap: pretty; }
 .prompt summary { display: flex; align-items: center; justify-content: space-between; gap: 18px; min-height: 36px; padding-block: 6px; cursor: pointer; font-size: 13px; list-style: none; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
 .prompt .details-chevron { width: 16px; height: 16px; }
 .prompt summary::-webkit-details-marker { display: none; }
-.prompt summary span { min-width: 0; }
-.prompt[open] summary span { margin-inline-end: 80px; }
+.prompt summary > span { min-width: 0; }
+.prompt .prompt-open { display: none; }
+.prompt[open] .prompt-closed { display: none; }
+.prompt[open] .prompt-open { display: inline; }
+.prompt[open] summary > span { margin-inline-end: 80px; }
 .prompt[open] .details-chevron { transform: rotate(180deg); }
 .prompt pre { font: 14px/1.8 var(--font-body); white-space: pre-wrap; overflow-wrap: anywhere; margin-block: 12px 20px; max-width: 78ch; }
 .copy-button { position: absolute; inset-block-start: 6px; inset-inline-end: 40px; z-index: 1; display: grid; place-items: center; width: 32px; min-height: 32px; padding: 0; gap: 0; border: 0; background: transparent; }
@@ -193,6 +196,11 @@ p { margin-block: 0 16px; text-wrap: pretty; }
   .world-card__link:hover .icon { transform: translate(2px, -2px); }
 }
 @media (prefers-reduced-motion: no-preference) {
+  :is(.gallery-heading, .gallery-meta, .panel-heading, .panel-description, .prompt, .source-note, .world-card, .findings-section .section-heading, .finding):not(.is-revealed) {
+    opacity: 0;
+    transform: translateY(22px);
+    pointer-events: none;
+  }
   .world-card { transition: transform 150ms ease-out, box-shadow 150ms ease-out, border-color 150ms ease-out; }
   .world-card__link, .button { transition: background-color 150ms ease-out; }
   .copy-button { transition: color 150ms ease-out; }
@@ -204,8 +212,18 @@ p { margin-block: 0 16px; text-wrap: pretty; }
   .motion-suspended * { animation-play-state: paused !important; }
   .is-offscreen .hero-cursor { animation-play-state: paused; }
 }
+@media (prefers-reduced-motion: no-preference) and (max-width: 36rem) {
+  :is(.gallery-heading, .gallery-meta, .panel-heading, .panel-description, .prompt, .source-note, .world-card, .findings-section .section-heading, .finding):not(.is-revealed) {
+    transform: translateY(36px);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .world-card:hover, .world-card__link:hover .icon { transform: none; }
+  :is(.gallery-heading, .gallery-meta, .panel-heading, .panel-description, .prompt, .source-note, .world-card, .findings-section .section-heading, .finding):not(.is-revealed) {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
 }
 @media (max-width: 68rem) {
   .world-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -256,6 +274,11 @@ p { margin-block: 0 16px; text-wrap: pretty; }
 @media (forced-colors: active) {
   :focus-visible { outline-color: Highlight; }
   .identity__icon, .world-card, .gallery, .select-field { border-color: CanvasText; }
+  :is(.gallery-heading, .gallery-meta, .panel-heading, .panel-description, .prompt, .source-note, .world-card, .findings-section .section-heading, .finding):not(.is-revealed) {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
   .select-chevron { color: CanvasText; }
   .select-field:focus-within { outline: 2px solid Highlight; outline-offset: -4px; }
   .world-switch select:focus-visible { outline: none; box-shadow: none; }
