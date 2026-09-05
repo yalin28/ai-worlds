@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f3e9">
+  <meta name="description" content="共生纪：一座可以亲手种下生命的微型世界。在四季与光影之间，听见万物的回响。">
+  <title>共生纪 — 让万物，自由生长</title>
+  <style>
+    :root{color-scheme:light;--paper:#f4f3e9;--ink:#203c32;--muted:#5d6a60;--line:#cdd2c3;--accent:#31583c;--pale:#e5e9dc;--serif:"Iowan Old Style","Songti SC","STSong","Noto Serif CJK SC",serif;--sans:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;--mono:"SFMono-Regular",Consolas,monospace;--ease:cubic-bezier(.2,0,0,1)}
+    *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:24px}body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:10;opacity:.16;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.78' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Cpath fill='%23000' opacity='.18' filter='url(%23n)' d='M0 0h180v180H0z'/%3E%3C/svg%3E")}
+    button,a,input{-webkit-tap-highlight-color:transparent}button,input{font:inherit}button{color:inherit;cursor:pointer}a{color:inherit;text-decoration-thickness:1px;text-underline-offset:5px}button:focus-visible,a:focus-visible,input:focus-visible,canvas:focus-visible{outline:2px solid var(--ink);outline-offset:5px}button{transition:background-color 150ms var(--ease),color 150ms var(--ease),transform 150ms var(--ease)}button:active{transform:scale(.96)}button:disabled{cursor:default;opacity:.6}button:disabled:active{transform:none}::selection{background:var(--ink);color:var(--paper)}
+    [hidden]{display:none!important}.skip{position:fixed;z-index:30;top:10px;left:16px;background:var(--ink);color:var(--paper);padding:10px 16px;transform:translateY(-150%)}.skip:focus{transform:none}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}.wrap{width:min(1440px,100%);margin-inline:auto;padding-inline:clamp(22px,4.2vw,72px)}
+    .masthead{min-height:105px;display:flex;align-items:center;justify-content:space-between;gap:28px;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:13px;text-decoration:none;flex-shrink:0}.brand svg{width:42px;height:42px}.brand strong{font-family:var(--serif);font-size:24px;letter-spacing:.13em;font-weight:600}.brand small{display:block;font:9px/1.3 var(--mono);letter-spacing:.21em;margin-top:3px}.navigation{display:flex;gap:32px;align-items:center;font-size:14px}.navigation a{min-height:44px;display:flex;align-items:center;text-decoration:none}.edition{display:flex;align-items:center;gap:10px;font:11px/1.4 var(--mono);letter-spacing:.04em}.status-dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+    .hero{display:grid;grid-template-columns:.85fr 1.3fr;align-items:center;min-height:655px;position:relative;padding-block:34px 20px;gap:8px}.intro{position:relative;z-index:2;padding-bottom:35px}.eyebrow{display:flex;align-items:center;gap:12px;font:11px/1.6 var(--mono);letter-spacing:.13em}.eyebrow::before{content:"";width:28px;height:1px;background:currentColor}.intro h1{font-family:var(--serif);font-weight:400;font-size:clamp(48px,5.25vw,78px);line-height:1.25;letter-spacing:-.055em;margin:27px 0 24px;text-wrap:balance}.intro h1 span{display:block}.intro h1 em{font-style:normal;color:var(--accent)}.intro .description{color:var(--muted);font-size:15px;line-height:1.9;max-width:330px;margin:0 0 30px;text-wrap:pretty}.primary{border:0;background:var(--ink);color:var(--paper);padding:14px 21px;min-height:50px;border-radius:3px;display:inline-flex;align-items:center;gap:32px;font-size:14px}.primary svg{width:19px;height:19px}.seed-caption{font-size:12px;display:block;color:var(--muted);margin-top:14px}.small-note{display:flex;align-items:center;gap:13px;margin-top:50px;font-size:12px;color:var(--muted)}.small-note .line{height:1px;width:35px;background:var(--line)}
+    .specimen{position:relative;width:calc(100% + 45px);margin-inline-start:-20px;align-self:stretch;display:grid;align-items:center;min-width:0}.scene{position:relative;width:100%;aspect-ratio:1.13}.scene canvas{display:block;width:100%;height:100%;cursor:crosshair;touch-action:pan-y}.scene-caption{position:absolute;inset-inline-start:9%;bottom:4%;font:10px var(--mono);letter-spacing:.14em;color:var(--muted);pointer-events:none}.specimen-label{position:absolute;right:3%;top:16%;font:10px/1.8 var(--mono);letter-spacing:.06em;color:var(--muted);pointer-events:none}.specimen-label b{font-family:var(--sans);font-weight:400;font-size:12px;color:var(--ink);display:block;margin-bottom:2px}.specimen-label::after{content:"";position:absolute;top:14px;right:calc(100% + 12px);width:45px;height:1px;background:var(--line)}.compass{position:absolute;bottom:9%;right:7%;width:32px;text-align:center;font:10px var(--mono);color:var(--muted);pointer-events:none}.compass svg{display:block;width:32px;margin-top:6px}
+    .world-controls{display:grid;grid-template-columns:1.1fr 1fr .8fr;gap:32px;padding-block:23px;border-block:1px solid var(--line);align-items:center}.control-group{display:flex;gap:20px;align-items:center;min-width:0}.control-label{font-size:12px;color:var(--muted);white-space:nowrap}.seasons{display:flex;gap:6px}.season{width:39px;min-height:39px;border:1px solid transparent;background:transparent;border-radius:50%;font-family:var(--serif);font-size:17px}.season[aria-pressed="true"]{background:var(--ink);color:var(--paper)}.daylight{display:flex;gap:14px;align-items:center;flex:1}.daylight input{width:100%;min-width:50px;height:32px;accent-color:var(--ink);cursor:ew-resize}.daylight output{font:12px var(--mono);font-variant-numeric:tabular-nums;min-width:40px}.aux-controls{display:flex;justify-content:flex-end;gap:12px}.quiet-button{min-height:42px;border:1px solid var(--line);background:transparent;border-radius:3px;padding:8px 12px;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:12px;white-space:nowrap}.quiet-button svg{width:15px;height:15px;flex-shrink:0}.quiet-button[aria-pressed="true"]{background:var(--pale)}
+    .field-note{display:flex;justify-content:space-between;gap:24px;padding-block:16px;font-size:12px;color:var(--muted);min-height:59px}.field-note p{margin:0}.field-note strong{font-weight:500;color:var(--ink)}.field-note .coordinates{font:10px/1.8 var(--mono);letter-spacing:.08em;flex-shrink:0}.manifesto{margin-top:75px;padding-block:52px 64px;border-top:1px solid var(--line)}.section-heading{display:flex;justify-content:space-between;align-items:baseline;gap:30px}.section-heading h2{font:400 clamp(27px,3vw,39px)/1.4 var(--serif);letter-spacing:-.03em;margin:0}.section-heading span{font:11px var(--mono);letter-spacing:.08em;color:var(--muted)}.principles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:64px;margin-top:47px}.principle .number{font:11px var(--mono);color:var(--muted)}.principle h3{font:400 21px/1.5 var(--serif);margin:17px 0 12px}.principle p{margin:0;max-width:32em;font-size:14px;line-height:1.9;color:var(--muted);text-wrap:pretty}.journal{display:grid;grid-template-columns:1fr 1.2fr;gap:55px;background:var(--pale);padding:35px 40px;border-radius:3px;margin-bottom:55px}.journal-title{display:flex;gap:20px;align-items:start}.journal-title svg{width:37px;height:45px;flex-shrink:0}.journal h2{font:400 24px/1.3 var(--serif);margin:0 0 8px}.journal-title p{font-size:13px;color:var(--muted);margin:0}.journal-content{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:10px}.journal-content p{font-size:14px;margin:0;line-height:1.8}.text-button{padding:8px 0;min-height:40px;display:inline-flex;align-items:center;border:0;background:transparent;text-decoration:underline;text-underline-offset:5px;font-size:12px;color:var(--muted)}footer{display:flex;justify-content:space-between;gap:20px;padding-block:25px 32px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}footer span:last-child{font-family:var(--mono);letter-spacing:.05em}.no-script{padding:12px 20px;border:1px solid var(--line);font-size:14px}
+    @media(hover:hover){.navigation a:hover{text-decoration:underline}.primary:hover{background:#3a5d43}.quiet-button:hover,.season:not([aria-pressed="true"]):hover{background:var(--pale)}.text-button:hover{color:var(--ink)}}
+    @media(min-width:1500px){.hero{min-height:735px}.intro h1{font-size:83px}}
+    @media(max-width:68rem){.masthead{min-height:90px}.hero{min-height:570px}.intro h1{font-size:clamp(45px,5.5vw,64px)}.intro .description{font-size:14px;max-width:285px}.world-controls{gap:20px;grid-template-columns:1fr 1fr auto}.control-group{gap:12px}.aux-controls{gap:8px}.quiet-button{padding:8px 10px}.quiet-button .sound-text{display:none}.small-note{margin-top:35px}.principles{gap:35px}.specimen{width:calc(100% + 25px)}.edition{display:none}}
+    @media(max-width:49rem){.masthead{min-height:83px}.navigation{gap:22px;font-size:13px}.hero{grid-template-columns:1fr;padding-top:44px;gap:0;min-height:0}.intro{padding-bottom:0}.intro h1{font-size:clamp(48px,8.5vw,72px);margin-block:20px}.intro .description{max-width:390px;font-size:15px;margin-bottom:24px}.small-note{display:none}.specimen{width:100%;margin-inline-start:0;max-width:690px;margin-inline:auto;margin-top:-12px}.scene{aspect-ratio:1.24}.specimen-label{top:12%;right:2%}.world-controls{grid-template-columns:1fr auto;gap:18px}.world-controls>.control-group:nth-child(2){grid-column:1/-1;grid-row:2}.daylight{max-width:100%}.control-group:first-child{gap:18px}.seasons{gap:10px}.aux-controls{grid-column:2;grid-row:1}.quiet-button .sound-text{display:inline}.field-note .coordinates{display:none}.manifesto{margin-top:48px;padding-block:38px 45px}.section-heading{align-items:flex-start}.section-heading span{display:none}.principles{grid-template-columns:1fr;gap:30px;margin-top:32px}.principle{display:grid;grid-template-columns:30px 1fr;column-gap:17px}.principle .number{padding-top:8px}.principle h3{margin:0 0 8px}.principle p{grid-column:2;font-size:14px}.journal{grid-template-columns:1fr;gap:25px;padding:27px 25px;margin-bottom:38px}.journal-content{padding-inline-start:57px}.brand svg{width:34px;height:34px}.brand strong{font-size:21px}.brand small{font-size:8px}}
+    @media(max-width:36rem){.world-controls{grid-template-columns:1fr;gap:16px}.aux-controls{grid-column:1;grid-row:3;justify-content:flex-start}.season{width:40px;min-height:40px}.seasons{gap:8px}.aux-controls .quiet-button{padding-inline:14px}}
+    @media(max-width:26rem){.wrap{padding-inline:20px}.navigation{gap:16px}.brand{gap:9px}.navigation a{font-size:12px}.intro h1{font-size:50px}.intro .description{font-size:14px}.control-label{font-size:11px}.control-group:first-child{gap:18px}.season{font-size:16px}.aux-controls{gap:12px}.scene-caption{font-size:8px;left:2%}.specimen-label{display:none}.journal-content{padding-inline-start:0}footer{flex-direction:column;gap:8px}.field-note{font-size:11px}.section-heading h2{font-size:27px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important}button:active{transform:none}}
+    @media(forced-colors:active){button:focus-visible,a:focus-visible,input:focus-visible,canvas:focus-visible{outline:2px solid Highlight}.season[aria-pressed="true"]{border:2px solid ButtonText}.primary{border:1px solid ButtonText}}
+  </style>
+</head>
+<body>
+  <a class="skip" href="#world">跳到微型世界</a>
+  <div class="wrap">
+    <header class="masthead">
+      <a class="brand" href="#world" aria-label="共生纪，回到微型世界">
+        <svg viewBox="0 0 44 44" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><circle cx="22" cy="22" r="20"/><path d="M22 35V14M22 27C10 27 10 15 10 15s12 0 12 12ZM22 21C34 21 34 9 34 9s-12 0-12 12Z"/><path d="m16 21 6 6m6-12-6 6"/></svg>
+        <div><strong>共生纪</strong><small>THE LIVING ATLAS</small></div>
+      </a>
+      <nav class="navigation" aria-label="页面导航"><a href="#belief">世界观</a><a href="#journal">生长手记</a></nav>
+      <div class="edition"><span class="status-dot"></span>AN IMAGINED WORLD · 001</div>
+    </header>
+    <main>
+      <section class="hero" id="world" aria-labelledby="world-title">
+        <div class="intro">
+          <div class="eyebrow">A WORLD WITH ROOM FOR LIFE</div>
+          <h1 id="world-title"><span>让万物，</span><span><em>自由生长。</em></span></h1>
+          <p class="description">我心目中的世界，容得下一棵树的缓慢，<br>一条河的迂回，和每一种不同的生命。<br>我们在其中相遇，也让彼此生长。</p>
+          <button class="primary" id="plant-button" type="button"><span>种下一点善意</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 21V10m0 6C4 16 4 8 4 8s8 0 8 8Zm0-5c8 0 8-8 8-8s-8 0-8 8Z"/></svg></button>
+          <span class="seed-caption">也可以轻点岛屿，选择生长的位置</span>
+          <div class="small-note"><span class="line"></span>不必成为中心，也能改变世界。</div>
+        </div>
+        <div class="specimen">
+          <div class="scene">
+            <canvas id="world-canvas" width="1100" height="900" tabindex="0" role="button" aria-label="悬浮生态岛：森林、河流与瀑布。轻点土地种树，也可按 Enter 或空格在空地种树。">一座森林环抱、河流穿行的悬浮岛。使用“种下一点善意”按钮添加一棵树。</canvas>
+            <div class="specimen-label"><b>一隅，也是整个世界</b>SPECIMEN NO. 001<br>EVERYTHING IS CONNECTED</div>
+            <span class="scene-caption">FIG. 01 — A SMALL, LIVING POSSIBILITY</span>
+            <div class="compass" aria-hidden="true">N<svg viewBox="0 0 32 46" fill="none" stroke="currentColor" stroke-width=".8"><path d="M16 0v42M5 25l11-15 11 15-11-5Z"/><path d="M16 10v10L5 25Z" fill="currentColor"/></svg></div>
+          </div>
+        </div>
+      </section>
+      <noscript><p class="no-script">请启用 JavaScript，让岛屿生长并体验四季。下方仍可阅读这个世界的故事。</p></noscript>
+      <section class="world-controls" aria-label="调整微型世界">
+        <div class="control-group"><span class="control-label" id="season-label">让四季经过</span><div class="seasons" role="group" aria-labelledby="season-label"><button type="button" class="season" data-season="spring" aria-pressed="true" aria-label="春季">春</button><button type="button" class="season" data-season="summer" aria-pressed="false" aria-label="夏季">夏</button><button type="button" class="season" data-season="autumn" aria-pressed="false" aria-label="秋季">秋</button><button type="button" class="season" data-season="winter" aria-pressed="false" aria-label="冬季">冬</button></div></div>
+        <div class="control-group"><label class="control-label" for="daylight">一天的光</label><div class="daylight"><input id="daylight" type="range" min="0" max="24" value="9" step=".25" aria-valuetext="09:00"><output id="time-label" for="daylight">09:00</output></div></div>
+        <div class="aux-controls"><button class="quiet-button" id="sound-button" type="button" aria-pressed="false" aria-label="听见风，开启环境声音"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M2 7h3l4-3v12l-4-3H2ZM12 6q5 4 0 8m3-11q7 7 0 14"/></svg><span class="sound-text">听见风</span></button><button class="quiet-button" id="motion-button" type="button" aria-pressed="false">暂停风景</button></div>
+      </section>
+      <div class="field-note"><p id="world-status" role="status" aria-live="polite">春日来信：<strong>万物在自己的时区里，慢慢醒来。</strong></p><span class="coordinates">∞ POSSIBILITIES / ONE SHARED HOME</span></div>
+      <section class="manifesto" id="belief" aria-labelledby="belief-title">
+        <div class="section-heading"><h2 id="belief-title">世界很大，温柔从很小的地方开始。</h2><span>THREE THINGS I BELIEVE IN</span></div>
+        <div class="principles">
+          <article class="principle"><span class="number">01 /</span><h3>每种生命，都有自己的位置</h3><p>高大的树，也需要脚下的苔藓。差异让世界丰盛，渺小从来不等于无足轻重。</p></article>
+          <article class="principle"><span class="number">02 /</span><h3>进步，可以与自然同路</h3><p>让技术像雨水一样，流向真正需要的地方。让便利的生活，也留得住星光、森林和清澈的河。</p></article>
+          <article class="principle"><span class="number">03 /</span><h3>留一点空白，给尚未发生</h3><p>不急着定义每一片土地，也不替每个人写好结局。让未知继续发生，让希望有地方扎根。</p></article>
+        </div>
+      </section>
+      <section class="journal" id="journal" aria-labelledby="journal-title">
+        <div class="journal-title"><svg viewBox="0 0 38 48" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M19 44V11M19 27C0 27 3 9 3 9s16 0 16 18ZM19 20C36 20 35 2 35 2S19 3 19 20Z"/><path d="m8 15 11 12m10-19-10 12M8 44h22"/></svg><div><h2 id="journal-title">属于你的生长手记</h2><p>每一次小小的参与，都会留下回响。</p></div></div>
+        <div class="journal-content"><p id="journal-entry">这里还留着一片空地。第一棵树，等你来种。</p><button class="text-button" id="reset-button" type="button" hidden>清除我种的树，重新生长 ↗</button></div>
+      </section>
+    </main>
+    <footer><span>共生纪 · 一个关于共处的想象</span><span>IMAGINED BY CODEX / MADE OF POSSIBILITIES</span></footer>
+  </div>
+  <script>
+  (() => {
+    'use strict';
+    const canvas = document.getElementById('world-canvas');
+    const ctx = canvas.getContext('2d');
+    const status = document.getElementById('world-status');
+    if (!ctx) { status.textContent = '当前浏览器无法绘制岛屿，请用支持 Canvas 的浏览器打开。'; return; }
+    const W = 1100, H = 900, CX = 561, CY = 450, RX = 363, RY = 166;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const state = {season:'spring', hour:9, paused:reducedMotion.matches, time:0, planted:[], sound:false};
+    const palettes = {
+      spring:{ground:'#a9bb82',groundLight:'#d5d9aa',leaf:['#466c43','#6f8d50','#8eaa63','#bac984'],flower:'#e0b1a1',water:'#6caaa3',sky:'#dce5c5',name:'春',note:'春日来信：万物在自己的时区里，慢慢醒来。'},
+      summer:{ground:'#8ba46b',groundLight:'#c1cb8c',leaf:['#274f3b','#486f43','#6b914b','#94b35f'],flower:'#e8d997',water:'#479a94',sky:'#d1e5cd',name:'夏',note:'盛夏来信：让浓荫留给路过的人，让河流继续向前。'},
+      autumn:{ground:'#b8aa74',groundLight:'#e1cd93',leaf:['#77623d','#a37443','#c2934e','#d7b868'],flower:'#c99169',water:'#73a49c',sky:'#ecdbb6',name:'秋',note:'秋日来信：成熟的意义，也包括把果实分给彼此。'},
+      winter:{ground:'#bdc8bc',groundLight:'#e4e8da',leaf:['#577369','#82958a','#a6b9aa','#d2ddce'],flower:'#edf0e4',water:'#8cb4b8',sky:'#dbe5df',name:'冬',note:'冬日来信：暂时安静下来，也是一种生长。'}
+    };
+    const mulberry = seed => () => { let t = seed += 0x6D2B79F5; t = Math.imul(t ^ t >>> 15,t | 1); t ^= t + Math.imul(t ^ t >>> 7,t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+    const random = mulberry(24618);
+    const clamp = (n,a,b) => Math.min(b,Math.max(a,n));
+    const mix = (a,b,t) => {const p=a.match(/\w\w/g).map(v=>parseInt(v,16)),q=b.match(/\w\w/g).map(v=>parseInt(v,16));return `rgb(${p.map((v,i)=>Math.round(v+(q[i]-v)*t)).join(',')})`;};
+    const dark = () => clamp((Math.abs(state.hour-12)-5)/5,0,1);
+    let toneLevel=-1;const toneCache=new Map();
+    const tone = color => {const level=dark()*.72;if(level!==toneLevel){toneLevel=level;toneCache.clear();}if(!toneCache.has(color))toneCache.set(color,mix(color,'#193441',level));return toneCache.get(color);};
+    function path(points,close=true) {const p=new Path2D();p.moveTo(points[0][0],points[0][1]);for(let i=1;i<points.length;i++)p.lineTo(points[i][0],points[i][1]);if(close)p.closePath();return p;}
+    function stroke(p,color,width=1){ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke(p);}
+    function fill(p,color){ctx.fillStyle=color;ctx.fill(p);}
+    function ellipse(x,y,rx,ry,color,rotation=0){ctx.beginPath();ctx.ellipse(x,y,rx,ry,rotation,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();}
+    const radius = a => 1+.034*Math.sin(a*3+.5)+.025*Math.cos(a*7)+.012*Math.sin(a*11);
+    function contour(scale=1,offset=0) {
+      const p=new Path2D();const pts=[];
+      for(let i=0;i<100;i++){const a=i/100*Math.PI*2,r=radius(a);pts.push([CX+Math.cos(a)*RX*r*scale,CY+Math.sin(a)*RY*r*scale+offset]);}
+      p.moveTo((pts[99][0]+pts[0][0])/2,(pts[99][1]+pts[0][1])/2);
+      for(let i=0;i<100;i++){const next=pts[(i+1)%100];p.quadraticCurveTo(pts[i][0],pts[i][1],(pts[i][0]+next[0])/2,(pts[i][1]+next[1])/2);}p.closePath();return p;
+    }
+    const land=contour();
+    const river=new Path2D('M704 325 C724 373 624 370 619 410 C613 448 524 416 531 465 C537 504 431 500 448 542 C455 558 462 584 455 610');
+    function isLand(x,y) {const dx=(x-CX)/RX,dy=(y-CY)/RY;return Math.hypot(dx,dy)<radius(Math.atan2(dy,dx))*.93;}
+    function riverDistance(x,y) {
+      const points=[[706,333],[696,358],[658,380],[619,408],[590,433],[544,440],[531,463],[508,490],[466,507],[445,534],[455,567],[455,601]];
+      return Math.min(...points.slice(1).map((b,i)=>{const a=points[i],dx=b[0]-a[0],dy=b[1]-a[1],t=clamp(((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy),0,1);return Math.hypot(x-a[0]-dx*t,y-a[1]-dy*t);}));
+    }
+    const trees=[],grass=[],stars=[],birds=[];
+    for(let i=0;i<210;i++) {
+      const x=CX+(random()*2-1)*RX,y=CY+(random()*2-1)*RY;
+      if(isLand(x,y)&&riverDistance(x,y)>33&&!(x>570&&x<773&&y<378)){
+        trees.push({x,y,size:.5+random()*.65,type:random(),seed:random()*100,shade:Math.floor(random()*3),birth:-5});
+      }
+    }
+    for(let i=0;i<330;i++){const x=CX+(random()*2-1)*RX,y=CY+(random()*2-1)*RY;if(isLand(x,y)&&riverDistance(x,y)>27)grass.push({x,y,s:random(),f:random()});}
+    for(let i=0;i<45;i++)stars.push({x:160+random()*780,y:80+random()*450,size:random()*1.3+.5});
+    for(let i=0;i<7;i++)birds.push({x:190+random()*625,y:195+random()*95,s:5+random()*5,phase:random()*6});
+    function makeTree(x,y) {return {x,y,size:.75+random()*.35,type:random(),seed:random()*100,shade:Math.floor(random()*3),birth:state.time};}
+    function pickEmptyLand() {
+      for(let i=0;i<500;i++) {const x=260+random()*580,y=390+random()*185;if(isLand(x,y)&&riverDistance(x,y)>36&&Math.hypot(x-791,y-441)>40&&!trees.concat(state.planted).some(t=>Math.hypot((t.x-x)*.75,t.y-y)<20))return {x,y};}
+      return {x:CX+100+random()*100,y:CY+70+random()*45};
+    }
+    function drawSky(p) {
+      const night=dark();const halo=ctx.createRadialGradient(580,390,20,580,390,415);
+      halo.addColorStop(0,night>.2?`rgba(71,103,103,${.13+night*.24})`:p.sky);halo.addColorStop(1,'rgba(244,243,233,0)');ellipse(580,410,490,415,halo);
+      ctx.save();ctx.strokeStyle=night>.5?'rgba(80,102,99,.26)':'rgba(109,133,94,.18)';ctx.lineWidth=.8;
+      ctx.beginPath();ctx.ellipse(560,466,450,221,-.19,0,Math.PI*2);ctx.stroke();ctx.setLineDash([2,7]);ctx.beginPath();ctx.ellipse(560,466,475,244,-.19,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+      const sx=515+(state.hour-12)*16,sy=160+Math.abs(state.hour-12)*4;
+      if(night<.65){const sun=ctx.createRadialGradient(sx,sy,5,sx,sy,58);sun.addColorStop(0,'#e9c579');sun.addColorStop(1,'#e8cd93');ellipse(sx,sy,46,46,sun);ctx.strokeStyle='rgba(171,155,98,.35)';ctx.beginPath();ctx.arc(sx,sy,57,0,Math.PI*2);ctx.stroke();}
+      else{ellipse(710,188,29,29,'#e6e4c8');ellipse(722,180,27,27,'#d9ded1');for(const s of stars){ctx.globalAlpha=night*.65;ellipse(s.x,s.y,s.size,s.size,'#f9f8dc');}ctx.globalAlpha=1;}
+      // Drifting atmospheric ribbons are intentionally soft, leaving the terrain legible.
+      [[280,295,110],[784,263,90],[837,483,72]].forEach(([x,y,w],i)=>{const dx=Math.sin(state.time*.1+i*2)*12;const g=ctx.createRadialGradient(x+dx,y,1,x+dx,y,w);g.addColorStop(0,`rgba(255,255,248,${night>.5?.08:.63})`);g.addColorStop(1,'rgba(255,255,248,0)');ellipse(x+dx,y,w,26,g);});
+      ctx.restore();
+    }
+    function drawIsland(p) {
+      const shadow=ctx.createRadialGradient(CX+5,783,5,CX+5,783,290);shadow.addColorStop(0,'rgba(43,63,43,.13)');shadow.addColorStop(.7,'rgba(43,63,43,.045)');shadow.addColorStop(1,'rgba(43,63,43,0)');ellipse(CX+5,783,290,40,shadow);
+      const strata=['#56664c','#657254','#6e7758','#7d8060','#8d8b65','#777b55','#999572','#a8a17a','#92916c','#b2ad86','#c4b894','#9ea47a','#c6c397'];
+      for(let i=12;i>=0;i--){const layer=contour(1-i*.016,11+i*9);fill(layer,tone(strata[12-i]));stroke(layer,tone(mixHex(strata[12-i],'#314331',.1)),1);}
+      ctx.save();ctx.lineCap='round';
+      for(let i=0;i<26;i++){const a=.16+i/27*2.82,r=radius(a),x=CX+Math.cos(a)*RX*r,y=CY+Math.sin(a)*RY*r;const s=1.3+Math.sin(i*5.6)*.6;stroke(path([[x,y+12],[x+(CX-x)*.025,y+43*s],[x+(CX-x)*.1,y+90*s],[x+(CX-x)*.2,y+120]],false),'rgba(58,75,49,.17)',1.4);}
+      ctx.restore();
+      const ground=ctx.createLinearGradient(340,290,675,635);ground.addColorStop(0,tone(p.groundLight));ground.addColorStop(1,tone(p.ground));fill(land,ground);stroke(land,tone('#cfd1a5'),2);
+      ctx.save();ctx.clip(land);
+      for(let i=0;i<13;i++){ctx.save();ctx.translate(66,-30);ctx.scale(.95-i*.045,.96-i*.037);ctx.translate(i*27,i*19);stroke(contour(),`rgba(73,96,49,${.055+i*.001})`,1.2);ctx.restore();}
+      // Paths and water are part of the same ground plane.
+      const trail=new Path2D('M214 482 C331 457 309 360 476 379 S704 502 868 435');stroke(trail,tone('#ded6ab'),8);stroke(trail,'rgba(252,246,207,.5)',2);
+      stroke(river,tone('#9baf91'),47);stroke(river,tone('#d5d5a6'),39);stroke(river,tone(p.water),29);stroke(river,'rgba(222,244,220,.5)',2);
+      ctx.save();ctx.setLineDash([17,24,6,35]);ctx.lineDashOffset=-state.time*12;stroke(river,'rgba(239,250,220,.57)',1.4);ctx.restore();
+      for(const g of grass){if(g.f>.64){const h=3+g.s*5;stroke(path([[g.x-2,g.y],[g.x-3,g.y-h],[g.x,g.y-1],[g.x+3,g.y-h*.7]],false),tone('#869c67'),.8);}else if(g.f<.15){ellipse(g.x,g.y,1.7,1.2,tone(p.flower));ellipse(g.x+3,g.y-2,1,1,tone('#eee2b3'));}}
+      ctx.restore();
+      // A small pedestrian bridge touches both banks.
+      ctx.save();ctx.translate(556,433);ctx.rotate(.38);fill(path([[-28,-7],[29,-7],[33,2],[-28,2]]),tone('#bbb088'));for(let i=-24;i<27;i+=5)stroke(path([[i,-7],[i+3,2]],false),tone('#8b8665'),1);stroke(path([[-29,-12],[28,-12]],false),tone('#8d8e64'),2);for(const x of [-27,0,27])stroke(path([[x,-12],[x,-3]],false),tone('#8d8e64'),1);ctx.restore();
+      drawWaterfall(p);
+    }
+    function mixHex(a,b,t){const p=a.match(/\w\w/g).map(v=>parseInt(v,16)),q=b.match(/\w\w/g).map(v=>parseInt(v,16));return '#'+p.map((v,i)=>Math.round(v+(q[i]-v)*t).toString(16).padStart(2,'0')).join('');}
+    function drawWaterfall(p) {
+      const fall=new Path2D('M441 598 C445 631 445 675 465 720 Q474 730 479 718 C466 673 472 635 469 595 Z');
+      const g=ctx.createLinearGradient(442,600,482,725);g.addColorStop(0,tone(p.water));g.addColorStop(.55,tone('#b9d8ca'));g.addColorStop(1,'rgba(181,211,195,.02)');fill(fall,g);
+      ctx.save();ctx.clip(fall);ctx.strokeStyle='rgba(242,254,232,.6)';ctx.lineWidth=1.2;ctx.setLineDash([22,12,6,5]);ctx.lineDashOffset=-state.time*45;
+      for(let i=0;i<7;i++)stroke(new Path2D(`M${443+i*4} 600 Q${448+i*3} 670 ${464+i*2} 731`),'rgba(240,254,237,.58)',1.2);ctx.restore();
+      const mist=ctx.createRadialGradient(477,725,0,477,725,46);mist.addColorStop(0,'rgba(230,239,218,.7)');mist.addColorStop(1,'rgba(230,239,218,0)');ellipse(477,725,55,23,mist);
+    }
+    function drawMountain() {
+      const snow=state.season==='winter';
+      fill(path([[577,368],[583,321],[619,248],[639,272],[672,206],[708,286],[735,265],[783,374],[703,398],[648,386]]),tone(snow?'#c7d3c4':'#869572'));
+      fill(path([[619,248],[610,346],[648,386],[639,272]]),tone(snow?'#e6eadd':'#b1b793'));
+      fill(path([[672,206],[658,324],[689,358],[708,286]]),tone(snow?'#f1f1e1':'#c9c8a6'));
+      fill(path([[672,206],[651,281],[658,274],[665,288],[681,272],[696,262]]),tone('#e1dfbf'));
+      fill(path([[735,265],[710,363],[747,387],[783,374]]),tone(snow?'#dce3d4':'#a7ad87'));
+      fill(path([[619,248],[602,283],[616,274],[627,288],[633,268]]),tone('#d2d0ac'));
+      stroke(path([[664,288],[651,337],[666,357],[653,380]],false),tone('#72876b'),1.6);
+      for(let i=0;i<5;i++)stroke(new Path2D(`M${584+i*9} ${354+i*6} Q${636+i*6} ${341+i*10} ${731+i*5} ${366+i*5}`),'rgba(58,89,57,.13)',1);
+    }
+    function drawTree(tree,p) {
+      const growth=tree.birth<0||reducedMotion.matches||state.paused?1:clamp((state.time-tree.birth)*1.7,.04,1);
+      const s=tree.size*growth,wind=state.paused?0:Math.sin(state.time*.8+tree.seed)*1.4;
+      ctx.save();ctx.translate(tree.x,tree.y);ctx.scale(s,s);
+      ellipse(8,1,18,6,'rgba(45,69,44,.14)',-.15);
+      const bark=tone('#737251');stroke(new Path2D('M0 1 Q-1-20 1-38'),bark,2.6);
+      ctx.translate(wind,0);const c=p.leaf[tree.shade],c2=p.leaf[tree.shade+1];
+      if(tree.type<.41){
+        fill(new Path2D('M0-74 Q-7-55-18-43 L-10-43 Q-16-28-24-23 L-14-22 Q-20-13-29-8 Q-12 1 0-1 Q16 0 26-7 L14-23 23-24 9-43 16-44 Q5-60 0-74Z'),tone(c));
+        fill(new Path2D('M0-72 Q-2-48-9-40 L-2-42-11-24-3-25-15-8 Q-7-4 0-3Z'),tone(c2));
+        stroke(new Path2D('M0-61 0-4'),tone(c),.8);
+      }else{
+        stroke(path([[0,-16],[-12,-33],[-13,-45]],false),bark,1.5);stroke(path([[0,-25],[12,-45]],false),bark,1.5);
+        ellipse(0,-42,24,28,tone(c));ellipse(-13,-43,15,21,tone(c));ellipse(12,-49,17,23,tone(c2));ellipse(-6,-60,17,17,tone(c2));ellipse(-15,-54,10,13,tone(c2));
+        ctx.globalAlpha=.25;for(let i=0;i<7;i++){const a=tree.seed+i*2.3;ellipse(Math.sin(a)*17,-49+Math.cos(a*1.2)*17,3.5,2.4,tone(p.leaf[3]));}ctx.globalAlpha=1;
+        if(state.season==='spring'&&tree.type>.86){for(let i=0;i<9;i++){const a=tree.seed+i*2.4;ellipse(Math.sin(a)*17,-50+Math.cos(a*1.5)*17,3,2.4,tone(p.flower));}}
+      }
+      if(tree.birth>=0){ellipse(0,4,3,1.8,tone('#ece0a4'));}
+      ctx.restore();
+    }
+    function drawObservatory(p) {
+      ctx.save();ctx.translate(791,441);ellipse(0,0,31,14,'rgba(51,72,49,.17)');fill(path([[-24,-5],[0,-17],[27,-5],[2,9]]),tone('#d6d1ad'));
+      const dome=new Path2D('M-21-5 C-22-53 25-53 25-5 Q1 9-21-5Z');fill(dome,tone('#c8d8b9'));stroke(dome,tone('#6e8a6b'),1.1);
+      stroke(new Path2D('M2-39 C-7-31-9-12-5 1 M2-39 C14-29 16-12 13 1 M-20-17 Q0-5 24-17 M-13-30 Q2-22 18-30'),tone('#809878'),.9);
+      fill(path([[-4,-9],[5,-9],[5,5],[-4,5]]),tone('#6d8870'));ctx.restore();
+    }
+    function drawLife(p) {
+      const objects=trees.concat(state.planted).map(t=>({y:t.y,draw:()=>drawTree(t,p)}));objects.push({y:374,draw:drawMountain},{y:441,draw:()=>drawObservatory(p)});objects.sort((a,b)=>a.y-b.y).forEach(o=>o.draw());
+      ctx.save();ctx.lineCap='round';
+      for(const b of birds){const dx=Math.sin(state.time*.13+b.phase)*19,y=b.y+Math.sin(state.time*.21+b.phase)*6,w=Math.sin(state.time*2+b.phase)*2;stroke(new Path2D(`M${b.x+dx-b.s} ${y-3-w} Q${b.x+dx-2} ${y-5} ${b.x+dx} ${y} Q${b.x+dx+3} ${y-4} ${b.x+dx+b.s} ${y-3-w}`),tone('#758976'),1.3);}
+      if(dark()>.5){for(let i=0;i<15;i++){const x=350+Math.sin(i*4.7)*200,y=436+Math.cos(i*2.9)*85;ctx.globalAlpha=(.4+Math.sin(state.time+i)*.25)*dark();ellipse(x,y,2,2,'#f6ed9c');}}
+      ctx.restore();
+    }
+    function render(){ctx.setTransform(canvas.width/W,0,0,canvas.height/H,0,0);ctx.clearRect(0,0,W,H);const p=palettes[state.season];drawSky(p);drawIsland(p);drawLife(p);}
+    function resize(){const rect=canvas.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.max(1,Math.round(rect.width*dpr));canvas.height=Math.max(1,Math.round(rect.height*dpr));render();}
+    let last=0,frame=0,inView=true;
+    function tick(now){frame=0;if(state.paused||document.hidden||!inView)return;if(now-last>=1000/30){state.time+=last?Math.min((now-last)/1000,.08):0;last=now;render();}frame=requestAnimationFrame(tick);}
+    function resume(){if(!frame&&!state.paused&&!document.hidden&&inView){last=0;frame=requestAnimationFrame(tick);}}
+    function stop(){cancelAnimationFrame(frame);frame=0;last=0;}
+    function announce(message){status.textContent=message;}
+    function plant(x,y){
+      if(state.planted.length>=36){announce('这片空地已经长成了小森林。你可以在生长手记里清除自己种下的树，重新开始。');return;}
+      if(!isLand(x,y)||riverDistance(x,y)<28||(x>566&&x<785&&y<389)||Math.hypot(x-791,y-441)<39){announce('给河流与山石留一些空间吧。试试旁边的草地，也可以用“种下一点善意”寻找空地。');return;}
+      state.planted.push(makeTree(x,y));const n=state.planted.length;
+      announce(`第 ${n} 棵树已种下。${n===1?'一片小小的绿意，从你开始。':n<8?'这里又多了一份生长的可能。':'你正在把一片空地，变成可以栖息的森林。'}`);
+      document.getElementById('journal-entry').textContent=`你在这次漫游里种下了 ${n} 棵树。风会经过它们，鸟会记得这里。所有生长，都从一个微小的行动开始。`;
+      document.getElementById('reset-button').hidden=false;render();
+    }
+    function randomPlant(){const p=pickEmptyLand();plant(p.x,p.y);}
+    document.getElementById('plant-button').addEventListener('click',randomPlant);
+    let pointerStart=null;
+    canvas.addEventListener('pointerdown',event=>{pointerStart={x:event.clientX,y:event.clientY};});
+    canvas.addEventListener('pointercancel',()=>{pointerStart=null;});
+    canvas.addEventListener('pointerup',event=>{if(!pointerStart||Math.hypot(event.clientX-pointerStart.x,event.clientY-pointerStart.y)>9){pointerStart=null;return;}pointerStart=null;const rect=canvas.getBoundingClientRect();plant((event.clientX-rect.left)/rect.width*W,(event.clientY-rect.top)/rect.height*H);});
+    canvas.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();randomPlant();}});
+    document.querySelectorAll('[data-season]').forEach(button=>button.addEventListener('click',()=>{state.season=button.dataset.season;document.querySelectorAll('[data-season]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));announce(palettes[state.season].note);render();}));
+    document.getElementById('daylight').addEventListener('input',event=>{state.hour=Number(event.target.value);const minutes=Math.round(state.hour*60)%1440,text=`${String(Math.floor(minutes/60)).padStart(2,'0')}:${String(minutes%60).padStart(2,'0')}`;document.getElementById('time-label').textContent=text;event.target.setAttribute('aria-valuetext',text);render();});
+    const motionButton=document.getElementById('motion-button');
+    function updateMotion(){motionButton.textContent=state.paused?'继续风景':'暂停风景';motionButton.setAttribute('aria-pressed',String(state.paused));if(state.paused){stop();render();}else resume();}
+    motionButton.addEventListener('click',()=>{state.paused=!state.paused;updateMotion();});
+    reducedMotion.addEventListener('change',event=>{state.paused=event.matches;updateMotion();});
+    document.getElementById('reset-button').addEventListener('click',()=>{state.planted=[];document.getElementById('journal-entry').textContent='空地准备好了。新的故事，可以从一棵树重新开始。';document.getElementById('reset-button').hidden=true;document.getElementById('plant-button').focus();announce('你种下的树已清除。岛屿原本的森林还在，新的生长正在等你。');render();});
+    // Audio is synthesized locally and starts only after an explicit gesture.
+    let audioContext=null,audioGain=null,audioSource=null,audioBusy=false;
+    const soundButton=document.getElementById('sound-button');
+    soundButton.addEventListener('click',async()=>{
+      if(audioBusy)return;audioBusy=true;
+      try{
+        if(!audioContext){const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)throw new Error('unavailable');audioContext=new Audio();const buffer=audioContext.createBuffer(1,audioContext.sampleRate*5,audioContext.sampleRate),channel=buffer.getChannelData(0);let brown=0;for(let i=0;i<channel.length;i++){brown=(brown+(Math.random()*2-1)*.014)/1.014;channel[i]=brown*3.2;}audioSource=audioContext.createBufferSource();audioSource.buffer=buffer;audioSource.loop=true;const filter=audioContext.createBiquadFilter();filter.type='lowpass';filter.frequency.value=650;audioGain=audioContext.createGain();audioGain.gain.value=.0;audioSource.connect(filter);filter.connect(audioGain);audioGain.connect(audioContext.destination);audioSource.start();}
+        await audioContext.resume();state.sound=!state.sound;audioGain.gain.setTargetAtTime(state.sound?.22:0,audioContext.currentTime,.3);soundButton.setAttribute('aria-pressed',String(state.sound));soundButton.setAttribute('aria-label',state.sound?'听见风，关闭环境声音':'听见风，开启环境声音');soundButton.querySelector('.sound-text').textContent=state.sound?'风正在吹':'听见风';
+      }catch(error){state.sound=false;soundButton.setAttribute('aria-pressed','false');announce('这个浏览器暂时无法播放环境声。你仍然可以种树、观察四季。');if(audioContext){await audioContext.close().catch(()=>{});audioContext=null;}}
+      finally{audioBusy=false;}
+    });
+    document.addEventListener('visibilitychange',()=>{if(document.hidden){stop();if(audioContext)audioContext.suspend().catch(()=>{});}else{resume();if(audioContext&&state.sound)audioContext.resume().catch(()=>{});}});
+    if('IntersectionObserver' in window)new IntersectionObserver(entries=>{inView=entries[0].isIntersecting;if(inView)resume();else stop();},{threshold:.03}).observe(canvas);
+    if('ResizeObserver' in window)new ResizeObserver(resize).observe(canvas);else window.addEventListener('resize',resize);
+    window.addEventListener('pagehide',()=>{stop();if(audioContext)audioContext.suspend().catch(()=>{});});
+    window.addEventListener('pageshow',()=>{resume();if(audioContext&&state.sound)audioContext.resume().catch(()=>{});});
+    resize();updateMotion();
+  })();
+  </script>
+</body>
+</html>

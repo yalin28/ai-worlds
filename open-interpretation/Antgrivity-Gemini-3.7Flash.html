@@ -398,10 +398,29 @@
         flex-wrap: wrap;
         justify-content: center;
         gap: 10px;
+        width: 100%;
+        max-width: 100%;
+      }
+      .param-slider {
+        width: min(120px, 36vw);
+      }
+      .dimension-selector {
+        flex-wrap: wrap;
+        justify-content: center;
+        max-width: 100%;
+        overflow: visible;
       }
       .dim-tab {
-        padding: 8px 12px;
+        flex: 1 1 calc(50% - 8px);
+        justify-content: center;
+        padding: 8px 8px;
         font-size: 12px;
+      }
+      .interaction-hints {
+        max-width: 100%;
+        padding: 0 4px;
+        line-height: 1.7;
+        white-space: normal;
       }
     }
   </style>
@@ -504,7 +523,7 @@
       </div>
 
       <div class="interaction-hints">
-        ✦ 移动光标激荡向量场 ✦ 单击释放认知脉冲 ✦ 拖拽旋转思维多维晶格
+        ✦ 滑动或移动光标激荡向量场 ✦ 轻点释放认知脉冲 ✦ 拖拽旋转思维多维晶格
       </div>
     </footer>
   </div>

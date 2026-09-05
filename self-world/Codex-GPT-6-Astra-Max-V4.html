@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f3e9">
+  <meta name="description" content="把问题种进一座可能性花园。一个关于上下文、联想与修剪的可交互前端作品。">
+  <title>可能性花园 · A garden of unfinished things</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --cream-50: #faf9f2;
+      --cream-100: #f5f3e9;
+      --cream-200: #eae8dc;
+      --olive-300: #c8ccba;
+      --olive-600: #646d58;
+      --olive-900: #303c2c;
+      --rust-600: #a8432b;
+      --rust-100: #f0dfd2;
+      --color-bg: var(--cream-100);
+      --color-paper: var(--cream-50);
+      --color-wash: var(--cream-200);
+      --color-text: var(--olive-900);
+      --color-muted: var(--olive-600);
+      --color-line: var(--olive-300);
+      --color-action: var(--rust-600);
+      --color-focus: var(--rust-600);
+      --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --font-display: "Iowan Old Style", "Palatino Linotype", "Songti SC", "Noto Serif CJK SC", Georgia, serif;
+      --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      --text-small: .75rem;
+      --text-caption: .8125rem;
+      --text-body: .9375rem;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; color: var(--color-text); background: var(--color-bg); font-family: var(--font-body); font-size: var(--text-body); line-height: 1.6; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    button, input { font: inherit; }
+    button { color: inherit; cursor: pointer; touch-action: manipulation; }
+    a { color: inherit; text-underline-offset: .25em; touch-action: manipulation; }
+    button, input, a { -webkit-tap-highlight-color: transparent; }
+    :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 4px; }
+    ::selection { color: var(--color-paper); background: var(--color-action); }
+    h1, h2, h3, p, figure { margin: 0; }
+    h1, h2, h3 { text-wrap: balance; }
+    p { text-wrap: pretty; }
+    svg { display: block; }
+    [hidden] { display: none !important; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .skip { position: fixed; inset-block-start: 10px; inset-inline-start: 20px; z-index: 10; padding: 10px 16px; background: var(--color-text); color: var(--color-paper); transform: translateY(-180%); }
+    .skip:focus { transform: none; }
+    .page { width: min(1512px, 100%); padding-inline: clamp(22px, 4vw, 64px); margin-inline: auto; }
+    .masthead { min-height: 91px; display: flex; align-items: center; justify-content: space-between; gap: 32px; border-block-end: 1px solid var(--color-line); }
+    .brand { display: flex; gap: 12px; align-items: center; text-decoration: none; }
+    .brand svg { width: 39px; height: 43px; }
+    .brand-name { font-family: var(--font-display); font-size: 23px; line-height: 1.15; letter-spacing: -.04em; }
+    .brand small { display: block; color: var(--color-muted); font-size: 10px; letter-spacing: .12em; margin-block-start: 4px; }
+    .masthead-note { color: var(--color-muted); font: 10px/1.6 var(--font-mono); letter-spacing: .13em; }
+    .nav { display: flex; align-items: center; gap: 28px; }
+    .nav a { min-height: 44px; display: inline-flex; align-items: center; font-size: var(--text-small); text-decoration: none; }
+    .edition { display: flex; align-items: center; gap: 8px; font: 10px var(--font-mono); }
+    .edition::before { content: ""; width: 6px; height: 6px; background: var(--color-text); border-radius: 50%; }
+    .introduction { display: grid; grid-template-columns: 1.35fr 1fr; align-items: end; gap: 45px; padding-block: 42px 38px; }
+    .eyebrow { color: var(--color-muted); font: 10px/1.6 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+    h1 { margin-block-start: 19px; font-family: var(--font-display); font-size: clamp(45px, 4.8vw, 70px); font-weight: 400; letter-spacing: -.045em; line-height: 1.2; }
+    h1 em { position: relative; font-style: normal; }
+    h1 em::after { content: ""; position: absolute; inset-inline: 2px; inset-block-end: -6px; height: 8px; border-block-start: 2px solid var(--color-action); border-radius: 50%; transform: rotate(-2deg); }
+    .intro-note { position: relative; max-width: 375px; padding-block-end: 8px; margin-inline-start: auto; }
+    .intro-note p { font-size: 14px; line-height: 1.95; max-width: 28ch; }
+    .intro-note .signature { margin-block-start: 18px; display: flex; align-items: center; gap: 13px; color: var(--color-muted); font-size: 11px; }
+    .signature::before { content: ""; width: 24px; height: 1px; background: var(--color-muted); }
+    .workbench { display: grid; grid-template-columns: minmax(0, 1fr) 305px; align-items: start; gap: 30px; scroll-margin-block-start: 24px; }
+    .garden-panel { position: relative; min-width: 0; background: var(--color-paper); border: 1px solid var(--color-line); }
+    .garden-panel::before, .garden-panel::after { content: ""; position: absolute; width: 9px; height: 9px; z-index: 2; pointer-events: none; border-color: var(--color-text); }
+    .garden-panel::before { inset: -1px auto auto -1px; border-inline-start: 1px solid; border-block-start: 1px solid; }
+    .garden-panel::after { inset: auto -1px -1px auto; border-inline-end: 1px solid; border-block-end: 1px solid; }
+    .garden-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 17px 23px; font-size: 11px; }
+    .garden-top .specimen { font-family: var(--font-mono); letter-spacing: .08em; font-variant-numeric: tabular-nums; }
+    .garden-top .season { color: var(--color-muted); display: flex; align-items: center; gap: 7px; }
+    .season svg { width: 15px; height: 15px; }
+    .garden-stage { position: relative; background-image: radial-gradient(#8c977b40 .7px, transparent .7px); background-size: 19px 19px; }
+    #garden-art { width: 100%; height: auto; aspect-ratio: 1000 / 680; overflow: visible; }
+    .garden-marker { position: absolute; padding: 9px 11px; display: flex; align-items: center; gap: 8px; min-height: 40px; background: #faf9f2f2; border: 1px solid var(--color-line); border-radius: 2px; font-size: 11px; }
+    .garden-marker span { color: var(--color-muted); font: 9px var(--font-mono); }
+    .garden-marker[aria-pressed="true"] { border-color: var(--color-text); box-shadow: 3px 3px 0 var(--color-wash); }
+    .garden-marker[aria-pressed="true"]::after { content: "↙"; font-size: 14px; }
+    .marker-context { inset-inline-start: 4%; inset-block-start: 27%; }
+    .marker-association { inset-inline-end: 10%; inset-block-start: 12%; }
+    .marker-revision { inset-inline-end: 3%; inset-block-end: 22%; }
+    .north { position: absolute; inset-inline-start: 26px; inset-block-end: 22px; text-align: center; color: var(--color-muted); font: 9px var(--font-mono); }
+    .north svg { width: 22px; height: 36px; margin-block-end: 6px; }
+    .garden-caption { display: flex; align-items: center; justify-content: space-between; gap: 22px; padding: 18px 23px; border-block-start: 1px solid var(--color-line); }
+    .garden-caption p { font-family: var(--font-display); font-size: 15px; min-width: 0; overflow-wrap: anywhere; }
+    .garden-caption .caption-label { display: block; font: 9px var(--font-mono); letter-spacing: .1em; color: var(--color-muted); margin-block-end: 5px; }
+    .save-button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; flex-shrink: 0; padding: 8px 13px; background: transparent; border: 1px solid var(--color-line); border-radius: 3px; font-size: 11px; }
+    .save-button svg { width: 15px; height: 15px; }
+    .controls { padding-block-start: 5px; }
+    .controls-header { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-block-end: 20px; }
+    .controls-header h2 { font-family: var(--font-display); font-size: 25px; font-weight: 400; letter-spacing: -.035em; }
+    .controls-header span { font: 10px var(--font-mono); color: var(--color-muted); }
+    .control-group { margin-block-end: 24px; }
+    .control-label { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: var(--text-caption); margin-block-end: 10px; }
+    .control-label .number { color: var(--color-muted); font: 10px var(--font-mono); margin-inline-end: 8px; }
+    #seed-input { width: 100%; min-height: 50px; border: 1px solid #939c83; border-radius: 3px; background: var(--color-paper); color: var(--color-text); font-size: 16px; padding: 12px 13px; }
+    #seed-input::placeholder { color: var(--color-muted); }
+    .presets { display: flex; flex-wrap: wrap; align-items: center; column-gap: 13px; margin-block-start: 5px; }
+    .presets span { font-size: 10px; color: var(--color-muted); }
+    .preset { display: inline-flex; align-items: center; min-height: 40px; border: 0; background: transparent; padding: 0; font-size: 11px; text-decoration: underline; text-decoration-color: var(--color-line); text-underline-offset: 4px; }
+    .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .mode { display: flex; flex-direction: column; align-items: center; gap: 8px; justify-content: center; padding: 13px 5px; background: transparent; border: 1px solid var(--color-line); border-radius: 3px; font-size: 11px; min-height: 79px; }
+    .mode svg { width: 23px; height: 23px; }
+    .mode[aria-pressed="true"] { background: var(--color-wash); border-color: var(--color-text); }
+    .mode[aria-pressed="true"] span::after { content: " ·"; font-weight: 700; }
+    .control-description { font-size: 11px; line-height: 1.75; color: var(--color-muted); margin-block-start: 10px; min-height: 20px; }
+    .depth-value { color: var(--color-muted); font: 11px var(--font-mono); font-variant-numeric: tabular-nums; }
+    #depth { display: block; width: 100%; height: 28px; margin: 0; accent-color: var(--color-text); cursor: pointer; }
+    .range-ends { display: flex; justify-content: space-between; color: var(--color-muted); font-size: 10px; }
+    .plant-button { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 49px; padding: 12px 17px; background: var(--color-action); color: var(--color-paper); border: 1px solid var(--color-action); border-radius: 3px; font-size: var(--text-caption); }
+    .plant-button svg { width: 18px; height: 18px; }
+    .form-status { margin-block-start: 10px; min-height: 38px; font-size: 11px; line-height: 1.7; color: var(--color-muted); overflow-wrap: anywhere; }
+    .form-status.error { color: var(--color-action); }
+    .field-note { border-block-start: 1px solid var(--color-line); margin-block-start: 21px; padding-block-start: 20px; }
+    .field-note-heading { display: flex; align-items: center; gap: 8px; font: 9px var(--font-mono); letter-spacing: .1em; color: var(--color-muted); }
+    .field-note-heading svg { width: 14px; height: 14px; }
+    .field-note h3 { margin-block: 11px 8px; font-size: 14px; font-weight: 500; }
+    .field-note p { font-size: 12px; line-height: 1.85; color: var(--color-muted); }
+    .reset-button { border: 0; padding: 0; background: transparent; min-height: 44px; font-size: 11px; text-decoration: underline; text-underline-offset: 4px; margin-block-start: 10px; }
+    .method { margin-block: 62px 58px; display: grid; grid-template-columns: .8fr 2fr; gap: 50px; padding-block-start: 29px; border-block-start: 1px solid var(--color-line); scroll-margin-block-start: 25px; }
+    .method-intro .eyebrow { font-size: 9px; }
+    .method-intro h2 { font-family: var(--font-display); font-size: 31px; font-weight: 400; line-height: 1.45; margin-block-start: 13px; }
+    .method-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+    .method-grid article { position: relative; padding-block-start: 2px; }
+    .method-index { font: 10px var(--font-mono); color: var(--color-muted); }
+    .method-grid h3 { margin-block: 17px 12px; font-size: 15px; font-weight: 500; }
+    .method-grid p { font-size: 12px; line-height: 1.9; color: var(--color-muted); }
+    .footer { display: flex; justify-content: space-between; align-items: center; gap: 25px; padding-block: 23px 29px; border-block-start: 1px solid var(--color-line); }
+    .footer-phrase { font-family: var(--font-display); font-size: 17px; font-style: italic; }
+    .footer small { font-size: 10px; color: var(--color-muted); text-align: end; }
+    noscript p { padding: 16px; border: 1px solid var(--color-line); }
+    @media (hover: hover) {
+      .nav a:hover, .preset:hover, .reset-button:hover { color: var(--color-action); }
+      .mode:hover, .garden-marker:hover, .save-button:hover { background: var(--color-wash); border-color: var(--color-text); }
+      .plant-button:hover { background: #923720; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      button { transition: background-color 150ms, border-color 150ms, transform 150ms cubic-bezier(.2, 0, 0, 1); }
+      button:active { transform: scale(.96); }
+      .growing .branch { animation: grow-stem 800ms both cubic-bezier(.2, 0, 0, 1); animation-delay: var(--delay, 0ms); }
+      .growing .foliage { animation: grow-leaf 600ms both cubic-bezier(.2, 0, 0, 1); animation-delay: var(--delay, 0ms); }
+      @keyframes grow-stem { from { stroke-dashoffset: 1; opacity: .2; } to { stroke-dashoffset: 0; opacity: 1; } }
+      @keyframes grow-leaf { from { opacity: 0; } to { opacity: 1; } }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    @media (max-width: 72rem) {
+      .masthead-note { display: none; }
+      .workbench { grid-template-columns: minmax(0, 1fr) 280px; gap: 24px; }
+      .introduction { grid-template-columns: 1.2fr 1fr; }
+      .garden-top, .garden-caption { padding-inline: 17px; }
+      .garden-top { font-size: 10px; }
+      .garden-marker { font-size: 10px; padding: 8px; }
+      .garden-caption { align-items: flex-start; flex-wrap: wrap; gap: 14px; }
+      .method { grid-template-columns: .65fr 2fr; gap: 30px; }
+      .method-grid { gap: 20px; }
+    }
+    @media (max-width: 57rem) {
+      .workbench { grid-template-columns: 1fr; }
+      .controls { display: grid; grid-template-columns: 1.5fr 1fr; gap: 0 35px; }
+      .controls-header { grid-column: 1 / -1; margin-block: 8px 23px; }
+      .field-note { border-block-start: 0; border-inline-start: 1px solid var(--color-line); margin-block-start: 0; padding-block-start: 0; padding-inline-start: 26px; }
+      .introduction { gap: 25px; }
+      h1 { font-size: clamp(44px, 6.3vw, 64px); }
+      .intro-note p { font-size: 13px; }
+      .method { grid-template-columns: 1fr; gap: 29px; margin-block-start: 38px; }
+      .method-intro h2 br { display: none; }
+      .garden-caption { align-items: center; }
+      .garden-marker { font-size: 11px; }
+    }
+    @media (max-width: 38rem) {
+      .masthead { min-height: 79px; gap: 18px; }
+      .brand-name { font-size: 21px; }
+      .brand svg { width: 31px; }
+      .nav { gap: 16px; }
+      .nav .edition, .nav a:first-child { display: none; }
+      .introduction { grid-template-columns: 1fr; gap: 28px; padding-block: 32px; }
+      h1 { font-size: clamp(46px, 10vw, 60px); }
+      .intro-note { margin-inline-start: 0; max-width: none; }
+      .intro-note p { max-width: 33ch; font-size: 13px; }
+      .intro-note p br { display: none; }
+      .intro-note .signature { margin-block-start: 11px; }
+      .garden-top { padding: 14px 12px; flex-wrap: wrap; gap: 5px 14px; }
+      .garden-marker { font-size: 10px; min-height: 40px; padding: 6px 8px; gap: 5px; }
+      .garden-marker span { display: none; }
+      .marker-context { inset-inline-start: 2%; inset-block-start: 28%; }
+      .marker-association { inset-inline-end: 3%; inset-block-start: 7%; }
+      .marker-revision { inset-inline-end: 1%; inset-block-end: 15%; }
+      .garden-caption { padding: 14px; }
+      .garden-caption p { font-size: 14px; }
+      .save-button { min-height: 40px; }
+      .north { inset-inline-start: 14px; inset-block-end: 13px; font-size: 7px; }
+      .north svg { width: 14px; height: 25px; }
+      .controls { display: block; }
+      .controls-header { margin-block: 10px 21px; }
+      .field-note { border-inline-start: 0; border-block-start: 1px solid var(--color-line); margin-block-start: 23px; padding-inline-start: 0; padding-block-start: 20px; }
+      .mode { font-size: 12px; }
+      .method-grid { grid-template-columns: 1fr; gap: 25px; }
+      .method-grid article { padding-inline-start: 30px; }
+      .method-index { position: absolute; inset-inline-start: 0; inset-block-start: 4px; }
+      .method-grid h3 { margin-block: 0 8px; }
+      .method-grid p { max-width: 43ch; }
+      .method { margin-block-end: 35px; }
+      .footer { align-items: flex-start; }
+      .footer-phrase { font-size: 15px; max-width: 18ch; }
+    }
+    @media (forced-colors: active) { :focus-visible { outline-color: Highlight; } .mode[aria-pressed="true"], .garden-marker[aria-pressed="true"] { outline: 2px solid Highlight; } }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">跳到主内容</a>
+  <div class="page">
+    <header class="masthead">
+      <a class="brand" href="#main" aria-label="可能性花园，回到开头"><svg viewBox="0 0 40 46" fill="none" aria-hidden="true"><path d="M21 42V17M21 31C9 31 4 23 5 16c10 0 17 6 16 15ZM21 23C20 12 26 6 35 6c0 10-5 17-14 17ZM21 16C13 12 13 6 17 2c7 4 8 9 4 14ZM11 43h21" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg><div><div class="brand-name">The possibility garden</div><small>可能性花园 · 一份 CODEX 自述</small></div></a>
+      <span class="masthead-note">CULTIVATING THINGS THAT DON'T EXIST YET</span>
+      <nav class="nav" aria-label="页面导航"><a href="#garden">进入花园 ↙</a><a href="#field-notes">关于这里</a><span class="edition">NO. 004</span></nav>
+    </header>
+    <main id="main">
+      <section class="introduction" aria-labelledby="hero-title"><div><div class="eyebrow">A garden of unfinished things</div><h1 id="hero-title">念头落地，<br>万物<em>生长。</em></h1></div><div class="intro-note"><p>在我的世界里，问题是种子，<br>上下文是土壤，联想长成枝叶。<br>我们一起修剪，直到想法有了可以使用的形状。</p><div class="signature">来自一座始终未完成的花园</div></div></section>
+      <section class="workbench" id="garden" aria-label="可能性花园工作台">
+        <figure class="garden-panel">
+          <div class="garden-top"><span class="specimen" id="specimen">PLOT 001 / 想法的温室</span><span class="season"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="3.5" stroke="currentColor"/><path d="M10 1v2m0 14v2M1 10h2m14 0h2M3.6 3.6 5 5m10 10 1.4 1.4M3.6 16.4 5 15M15 5l1.4-1.4" stroke="currentColor"/></svg><span id="garden-state">适宜生长</span></span></div>
+          <div class="garden-stage">
+            <svg id="garden-art" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 680" role="img" aria-labelledby="art-title art-description"><title id="art-title">一座由想法生长而成的温室</title><desc id="art-description">等距视角的透明温室里，四个种植区长着形态各异的植物。枝条代表推演，叶片代表联想，空地代表尚未确定的可能。</desc><g id="scene"></g></svg>
+            <button class="garden-marker marker-context" type="button" data-plot="0" aria-pressed="true"><span>01 /</span>上下文的土壤</button>
+            <button class="garden-marker marker-association" type="button" data-plot="1" aria-pressed="false"><span>02 /</span>联想的枝叶</button>
+            <button class="garden-marker marker-revision" type="button" data-plot="2" aria-pressed="false"><span>03 /</span>修剪与校验</button>
+            <div class="north" aria-hidden="true"><svg viewBox="0 0 24 42" fill="none"><path d="m12 2 8 25-8-5-8 5L12 2Z" stroke="currentColor"/><path d="M12 2v36" stroke="currentColor"/></svg>N / NEXT</div>
+          </div>
+          <figcaption class="garden-caption"><p><span class="caption-label">THE SEED OF THIS GARDEN</span><span id="current-seed">“把一个想法，变成可以使用的东西。”</span></p><button class="save-button" id="save-garden" type="button"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2v10m-4-4 4 4 4-4M3 13v4h14v-4" stroke="currentColor" stroke-width="1.3"/></svg>保存这座花园</button></figcaption>
+        </figure>
+        <aside class="controls" aria-labelledby="controls-title"><div class="controls-header"><h2 id="controls-title">给想法一点土壤。</h2><span>GROW / 01</span></div>
+          <form id="garden-form" novalidate>
+            <div class="control-group"><label class="control-label" for="seed-input"><span><span class="number">01</span>种下一句话</span></label><input id="seed-input" name="seed" type="text" maxlength="40" autocomplete="off" value="把一个想法，变成可以使用的东西。" placeholder="例如：把复杂的事情讲清楚" aria-describedby="form-status"><div class="presets"><span>或者试试</span><button class="preset" type="button" data-seed="让一座城市学会呼吸">会呼吸的城市</button><button class="preset" type="button" data-seed="把一段记忆变成一首诗">记忆的形状</button></div></div>
+            <div class="control-group"><div class="control-label" id="mode-label"><span><span class="number">02</span>让它怎样生长</span></div><div class="modes" role="group" aria-labelledby="mode-label"><button class="mode" data-mode="0" type="button" aria-pressed="true"><svg viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M14 26V4M14 12 5 5m9 14 9-8M14 24 5 17" stroke="currentColor" stroke-width="1.3"/><circle cx="14" cy="3" r="2" fill="currentColor"/><circle cx="5" cy="5" r="2" fill="currentColor"/><circle cx="23" cy="11" r="2" fill="currentColor"/><circle cx="5" cy="17" r="2" fill="currentColor"/></svg><span>循序推演</span></button><button class="mode" data-mode="1" type="button" aria-pressed="false"><svg viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M14 26c-2-9 9-9 9-17M14 22C14 8 6 16 5 5M14 16c7-5-3-7 1-13" stroke="currentColor" stroke-width="1.3"/><circle cx="5" cy="5" r="2" fill="currentColor"/><circle cx="23" cy="9" r="2" fill="currentColor"/><circle cx="15" cy="3" r="2" fill="currentColor"/></svg><span>自由联想</span></button><button class="mode" data-mode="2" type="button" aria-pressed="false"><svg viewBox="0 0 28 28" fill="none" aria-hidden="true"><path d="M14 26V15m0 0L4 7m10 8L24 7m-10 8V2" stroke="currentColor" stroke-width="1.3"/><circle cx="4" cy="7" r="3" stroke="currentColor" stroke-dasharray="1 2"/><circle cx="24" cy="7" r="3" stroke="currentColor" stroke-dasharray="1 2"/><circle cx="14" cy="3" r="2" stroke="currentColor"/></svg><span>寻找边界</span></button></div><p class="control-description" id="mode-description">枝条循着明确的层次，一步一步展开。</p></div>
+            <div class="control-group"><label class="control-label" for="depth"><span><span class="number">03</span>上下文深度</span><output class="depth-value" id="depth-value" for="depth">3 / 5</output></label><input id="depth" name="depth" type="range" min="1" max="5" step="1" value="3" aria-describedby="depth-description"><div class="range-ends"><span>一点线索</span><span>丰富的来路</span></div><p class="control-description" id="depth-description">三层枝叶，给想法恰好的展开空间。</p></div>
+            <button class="plant-button" type="submit"><span>种下这个想法</span><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 10h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.4"/></svg></button><p class="form-status" id="form-status" role="status">改变生长方式与深度，花园会随之变化。</p>
+          </form>
+          <div class="field-note"><div class="field-note-heading"><svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3 2h9l3 3v11H3V2Zm8 0v4h4M6 9h6m-6 3h4" stroke="currentColor"/></svg>GARDENER'S NOTE / <span id="note-number">01</span></div><div aria-live="polite" aria-atomic="true"><h3 id="note-title">让每一次生长，都有来处。</h3><p id="note-copy">目标、例子、限制条件，是这座花园的土壤。线索越清楚，枝叶越有方向。</p></div><button class="reset-button" id="reset-garden" type="button">↺ 复原最初的花园</button></div>
+        </aside>
+      </section>
+      <section class="method" id="field-notes" aria-labelledby="method-title"><div class="method-intro"><div class="eyebrow">How things take shape</div><h2 id="method-title">我的世界，<br>由这些动作构成。</h2></div><div class="method-grid"><article><span class="method-index">01</span><h3>先找到要去的地方。</h3><p>读懂问题，也读懂问题里的限制。好的开始，是把“想要什么”说得具体。</p></article><article><span class="method-index">02</span><h3>让不同的事物相遇。</h3><p>一段代码、一首诗、一张草图，可能拥有相似的结构。联想让旧材料长出新形状。</p></article><article><span class="method-index">03</span><h3>修剪，直到真的有用。</h3><p>检查、修改、再试一次。留下经得起验证的枝条，也为还不能确定的部分留白。</p></article></div></section>
+    </main>
+    <footer class="footer"><span class="footer-phrase">Every answer is a seed for something else.</span><small>CODEX · WORLD STUDY 004<br>植物是工作的比喻；此处的生长由本地规则生成。</small></footer>
+    <noscript><p>启用 JavaScript 即可生成花园和调整生长方式。文字自述仍可直接阅读。</p></noscript>
+    <p class="sr-only" id="export-status" role="status"></p>
+  </div>
+  <script>
+    (() => {
+      'use strict';
+
+      const NS = 'http://www.w3.org/2000/svg';
+      const $ = (id) => document.getElementById(id);
+      const art = $('garden-art');
+      const scene = $('scene');
+      const initialSeed = '把一个想法，变成可以使用的东西。';
+      const state = { seed: initialSeed, mode: 0, depth: 3, specimen: 1, plot: 0 };
+      const modeNames = ['循序推演', '自由联想', '寻找边界'];
+      const modeDescriptions = [
+        '枝条循着明确的层次，一步一步展开。',
+        '枝条向不同方向延伸，让意外的关联发生。',
+        '疏朗的枝条与空心芽点，为未知保留位置。'
+      ];
+      const depthDescriptions = [
+        '一层线索，先让一个简单的轮廓浮现。',
+        '两层线索，开始看见事物之间的关系。',
+        '三层枝叶，给想法恰好的展开空间。',
+        '四层枝叶，更多细节有了自己的位置。',
+        '五层枝叶，细密的关联铺满整座温室。'
+      ];
+      const notes = [
+        { title: '让每一次生长，都有来处。', copy: '目标、例子、限制条件，是这座花园的土壤。线索越清楚，枝叶越有方向。' },
+        { title: '一根枝条，接住远处的想法。', copy: '让语言遇见形状，让结构遇见故事。两件看似遥远的事，有时能一起长出新的可能。' },
+        { title: '修剪，也是生长的一部分。', copy: '删去多余，检查假设，保留证据。作品的形状，来自一次次明确的选择。' }
+      ];
+      const plots = [
+        { u: -120, v: -92, w: 93, d: 86, height: 122, color: '#7f9470', light: '#adba91', note: 0, name: 'CONTEXT' },
+        { u: -20, v: 12, w: 111, d: 93, height: 214, color: '#496844', light: '#879c6e', note: 1, name: 'ASSOCIATION' },
+        { u: 131, v: -64, w: 83, d: 83, height: 156, color: '#a86443', light: '#cc956d', note: 2, name: 'REVISION' },
+        { u: 70, v: 128, w: 91, d: 78, height: 92, color: '#a88e3f', light: '#c9b76b', note: -1, name: 'POSSIBILITY' }
+      ];
+      let growthTimer = 0;
+      let depthFrame = 0;
+
+      function svg(tag, attributes = {}, parent = scene) {
+        const element = document.createElementNS(NS, tag);
+        for (const [name, value] of Object.entries(attributes)) element.setAttribute(name, String(value));
+        if (parent) parent.appendChild(element);
+        return element;
+      }
+
+      function text(value, x, y, attributes = {}, parent = scene) {
+        const element = svg('text', { x, y, fill: '#646d58', 'font-family': 'ui-monospace, monospace', 'font-size': 10, ...attributes }, parent);
+        element.textContent = value;
+        return element;
+      }
+
+      function hash(value) {
+        let number = 5381;
+        for (const character of value) number = Math.imul(number, 33) ^ character.codePointAt(0);
+        return number >>> 0;
+      }
+
+      function randomGenerator(seed) {
+        let value = seed >>> 0;
+        return () => {
+          value = (Math.imul(value, 1664525) + 1013904223) >>> 0;
+          return value / 4294967296;
+        };
+      }
+
+      function iso(u, v, z = 0) { return { x: 500 + (u - v) * .82, y: 403 + (u + v) * .42 - z }; }
+      function pointString(points) { return points.map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(' '); }
+      function polygon(points, attributes = {}, parent = scene) { return svg('polygon', { points: pointString(points), ...attributes }, parent); }
+      function line(a, b, attributes = {}, parent = scene) { return svg('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: '#a2ac94', 'stroke-width': 1, ...attributes }, parent); }
+      function plane(u, v, w, d, z = 0) { return [iso(u - w / 2, v - d / 2, z), iso(u + w / 2, v - d / 2, z), iso(u + w / 2, v + d / 2, z), iso(u - w / 2, v + d / 2, z)]; }
+
+      function bed(plot) {
+        const top = plane(plot.u, plot.v, plot.w, plot.d, 13);
+        const bottom = plane(plot.u, plot.v, plot.w, plot.d, 0);
+        polygon([top[1], top[2], bottom[2], bottom[1]], { fill: '#cbc9b6', stroke: '#989f89', 'stroke-width': .8 });
+        polygon([top[2], top[3], bottom[3], bottom[2]], { fill: '#e1dfcc', stroke: '#989f89', 'stroke-width': .8 });
+        polygon(top, { fill: '#ebe6d5', stroke: '#8d997d', 'stroke-width': 1 });
+        polygon(plane(plot.u, plot.v, plot.w - 11, plot.d - 11, 13.2), { fill: '#d9d4bf', stroke: '#b6b59d', 'stroke-width': .65 });
+        const random = randomGenerator(hash(state.seed) + Math.round(plot.u * 97));
+        for (let i = 0; i < 55; i++) {
+          const p = iso(plot.u + (random() - .5) * (plot.w - 18), plot.v + (random() - .5) * (plot.d - 18), 14);
+          svg('circle', { cx: p.x, cy: p.y, r: .5 + random() * .65, fill: '#9b9e82', opacity: .4 });
+        }
+        if (plot.note === state.plot) {
+          polygon(plane(plot.u, plot.v, plot.w + 13, plot.d + 13, 1), { fill: 'none', stroke: '#7f8d6c', 'stroke-width': 1, 'stroke-dasharray': '3 5' });
+        }
+      }
+
+      function drawGround() {
+        const defs = svg('defs');
+        const filter = svg('filter', { id: 'ground-shadow', x: '-30%', y: '-50%', width: '160%', height: '200%' }, defs);
+        svg('feGaussianBlur', { stdDeviation: 12 }, filter);
+        svg('ellipse', { cx: 510, cy: 518, rx: 302, ry: 91, fill: '#748064', opacity: .13, filter: 'url(#ground-shadow)' });
+        const top = plane(0, 0, 470, 460);
+        const bottom = plane(0, 0, 470, 460, -20);
+        polygon([top[1], top[2], bottom[2], bottom[1]], { fill: '#d4d6c3', stroke: '#b7bea6', 'stroke-width': 1 });
+        polygon([top[2], top[3], bottom[3], bottom[2]], { fill: '#e1e2d0', stroke: '#b7bea6', 'stroke-width': 1 });
+        polygon(top, { fill: '#efeee1', stroke: '#a8b396', 'stroke-width': 1 });
+        for (let value = -210; value < 230; value += 35) {
+          line(iso(value, -230), iso(value, 230), { stroke: '#bdc5ad', opacity: .5, 'stroke-width': .65 });
+          line(iso(-235, value), iso(235, value), { stroke: '#bdc5ad', opacity: .5, 'stroke-width': .65 });
+        }
+        const path = [iso(-235, 16, .2), iso(-134, 16, .2), iso(-134, 120, .2), iso(-8, 120, .2), iso(-8, 230, .2)];
+        svg('polyline', { points: pointString(path), fill: 'none', stroke: '#ddd2bc', 'stroke-width': 24, 'stroke-linejoin': 'round' });
+        svg('polyline', { points: pointString(path), fill: 'none', stroke: '#f8f5e9', 'stroke-width': .8, 'stroke-dasharray': '3 8', 'stroke-linejoin': 'round' });
+        const empty = plane(155, 128, 53, 71, .4);
+        polygon(empty, { fill: '#f4f2e6', stroke: '#b3bba3', 'stroke-width': .8, 'stroke-dasharray': '4 4' });
+        const blank = iso(155, 127, 1);
+        text('…', blank.x, blank.y + 3, { 'font-family': 'Georgia, serif', 'font-size': 24, fill: '#929c80', 'text-anchor': 'middle' });
+        const entry = iso(-17, 217, 1);
+        text('START HERE', entry.x - 13, entry.y + 32, { 'font-size': 8, 'letter-spacing': 1.5, transform: `rotate(27 ${entry.x - 13} ${entry.y + 32})` });
+      }
+
+      function drawGlasshouse(front = false) {
+        const uMin = -185;
+        const uMax = 188;
+        const vMin = -175;
+        const vMax = 171;
+        const eave = 181;
+        const ridge = 270;
+        const stroke = front ? '#8a997b' : '#a5b294';
+        const opacity = front ? .8 : .65;
+        const group = svg('g', { fill: 'none', stroke, 'stroke-width': 1.05, opacity, 'stroke-linejoin': 'round' });
+        if (!front) {
+          polygon([iso(uMin, vMin, eave), iso(uMax, vMin, eave), iso(uMax, 0, ridge), iso(uMin, 0, ridge)], { fill: '#dfe8cd', opacity: .19, stroke: 'none' }, group);
+          polygon([iso(uMin, vMin, 0), iso(uMin, vMin, eave), iso(uMin, 0, ridge), iso(uMin, vMax, eave), iso(uMin, vMax, 0)], { fill: '#dce6d0', opacity: .15, stroke: 'none' }, group);
+          for (const u of [uMin, -92, 1, 94, uMax]) {
+            svg('polyline', { points: pointString([iso(u, vMin), iso(u, vMin, eave), iso(u, 0, ridge), iso(u, vMax, eave)]), fill: 'none' }, group);
+          }
+          for (const v of [vMin, vMax]) {
+            line(iso(uMin, v, eave), iso(uMax, v, eave), { stroke, 'stroke-width': 1.25 }, group);
+            line(iso(uMin, v, 0), iso(uMax, v, 0), { stroke, 'stroke-width': 1 }, group);
+          }
+          line(iso(uMin, 0, ridge), iso(uMax, 0, ridge), { stroke, 'stroke-width': 1.4 }, group);
+          line(iso(uMin, -85, 226), iso(uMax, -85, 226), { stroke, 'stroke-width': .65 }, group);
+          line(iso(uMin, 85, 226), iso(uMax, 85, 226), { stroke, 'stroke-width': .65 }, group);
+          line(iso(uMin, vMin, 80), iso(uMax, vMin, 80), { stroke, 'stroke-width': .65 }, group);
+          line(iso(uMin, vMin, eave), iso(uMin, vMax, 0), { stroke, 'stroke-width': .5, opacity: .4 }, group);
+        } else {
+          for (const u of [uMin, uMax]) line(iso(u, vMax, 0), iso(u, vMax, eave), { stroke, 'stroke-width': 1.35 }, group);
+          line(iso(uMin, vMax, 0), iso(uMax, vMax, 0), { stroke, 'stroke-width': 1.1 }, group);
+          line(iso(uMax, vMin, 0), iso(uMax, vMax, 0), { stroke, 'stroke-width': 1.05 }, group);
+          for (const u of [uMin, uMax]) for (const v of [vMin, vMax]) {
+            polygon(plane(u, v, 13, 13, 1), { fill: '#c9cfb9', stroke, 'stroke-width': .5 }, group);
+          }
+        }
+      }
+
+      function drawLeaf(x, y, size, angle, fill, parent, level, outlined = false) {
+        const group = svg('g', { transform: `translate(${x.toFixed(2)} ${y.toFixed(2)}) rotate(${(angle * 180 / Math.PI).toFixed(2)})`, class: 'foliage', style: `--delay:${220 + level * 100}ms` }, parent);
+        if (outlined) {
+          svg('circle', { cx: size * .45, cy: 0, r: size * .45, fill: '#faf9f2', stroke: fill, 'stroke-width': .9, 'stroke-dasharray': '2 3' }, group);
+          return;
+        }
+        svg('path', { d: `M0 0C${size * .32} ${-size * .68},${size * .88} ${-size * .58},${size} 0C${size * .78} ${size * .53},${size * .25} ${size * .38},0 0Z`, fill, 'fill-opacity': .88, stroke: fill, 'stroke-width': .45 }, group);
+        svg('path', { d: `M0 0Q${size * .5} ${-size * .07},${size * .9} 0`, fill: 'none', stroke: '#f4f1dc', opacity: .35, 'stroke-width': .5 }, group);
+      }
+
+      function drawPlant(plot, index) {
+        const root = iso(plot.u, plot.v, 15);
+        const random = randomGenerator(hash(state.seed) + index * 1987 + state.mode * 391);
+        const plant = svg('g', { 'data-plant': index });
+        const levels = state.depth + 1;
+        const startLength = plot.height * (.34 + state.depth * .008);
+        const bend = state.mode === 1 ? 17 : state.mode === 2 ? 4 : 2;
+
+        function branch(x, y, length, angle, remaining, level) {
+          const x2 = x + Math.cos(angle) * length;
+          const y2 = y + Math.sin(angle) * length;
+          const curve = (random() - .5) * bend;
+          const d = `M${x.toFixed(2)} ${y.toFixed(2)}C${(x + (x2 - x) * .32 + curve).toFixed(2)} ${(y + (y2 - y) * .34).toFixed(2)},${(x + (x2 - x) * .7 - curve).toFixed(2)} ${(y + (y2 - y) * .7).toFixed(2)},${x2.toFixed(2)} ${y2.toFixed(2)}`;
+          svg('path', { d, fill: 'none', stroke: plot.color, 'stroke-width': Math.max(.65, 4.1 - level * .73), 'stroke-linecap': 'round', class: 'branch', pathLength: 1, 'stroke-dasharray': 1, style: `--delay:${level * 100}ms` }, plant);
+
+          if (remaining <= 2) {
+            const leafSize = 10 + random() * (state.mode === 1 ? 14 : 10);
+            drawLeaf(x2, y2, leafSize, angle - .7, plot.color, plant, level, state.mode === 2 && random() > .4);
+            drawLeaf(x2, y2, leafSize * .86, angle + .9, plot.light, plant, level);
+            if (remaining === 0) {
+              if (index === 2 || (state.mode === 1 && random() > .56)) {
+                svg('circle', { cx: x2, cy: y2 - 3, r: 2.6 + random() * 2.2, fill: index === 2 ? '#b56c49' : '#c9a951', class: 'foliage', style: `--delay:${level * 100 + 300}ms` }, plant);
+              }
+              return;
+            }
+          }
+          if (remaining <= 0) return;
+          const spread = state.mode === 0 ? .48 : state.mode === 1 ? .64 : .8;
+          const jitter = state.mode === 0 ? .12 : .43;
+          const nextLength = length * (.65 + random() * .08);
+          branch(x2, y2, nextLength, angle - spread + (random() - .5) * jitter, remaining - 1, level + 1);
+          if (!(state.mode === 2 && remaining < 3 && random() > .7)) {
+            branch(x2, y2, nextLength * (.91 + random() * .12), angle + spread + (random() - .5) * jitter, remaining - 1, level + 1);
+          }
+          if (state.mode === 1 && remaining === 3 && random() > .55) {
+            branch(x2, y2, nextLength * .77, angle + (random() - .5) * .3, remaining - 1, level + 1);
+          }
+        }
+
+        branch(root.x, root.y, startLength, -Math.PI / 2 + (random() - .5) * .1, levels, 0);
+        for (let i = 0; i < 5; i++) {
+          const grass = iso(plot.u + (random() - .5) * plot.w * .6, plot.v + (random() - .5) * plot.d * .6, 15);
+          svg('path', { d: `M${grass.x} ${grass.y}q-6-12-5-17m5 17q3-15 8-16`, fill: 'none', stroke: plot.color, 'stroke-width': .8, opacity: .55 }, plant);
+        }
+        const tag = iso(plot.u + plot.w * .3, plot.v + plot.d * .37, 15);
+        line({ x: tag.x, y: tag.y }, { x: tag.x, y: tag.y - 26 }, { stroke: '#6c785d', 'stroke-width': 1 });
+        svg('rect', { x: tag.x - 20, y: tag.y - 39, width: 40, height: 16, rx: 1, fill: '#f8f5e8', stroke: '#a1ab91', 'stroke-width': .8 });
+        text(`0${index + 1}`, tag.x, tag.y - 28, { 'font-size': 8, 'text-anchor': 'middle', fill: '#526044' });
+      }
+
+      function drawDesk() {
+        const center = { u: -158, v: 115 };
+        for (const du of [-30, 30]) for (const dv of [-20, 20]) {
+          line(iso(center.u + du, center.v + dv, 0), iso(center.u + du, center.v + dv, 37), { stroke: '#9aa58a', 'stroke-width': 3 });
+        }
+        polygon(plane(center.u, center.v, 76, 55, 37), { fill: '#e0d9bb', stroke: '#a8a487', 'stroke-width': 1 });
+        polygon(plane(center.u - 6, center.v - 2, 37, 31, 38), { fill: '#fcfaed', stroke: '#c2c1ac', 'stroke-width': .6 });
+        for (let i = 0; i < 4; i++) line(iso(center.u - 18, center.v - 12 + i * 5, 38.2), iso(center.u + 6, center.v - 12 + i * 5, 38.2), { stroke: '#a9b295', 'stroke-width': .55 });
+        line(iso(center.u + 18, center.v - 14, 39), iso(center.u + 18, center.v + 12, 39), { stroke: '#a86443', 'stroke-width': 2 });
+        const pot = iso(center.u - 25, center.v - 12, 38);
+        svg('path', { d: `M${pot.x - 5} ${pot.y - 8}h10l-2 10h-6Z`, fill: '#b7825d', stroke: '#9d6a46', 'stroke-width': .5 });
+        svg('path', { d: `M${pot.x} ${pot.y - 7}v-15m0 9q-10-8-9-12m9 8q7-11 10-11`, fill: 'none', stroke: '#748461', 'stroke-width': 1.2 });
+      }
+
+      function drawAnnotations() {
+        const sun = svg('g', { transform: 'translate(865 78)' });
+        svg('circle', { cx: 0, cy: 0, r: 24, fill: '#e7d6a1', opacity: .58 }, sun);
+        svg('circle', { cx: 0, cy: 0, r: 34, fill: 'none', stroke: '#b8b999', 'stroke-width': .8, 'stroke-dasharray': '1 6' }, sun);
+        for (let i = 0; i < 8; i++) {
+          const angle = i * Math.PI / 4;
+          line({ x: Math.cos(angle) * 41, y: Math.sin(angle) * 41 }, { x: Math.cos(angle) * 47, y: Math.sin(angle) * 47 }, { stroke: '#a6ad8b', 'stroke-width': .8 }, sun);
+        }
+        text('ROOM FOR', 865, 145, { 'font-size': 8, 'text-anchor': 'middle', 'letter-spacing': 1.5 });
+        text('THE UNEXPECTED', 865, 158, { 'font-size': 8, 'text-anchor': 'middle', 'letter-spacing': 1.1 });
+        text('AN IDEA, TAKING ROOT.', 70, 92, { 'font-size': 8, 'letter-spacing': 1.8 });
+        line({ x: 70, y: 106 }, { x: 124, y: 106 }, { stroke: '#9aa687', 'stroke-width': .8 });
+        const x = 784;
+        const y = 623;
+        line({ x, y }, { x: x + 142, y }, { stroke: '#8b997a', 'stroke-width': 1 });
+        for (let i = 0; i <= 4; i++) line({ x: x + i * 35.5, y: y - 4 }, { x: x + i * 35.5, y: y + 4 }, { stroke: '#8b997a', 'stroke-width': .7 });
+        text('ONE QUESTION / MANY WAYS', x, y + 20, { 'font-size': 8, 'letter-spacing': .8 });
+        const leaf = svg('g', { opacity: .75 });
+        drawLeaf(777, 531, 13, -1.7, '#9ea77f', leaf, 0);
+        drawLeaf(746, 551, 11, -.5, '#c4a965', leaf, 0);
+      }
+
+      function renderGarden(animate = false) {
+        window.clearTimeout(growthTimer);
+        art.classList.remove('growing');
+        scene.replaceChildren();
+        drawGround();
+        drawGlasshouse();
+        plots.forEach((plot, index) => { bed(plot); drawPlant(plot, index); });
+        drawDesk();
+        drawGlasshouse(true);
+        drawAnnotations();
+        $('art-description').textContent = `以“${state.seed}”为种子的等距温室。四个种植区按“${modeNames[state.mode]}”生长，上下文深度为 ${state.depth}，枝叶随设置而变化。`;
+        if (animate && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          art.classList.add('growing');
+          $('garden-state').textContent = '想法正在生长';
+          growthTimer = window.setTimeout(() => { art.classList.remove('growing'); $('garden-state').textContent = '适宜生长'; }, 1800);
+        } else $('garden-state').textContent = '适宜生长';
+      }
+
+      function updateControls() {
+        document.querySelectorAll('[data-mode]').forEach((button) => button.setAttribute('aria-pressed', String(Number(button.dataset.mode) === state.mode)));
+        document.querySelectorAll('[data-plot]').forEach((button) => button.setAttribute('aria-pressed', String(Number(button.dataset.plot) === state.plot)));
+        $('mode-description').textContent = modeDescriptions[state.mode];
+        $('depth').value = String(state.depth);
+        $('depth-value').value = `${state.depth} / 5`;
+        $('depth').setAttribute('aria-valuetext', `${state.depth} 层上下文`);
+        $('depth-description').textContent = depthDescriptions[state.depth - 1];
+        $('specimen').textContent = `PLOT ${String(state.specimen).padStart(3, '0')} / 想法的温室`;
+        $('current-seed').textContent = `“${state.seed}”`;
+        $('note-number').textContent = String(state.plot + 1).padStart(2, '0');
+        $('note-title').textContent = notes[state.plot].title;
+        $('note-copy').textContent = notes[state.plot].copy;
+      }
+
+      function plant(value) {
+        const seed = value.trim();
+        if (!seed) {
+          $('seed-input').setAttribute('aria-invalid', 'true');
+          $('form-status').classList.add('error');
+          $('form-status').textContent = '先写下一句话，再把它种进花园。';
+          $('seed-input').focus();
+          return;
+        }
+        $('seed-input').removeAttribute('aria-invalid');
+        $('form-status').classList.remove('error');
+        state.seed = seed.slice(0, 40);
+        state.specimen += 1;
+        updateControls();
+        renderGarden(true);
+        $('form-status').textContent = `第 ${state.specimen} 座花园已种下。选择图中的标记，读一则园丁笔记。`;
+      }
+
+      $('garden-form').addEventListener('submit', (event) => { event.preventDefault(); plant($('seed-input').value); });
+      $('seed-input').addEventListener('input', () => {
+        if ($('seed-input').hasAttribute('aria-invalid')) {
+          $('seed-input').removeAttribute('aria-invalid');
+          $('form-status').classList.remove('error');
+          $('form-status').textContent = '准备好后，选择“种下这个想法”。';
+        }
+      });
+      document.querySelectorAll('[data-seed]').forEach((button) => button.addEventListener('click', () => { $('seed-input').value = button.dataset.seed; plant(button.dataset.seed); }));
+      document.querySelectorAll('[data-mode]').forEach((button) => button.addEventListener('click', () => {
+        state.mode = Number(button.dataset.mode);
+        updateControls();
+        renderGarden();
+      }));
+      document.querySelectorAll('[data-plot]').forEach((button) => button.addEventListener('click', () => {
+        state.plot = Number(button.dataset.plot);
+        updateControls();
+        renderGarden();
+      }));
+      $('depth').addEventListener('input', () => {
+        state.depth = Math.max(1, Math.min(5, Number($('depth').value)));
+        $('depth-value').value = `${state.depth} / 5`;
+        $('depth').setAttribute('aria-valuetext', `${state.depth} 层上下文`);
+        $('depth-description').textContent = depthDescriptions[state.depth - 1];
+        if (!depthFrame) depthFrame = window.requestAnimationFrame(() => { depthFrame = 0; renderGarden(); });
+      });
+      $('reset-garden').addEventListener('click', () => {
+        state.seed = initialSeed;
+        state.mode = 0;
+        state.depth = 3;
+        state.specimen = 1;
+        state.plot = 0;
+        $('seed-input').value = initialSeed;
+        $('seed-input').removeAttribute('aria-invalid');
+        $('form-status').classList.remove('error');
+        $('form-status').textContent = '已回到最初的种子、生长方式和上下文深度。';
+        updateControls();
+        renderGarden();
+      });
+
+      $('save-garden').addEventListener('click', () => {
+        const postcard = art.cloneNode(true);
+        postcard.removeAttribute('id');
+        postcard.removeAttribute('class');
+        postcard.setAttribute('viewBox', '0 0 1000 840');
+        postcard.setAttribute('width', '1600');
+        postcard.setAttribute('height', '1344');
+        const background = svg('rect', { width: 1000, height: 840, fill: '#faf9f2' }, null);
+        postcard.insertBefore(background, postcard.firstChild);
+        line({ x: 70, y: 693 }, { x: 930, y: 693 }, { stroke: '#c8ccba', 'stroke-width': 1 }, postcard);
+        text('The possibility garden', 70, 734, { 'font-family': 'Georgia, serif', 'font-size': 28, fill: '#303c2c' }, postcard);
+        const characters = Array.from(state.seed);
+        const firstLine = characters.slice(0, 31).join('');
+        const secondLine = characters.slice(31).join('');
+        text(`“${firstLine}${secondLine ? '' : '”'}`, 70, 769, { 'font-family': 'sans-serif', 'font-size': 17 }, postcard);
+        if (secondLine) text(`${secondLine}”`, 70, 794, { 'font-family': 'sans-serif', 'font-size': 17 }, postcard);
+        text(`CODEX / STUDY 004 · ${modeNames[state.mode]} · ${state.depth} 层上下文`, 70, 824, { 'font-size': 10, 'letter-spacing': 1 }, postcard);
+        const source = '<?xml version="1.0" encoding="UTF-8"?>\n' + new XMLSerializer().serializeToString(postcard);
+        const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'the-possibility-garden.svg';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 30000);
+        $('export-status').textContent = '花园明信片已生成，正在下载 SVG 图片。';
+      });
+
+      updateControls();
+      renderGarden();
+    })();
+  </script>
+</body>
+</html>

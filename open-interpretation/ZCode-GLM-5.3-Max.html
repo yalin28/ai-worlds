@@ -110,7 +110,8 @@ const pointer = { x: -1e3, y: -1e3, active: false, trail: [] };
 
 /* ---------- 工具 ---------- */
 function polarPos(angle, rad) {
-  return { x: cx + Math.cos(angle) * rad * u, y: cy + Math.sin(angle) * rad * u * .92 };
+  const vy = H / W > 1.25 ? 1.16 : .92;
+  return { x: cx + Math.cos(angle) * rad * u, y: cy + Math.sin(angle) * rad * u * vy };
 }
 function rotated(x, y, rot) {
   const dx = x - cx, dy = y - cy, c = Math.cos(rot), s = Math.sin(rot);
@@ -226,13 +227,17 @@ function buildWorld() {
   for (const [a, b] of CROSS) addEdge(byLabel[a], byLabel[b], .10);
 }
 function layout() {
+  const compact = W < 720;
+  const familyRad = compact ? .38 : .30;
+  const memberArm = compact ? .16 : .085;
+  const fanBoost = compact ? 1.32 : 1;
   for (const n of nodes) {
     if (n.kind === 'center') n.base = { x: cx, y: cy };
     else if (n.kind === 'member') {
       const A = (-90 + 72 * n.fi) * Math.PI / 180;
-      const a = polarPos(A, .30);
-      n.base = { x: a.x + Math.cos(A + n.fan) * .085 * u, y: a.y + Math.sin(A + n.fan) * .085 * u };
-    } else n.base = polarPos(n.angle, n.rad);
+      const a = polarPos(A, familyRad);
+      n.base = { x: a.x + Math.cos(A + n.fan * fanBoost) * memberArm * u, y: a.y + Math.sin(A + n.fan * fanBoost) * memberArm * u };
+    } else n.base = polarPos(n.angle, compact && n.kind === 'ring' ? n.rad * 1.12 : n.rad);
   }
 }
 function homeOf(n, rot) {
@@ -534,7 +539,7 @@ function render(now) {
     const glowAmt = Math.max(n.att, n.flash, n.recall);
     let a = .42 + .58 * clamp(glowAmt, 0, 1);
     if (n.user) a *= .45 + .55 * Math.max(n.brightBase, n.recall);
-    const fs = n.fs * (1 + n.att * .12 + n.flash * .2);
+    const fs = n.fs * (1 + n.att * .12 + n.flash * .2) * (W < 720 ? .86 : 1);
     ctx.font = `${n.fs >= 15 ? '600 ' : '500 '}${fs}px ${FONT}`;
     const right = n.x < W - 110;
     ctx.textAlign = right ? 'left' : 'right';
@@ -543,7 +548,8 @@ function render(now) {
       ctx.shadowColor = `hsla(${n.hue},80%,70%,.8)`;
       ctx.shadowBlur = 8;
     }
-    ctx.fillText(n.label, right ? n.x + n.r + 9 : n.x - n.r - 9, n.y + 1);
+    const pad = W < 720 ? 7 : 9;
+    ctx.fillText(n.label, right ? n.x + n.r + pad : n.x - n.r - pad, n.y + 1);
     ctx.shadowBlur = 0;
   }
 }

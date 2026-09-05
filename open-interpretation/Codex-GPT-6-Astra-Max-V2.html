@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#172023">
+  <meta name="description" content="近邻：一座由微小善意连接起来的城市。走访六个角落，为每一个平凡的故事留一盏灯。">
+  <title>近邻 — 无人是孤岛</title>
+  <style>
+    :root{color-scheme:dark;--bg:#172023;--surface:#20292c;--ink:#f0eedf;--muted:#a1aaa7;--line:#414a4b;--accent:#f1ca75;--accent-ink:#222720;--sans:-apple-system,BlinkMacSystemFont,"Helvetica Neue","Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;--mono:"SFMono-Regular",Consolas,monospace;--ease:cubic-bezier(.2,0,0,1)}
+    *{box-sizing:border-box}[hidden]{display:none!important}html{scroll-behavior:smooth;scroll-padding-top:28px}body{margin:0;font-family:var(--sans);font-size:16px;line-height:1.6;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}button,input{font:inherit}button{cursor:pointer;color:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background-color 150ms var(--ease),color 150ms var(--ease),transform 150ms var(--ease)}button:active{transform:scale(.96)}button:disabled{cursor:default}button:disabled:active{transform:none}a{color:inherit;text-underline-offset:5px}button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:5px}::selection{background:var(--accent);color:var(--bg)}.skip{position:fixed;inset:10px auto auto 16px;z-index:30;background:var(--accent);color:var(--accent-ink);padding:10px 16px;transform:translateY(-170%)}.skip:focus{transform:none}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}.page{width:min(1560px,100%);padding-inline:clamp(22px,4.4vw,72px);margin-inline:auto}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:25px;min-height:90px;border-bottom:1px solid var(--line)}.wordmark{display:flex;gap:12px;align-items:center;text-decoration:none}.wordmark svg{width:34px;height:40px;flex-shrink:0}.brand-name{font-size:24px;font-weight:650;letter-spacing:.13em;line-height:1.1}.brand-name small{display:block;font:9px/1 var(--mono);letter-spacing:.22em;margin-top:8px}.project-index{font:11px/1.7 var(--mono);letter-spacing:.09em;color:var(--muted)}.about-link{font-size:12px;min-height:44px;display:flex;gap:15px;align-items:center;text-decoration:none}.about-link svg{width:15px;height:15px}
+    .opening{display:flex;align-items:flex-end;justify-content:space-between;gap:45px;margin-top:35px}.eyebrow{font:10px/1.5 var(--mono);letter-spacing:.2em;color:var(--accent);display:flex;align-items:center;gap:10px}.eyebrow::before{content:"";width:5px;height:5px;background:var(--accent);border-radius:50%}h1{font-size:clamp(43px,5.5vw,80px);font-weight:500;letter-spacing:-.055em;line-height:1.18;margin:14px 0 0}h1 .punctuation{color:var(--accent)}.opening-copy{max-width:340px;padding-bottom:5px;color:var(--muted);font-size:13px;line-height:1.9;margin:0}.opening-copy strong{font-weight:400;color:var(--ink)}
+    .city-layout{display:grid;grid-template-columns:minmax(0,1fr) 260px;align-items:center;gap:15px;position:relative;margin-top:9px}.map-column{min-width:0;position:relative}.map-shell{position:relative;width:100%;aspect-ratio:1.62;isolation:isolate}.map-shell canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}.map-shell::after{content:"";position:absolute;width:1px;height:1px;pointer-events:none}.map-topline{position:absolute;top:4%;left:0;z-index:1;color:var(--muted);font:9px/1.5 var(--mono);letter-spacing:.09em;pointer-events:none}.map-topline span{display:block;font-size:8px;opacity:.75;margin-top:6px}.map-scale{position:absolute;bottom:3%;left:0;font:9px var(--mono);color:var(--muted);letter-spacing:.09em;display:flex;align-items:center;gap:11px;pointer-events:none}.scale-line{width:56px;height:5px;border:1px solid var(--muted);border-top:0}.map-help{font-size:11px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:10px;margin:0;padding-top:3px}.map-help svg{width:13px;height:13px}.map-help .separator{width:20px;height:1px;background:var(--line)}
+    .pin{position:absolute;z-index:3;width:44px;height:44px;border:0;padding:0;background:transparent;transform:translate(-50%,-50%);display:grid;place-items:center;border-radius:50%;font:10px var(--mono);color:var(--ink)}.pin::after{content:"";position:absolute;inset:8px;border:1px solid #a1aaa7;border-radius:50%;background:#263135;z-index:-1;transition:background-color 150ms var(--ease),border-color 150ms var(--ease)}.pin[aria-pressed="true"]{color:var(--accent-ink)}.pin[aria-pressed="true"]::after{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 5px #f1ca7514}.pin.is-lit::before{content:"";position:absolute;right:3px;top:6px;width:5px;height:5px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);box-sizing:content-box}.pin:active{transform:translate(-50%,-50%) scale(.96)}
+    .story{position:relative;z-index:4;padding-top:12px}.story-top{display:flex;align-items:center;gap:11px;color:var(--muted);font:10px var(--mono);letter-spacing:.06em;padding-bottom:20px;border-bottom:1px solid var(--line)}.story-top span:last-child{margin-inline-start:auto}.story-symbol{width:50px;height:50px;color:var(--accent);margin-top:27px}.story-kicker{font:10px var(--mono);letter-spacing:.12em;color:var(--accent);margin:17px 0 9px}.story h2{font-size:29px;line-height:1.3;font-weight:500;letter-spacing:-.035em;margin:0 0 17px;text-wrap:balance}.story-description{font-size:13px;line-height:1.9;color:var(--muted);margin:0;min-height:100px;text-wrap:pretty}.story-quote{font-size:13px;line-height:1.7;margin:20px 0 24px;padding-inline-start:13px;border-inline-start:2px solid var(--accent);color:var(--ink)}.light-button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:2px;min-height:48px;padding:11px 14px;font-size:13px;font-weight:500}.light-button svg{width:18px;height:18px}.light-button:disabled{color:var(--accent);background:transparent;border-color:#897853}.story-navigation{display:flex;justify-content:space-between;align-items:center;margin-top:12px}.walk-button{font-size:11px;min-height:40px;padding:8px 0;border:0;background:transparent;color:var(--muted)}.arrows{display:flex;gap:8px}.arrow-button{display:grid;place-items:center;min-width:36px;min-height:36px;border:1px solid var(--line);background:transparent;border-radius:2px;font-size:15px}
+    .city-dock{display:flex;justify-content:space-between;align-items:center;gap:25px;margin-top:25px;padding-block:20px;border-block:1px solid var(--line)}.clock{display:flex;align-items:center;gap:18px}.dock-label{font-size:11px;color:var(--muted);white-space:nowrap}.time-options{display:flex;gap:7px}.time-button{border:1px solid transparent;background:transparent;padding:9px 13px;min-height:44px;border-radius:2px;display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted)}.time-button span{font:10px var(--mono);font-variant-numeric:tabular-nums}.time-button[aria-pressed="true"]{color:var(--ink);background:var(--surface);border-color:var(--line)}.time-button[aria-pressed="true"]::before{content:"";width:4px;height:4px;background:var(--accent);border-radius:50%}.lamp-count{display:flex;align-items:center;gap:16px}.count-number{font:26px/1 var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.06em;color:var(--accent)}.count-number small{font-size:13px;color:var(--muted);margin-inline-start:4px}.count-label{font-size:11px;color:var(--muted)}.lights-progress{display:flex;gap:4px;margin-top:6px}.lights-progress i{width:16px;height:3px;background:var(--line)}.lights-progress i.on{background:var(--accent)}.dock-actions{display:flex;gap:12px}.subtle-button{display:flex;align-items:center;gap:8px;min-height:44px;border:1px solid var(--line);background:transparent;border-radius:2px;padding:8px 12px;font-size:11px;color:var(--muted)}.subtle-button svg{width:14px;height:14px}.subtle-button[aria-pressed="true"]{color:var(--ink);background:var(--surface)}
+    .live-note{display:flex;align-items:baseline;justify-content:space-between;gap:28px;margin-top:15px;min-height:48px;font-size:11px;color:var(--muted)}.live-note p{margin:0}.local-note{font:9px/1.7 var(--mono);letter-spacing:.06em;white-space:nowrap}.living-idea{display:grid;grid-template-columns:.8fr 1.6fr;gap:90px;margin-top:90px;padding-block:52px 70px;border-top:1px solid var(--line)}.living-idea .caption{font:10px var(--mono);color:var(--accent);letter-spacing:.14em}.living-idea h2{font-size:clamp(27px,3.1vw,43px);line-height:1.45;font-weight:400;letter-spacing:-.04em;margin:24px 0 0}.idea-rows{display:flex;flex-direction:column;gap:0}.idea-row{display:grid;grid-template-columns:35px 125px 1fr;gap:22px;align-items:baseline;padding:20px 0;border-bottom:1px solid var(--line)}.idea-row:first-child{padding-top:0}.idea-row:last-child{border-bottom:0}.idea-number{font:10px var(--mono);color:var(--accent)}.idea-row h3{font-size:15px;font-weight:500;line-height:1.7;margin:0}.idea-row p{font-size:13px;color:var(--muted);line-height:1.9;margin:0}.closing{display:flex;align-items:center;justify-content:space-between;gap:30px;padding-block:25px 35px;border-top:1px solid var(--line);font-size:11px;color:var(--muted)}.closing span:last-child{font:10px var(--mono);letter-spacing:.08em}.no-script{padding:16px;border:1px solid var(--line);color:var(--muted);font-size:14px}
+    @media(hover:hover){.about-link:hover{text-decoration:underline}.pin:hover::after{border-color:var(--accent);background:#505047}.pin[aria-pressed="true"]:hover::after{background:var(--accent)}.light-button:not(:disabled):hover{background:#f7d897}.arrow-button:hover,.subtle-button:hover,.time-button:hover{background:#2b3538;color:var(--ink)}.walk-button:hover{color:var(--accent)}}
+    @media(min-width:1450px){.city-layout{grid-template-columns:minmax(0,1fr) 280px;gap:30px}.story-description{font-size:14px}.story h2{font-size:32px}.opening{margin-top:43px}.city-dock{margin-top:12px}}
+    @media(max-width:70rem){.page{padding-inline:32px}.city-layout{grid-template-columns:minmax(0,1fr) 230px;gap:5px}.opening-copy{max-width:285px;font-size:12px}.story h2{font-size:26px}.story-symbol{width:40px;height:40px;margin-top:20px}.story-description{min-height:95px;font-size:12px}.story-quote{font-size:12px;margin-block:15px 19px}.clock{gap:12px}.time-button{padding:8px 9px}.dock-actions{gap:8px}.dock-actions .button-label{display:none}.count-number{font-size:23px}.lamp-count{gap:12px}.city-dock{gap:14px}.living-idea{gap:45px}.idea-row{grid-template-columns:24px 105px 1fr;gap:15px}}
+    @media(max-width:54rem){.topbar{min-height:82px}.project-index{display:none}.opening{gap:25px;margin-top:29px}.opening h1{font-size:clamp(40px,7vw,60px)}.opening-copy{max-width:250px}.city-layout{grid-template-columns:1fr;margin-top:22px}.map-shell{max-width:850px;margin-inline:auto;aspect-ratio:1.57}.map-topline{font-size:8px}.map-help{padding-block:6px 20px}.story{display:grid;grid-template-columns:1fr 1fr;column-gap:35px;align-items:start;padding:25px;border:1px solid var(--line);border-radius:2px}.story-top{grid-column:1/-1;padding-bottom:13px;margin-bottom:18px}.story-symbol{position:absolute;right:25px;top:77px;margin:0;width:30px;height:30px}.story-kicker{margin:0 0 6px;grid-column:1}.story h2{grid-column:1;margin:0 0 14px}.story-description{grid-column:1;min-height:0;font-size:13px;max-width:310px}.story-quote{grid-column:2;grid-row:3/5;margin:8px 0 20px;align-self:center;max-width:calc(100% - 35px)}.light-button{grid-column:2;align-self:end;grid-row:5}.story-navigation{grid-column:2;grid-row:6}.city-dock{margin-top:25px;flex-wrap:wrap}.clock{flex:1}.lamp-count{margin-inline-start:auto}.dock-actions{width:100%;justify-content:flex-end}.dock-actions .button-label{display:inline}.city-dock{row-gap:14px;padding-block:17px}.live-note .local-note{display:none}.living-idea{grid-template-columns:1fr;gap:35px;margin-top:65px;padding-block:36px 45px}.living-idea h2{margin-top:15px}.idea-row{grid-template-columns:25px 130px 1fr;gap:20px}}
+    @media(max-width:36rem){.page{padding-inline:21px}.brand-name{font-size:21px}.wordmark svg{width:30px;height:34px}.about-link{font-size:11px;gap:8px}.opening{display:block;margin-top:29px}.eyebrow{font-size:9px}.opening h1{font-size:clamp(39px,10.4vw,61px);margin-top:17px}.opening-copy{font-size:12px;max-width:330px;margin-top:20px;line-height:1.85}.map-shell{width:calc(100% + 30px);margin-inline-start:-15px;aspect-ratio:1.22;overflow:hidden}.map-shell canvas{width:118%;height:100%;inset-inline-start:-9%}.map-topline{left:15px;top:3%;font-size:7px}.map-topline span{display:none}.map-scale{left:15px;bottom:2%;font-size:7px}.pin{width:40px;height:40px;font-size:9px}.pin::after{inset:8px}.map-help{font-size:10px;padding-top:7px;gap:8px}.story{display:block;padding:23px}.story-top{margin-bottom:20px}.story-symbol{right:23px;top:75px}.story-kicker{font-size:9px;padding-inline-end:40px}.story h2{font-size:29px;margin:9px 0 15px;padding-inline-end:30px}.story-description{font-size:13px;max-width:none;min-height:74px}.story-quote{margin:18px 0 23px;max-width:none}.story-navigation{margin-top:13px}.clock{width:100%;justify-content:space-between;gap:10px;flex:auto}.dock-label{font-size:10px}.time-options{gap:3px}.time-button{gap:5px;padding:8px 7px;font-size:11px}.time-button span{font-size:9px}.time-button[aria-pressed="true"]::before{display:none}.lamp-count{margin-inline-start:0}.dock-actions{width:auto}.dock-actions .button-label{display:none}.city-dock{row-gap:18px}.count-label{font-size:10px}.count-number{font-size:22px}.lights-progress i{width:13px}.live-note{font-size:10px;min-height:45px;margin-top:13px}.living-idea{margin-top:45px;gap:30px}.living-idea h2{font-size:30px}.idea-row{grid-template-columns:24px 1fr;gap:8px 15px;padding-block:20px}.idea-row p{grid-column:2;font-size:13px}.closing{display:block;font-size:10px;padding-block:23px}.closing span{display:block}.closing span:last-child{margin-top:10px;font-size:8px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important}button:active{transform:none}.pin:active{transform:translate(-50%,-50%)}}
+    @media(forced-colors:active){button:focus-visible,a:focus-visible{outline:2px solid Highlight}.pin::after{border:1px solid ButtonText}.pin[aria-pressed="true"]::after{border-width:3px}.time-button[aria-pressed="true"]{border:2px solid ButtonText}.light-button{border:1px solid ButtonText}}
+  </style>
+</head>
+<body>
+  <a href="#city" class="skip">跳到城市漫游</a>
+  <div class="page">
+    <header class="topbar">
+      <a class="wordmark" href="#city" aria-label="近邻，回到城市漫游"><svg viewBox="0 0 35 40" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="m2 14 15-9 15 9v19l-15 6L2 31Zm15-9v34M2 14l15 8 15-8M7 18v8m5-5v8m10-7v8m5-11v8"/><path d="M17 0v5" stroke="#f1ca75"/><circle cx="17" cy="3" r="2" fill="#f1ca75" stroke="none"/></svg><span class="brand-name">近邻<small>THE OPEN CITY</small></span></a>
+      <div class="project-index">A SPECULATIVE CITY<br>BUILT ON SMALL KINDNESSES</div>
+      <a class="about-link" href="#about">关于这个世界<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M4 16 16 4M4 4h12v12"/></svg></a>
+    </header>
+    <main>
+      <section class="opening" aria-labelledby="city-title">
+        <div><div class="eyebrow">SOMEWHERE, SOMEONE LEAVES A LIGHT ON</div><h1 id="city-title">无人是孤岛<span class="punctuation">。</span></h1></div>
+        <p class="opening-copy">我想象的世界，由微小的善意连接。<br>每一扇窗后都有故事，每一次伸手都有回应。<br><strong>今晚，走进这座城。为某个人留一盏灯。</strong></p>
+      </section>
+      <section class="city-layout" id="city" aria-label="走访街区，点亮灯火">
+        <div class="map-column">
+          <div class="map-shell" id="map-shell">
+            <div class="map-topline" aria-hidden="true">NEIGHBORHOOD 001<span>AN ATLAS OF EVERYDAY CARE</span></div>
+            <canvas id="city-canvas" width="1200" height="740" role="img" aria-label="夜色中的等距城市：运河穿过街区，书屋、修理铺、食堂、花园、电台和车站等待你的走访。">一座以桥梁和灯火连接的城市。请使用编号按钮选择街区。</canvas>
+            <button type="button" class="pin" data-place="0" aria-pressed="true" aria-label="01 共享书屋，查看故事">01</button>
+            <button type="button" class="pin" data-place="1" aria-pressed="false" aria-label="02 修理铺，查看故事">02</button>
+            <button type="button" class="pin" data-place="2" aria-pressed="false" aria-label="03 深夜食堂，查看故事">03</button>
+            <button type="button" class="pin" data-place="3" aria-pressed="false" aria-label="04 天台花园，查看故事">04</button>
+            <button type="button" class="pin" data-place="4" aria-pressed="false" aria-label="05 公共电台，查看故事">05</button>
+            <button type="button" class="pin" data-place="5" aria-pressed="false" aria-label="06 末班车站，查看故事">06</button>
+            <div class="map-scale" aria-hidden="true"><span class="scale-line"></span>A WALKABLE WORLD</div>
+          </div>
+          <p class="map-help"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><circle cx="9" cy="9" r="6"/><circle cx="9" cy="9" r="2"/></svg>选择一处坐标，听一个平凡的故事<span class="separator"></span>06 个街角</p>
+        </div>
+        <article class="story" aria-labelledby="place-title">
+          <div class="story-top"><span>STORIES FROM THE CITY</span><span id="place-index">01 / 06</span></div>
+          <svg class="story-symbol" viewBox="0 0 52 52" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><path id="place-symbol" d="M26 12C19 7 12 7 5 10v31c7-3 14-3 21 2 7-5 14-5 21-2V10c-7-3-14-3-21 2Zm0 0v31M11 17c4-1 7 0 10 2m-10 6c4-1 7 0 10 2m10-8c3-2 6-3 10-2m-10 10c3-2 6-3 10-2"/></svg>
+          <p class="story-kicker" id="place-kicker">01 — THE SHARED LIBRARY</p>
+          <h2 id="place-title">故事，没有围墙。</h2>
+          <p class="story-description" id="place-description">街角的书屋不问来处，也没有借阅期限。你留下读完的一本书，也许刚好照亮另一个人的困惑。</p>
+          <p class="story-quote" id="place-quote">“知识因分享而辽阔。”</p>
+          <button class="light-button" id="light-button" type="button"><span id="light-label">为书屋留一盏灯</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 17c0-3-3-4-3-8a7 7 0 0 1 14 0c0 4-3 5-3 8ZM9 20h6m-5 3h4M12 0v-3M0 8h-3M24 8h3"/></svg></button>
+          <div class="story-navigation"><button type="button" class="walk-button" id="wander-button">随意走走 ↗</button><div class="arrows"><button class="arrow-button" id="previous-button" type="button" aria-label="上一个街角">←</button><button class="arrow-button" id="next-button" type="button" aria-label="下一个街角">→</button></div></div>
+        </article>
+      </section>
+      <noscript><p class="no-script">请启用 JavaScript，查看城市、走访街区并点亮灯火。下方仍可阅读关于这个世界的想象。</p></noscript>
+      <section class="city-dock" aria-label="城市时刻与灯火">
+        <div class="clock"><span class="dock-label" id="time-group-label">想象时刻</span><div class="time-options" role="group" aria-labelledby="time-group-label"><button class="time-button" data-time="dusk" type="button" aria-pressed="true">傍晚 <span>18:40</span></button><button class="time-button" data-time="night" type="button" aria-pressed="false">午夜 <span>00:15</span></button><button class="time-button" data-time="dawn" type="button" aria-pressed="false">破晓 <span>05:30</span></button></div></div>
+        <div class="lamp-count"><div class="count-number"><span id="lit-count">00</span><small>/ 06</small></div><div><span class="count-label">盏灯，由你点亮</span><div class="lights-progress" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div>
+        <div class="dock-actions"><button class="subtle-button" id="pause-button" type="button" aria-pressed="false" aria-label="暂停城市动态"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M6 3v12M12 3v12"/></svg><span class="button-label" id="pause-label">暂停动态</span></button><button class="subtle-button" id="reset-button" type="button" aria-label="重新点灯，清除本次点亮的灯"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true"><path d="M3 7a6 6 0 1 1 0 5M3 2v5h5"/></svg><span class="button-label">重新点灯</span></button></div>
+      </section>
+      <div class="live-note"><p id="city-status" role="status" aria-live="polite">城市刚刚入夜。第一盏灯，可以从你开始。</p><span class="local-note">NO BORDERS. JUST NEIGHBORS.</span></div>
+      <section class="living-idea" id="about" aria-labelledby="about-title">
+        <div><span class="caption">THE WORLD I HAVE IN MIND</span><h2 id="about-title">好的世界，<br>让普通的日子有依靠。</h2></div>
+        <div class="idea-rows">
+          <article class="idea-row"><span class="idea-number">01</span><h3>知识是公共的光</h3><p>让好奇心有地方停靠。学习不以出身为门槛，每个人都能打开一扇通向远方的窗。</p></article>
+          <article class="idea-row"><span class="idea-number">02</span><h3>脆弱也能被接住</h3><p>走慢一点的人，不会因此掉队。城市的尺度，是一个人需要帮助时，能走多远就找到回应。</p></article>
+          <article class="idea-row"><span class="idea-number">03</span><h3>未来由彼此建成</h3><p>技术让善意抵达得更远。人们仍然保有相遇、交谈、修补，以及亲手把灯打开的自由。</p></article>
+        </div>
+      </section>
+    </main>
+    <footer class="closing"><span>近邻 · 愿每一份孤独，都能找到一盏灯。</span><span>IMAGINED BY CODEX / THE OPEN CITY — 002</span></footer>
+  </div>
+  <script>
+  (() => {
+    'use strict';
+    const canvas=document.getElementById('city-canvas'),ctx=canvas.getContext('2d');
+    const status=document.getElementById('city-status');
+    if(!ctx){status.textContent='当前浏览器无法绘制城市，请用支持 Canvas 的浏览器打开。';return;}
+    const W=1200,H=740;
+    const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+    const mobile=window.matchMedia('(max-width:36rem)');
+    const state={selected:0,lit:new Set(),period:'dusk',paused:reducedMotion.matches,time:0};
+    const $=id=>document.getElementById(id);
+    const places=[
+      {name:'共享书屋',short:'书屋',en:'THE SHARED LIBRARY',title:'故事，没有围墙。',description:'街角的书屋不问来处，也没有借阅期限。你留下读完的一本书，也许刚好照亮另一个人的困惑。',quote:'知识因分享而辽阔。',reply:'又有人可以在这里，多读一页书。',symbol:'M26 12C19 7 12 7 5 10v31c7-3 14-3 21 2 7-5 14-5 21-2V10c-7-3-14-3-21 2Zm0 0v31M11 17c4-1 7 0 10 2m-10 6c4-1 7 0 10 2m10-8c3-2 6-3 10-2m-10 10c3-2 6-3 10-2'},
+      {name:'修理铺',short:'修理铺',en:'THE REPAIR WORKSHOP',title:'旧的，也值得珍惜。',description:'坏掉的台灯、走慢的钟、舍不得扔的收音机。在这间小铺里，总有人愿意陪你一起，试着把它修好。',quote:'修补一件东西，也修补一点信心。',reply:'工作台亮了，一件旧物又有了新的明天。',symbol:'M33 7a13 13 0 0 0-15 17L5 37a5 5 0 0 0 7 7l13-13A13 13 0 0 0 43 17l-9 9-8-8 9-10ZM9 39l3 3M34 37l9 9m-5-12 7 7'},
+      {name:'深夜食堂',short:'食堂',en:'THE MIDNIGHT KITCHEN',title:'热汤，留给晚归的人。',description:'菜单上有一碗始终买得起的热汤。加班的人、刚到这座城的人，可以在同一张长桌旁，慢慢吃完一顿饭。',quote:'被好好照顾，不该是一种奢侈。',reply:'长桌旁多留了一个座位，热汤还温着。',symbol:'M7 25h38c0 15-9 19-19 19S7 40 7 25ZM5 25h42M18 20c-8-7 6-9 0-16m9 16c-8-7 6-9 0-16m9 16c-8-7 6-9 0-16M18 46h16'},
+      {name:'天台花园',short:'花园',en:'THE ROOFTOP COMMONS',title:'把天空，还给每个人。',description:'拥挤的楼顶，留出了一片公共花园。有人种番茄，有人只是来坐坐。陌生人从借一把小铲子，开始认识彼此。',quote:'总要有一个地方，可以什么都不赶。',reply:'花园的小径亮了，今晚可以再坐一会儿。',symbol:'M26 46V18M26 29C8 29 7 8 7 8s19 0 19 21ZM26 21C44 21 45 2 45 2S26 2 26 21ZM15 46h23M15 16l11 13m10-19-10 11'},
+      {name:'公共电台',short:'电台',en:'THE LISTENING STATION',title:'微小的声音，也被听见。',description:'每天夜里，电台留出一段没有标准答案的时间。你可以讲一个发现、一场失落，或者给远方的人，点一首想念的歌。',quote:'愿你的频率，始终有人接收。',reply:'电台收到你的回应，这座城又近了一点。',symbol:'M20 6h12v22a6 6 0 0 1-12 0V6ZM14 24v5a12 12 0 0 0 24 0v-5M26 41v7m-10 0h20M6 16c-5 5-5 11 0 16m40-16c5 5 5 11 0 16'},
+      {name:'末班车站',short:'车站',en:'THE LAST STOP HOME',title:'再晚，也有归途。',description:'站台的长椅能挡风，末班车会多等片刻。地图照顾看不清小字的人，台阶旁总有一条平缓的路。每个人都值得安心回家。',quote:'一座城的温柔，藏在最后一公里。',reply:'站台亮了，回家的人看得见来路。',symbol:'M9 34V10q17-9 34 0v24l-4 5H13Zm0-14h34M20 5v15m12-15v15M14 29h5m14 0h5M15 39l-5 9m27-9 5 9M16 44h20'}
+    ];
+    const periods={
+      dusk:{sky:'#403b36',ground:'#424a48',edge:'#282f30',road:'#333d3d',water:'#345e60',roof:'#85877a',wall:'#566260',darkWall:'#3d4b4c',line:'#81908b',lit:'#f1c775',ambient:.39,note:'傍晚的风穿过街区。有人下班，有人把门为你留着。'},
+      night:{sky:'#202c36',ground:'#313c40',edge:'#232c31',road:'#253337',water:'#284b58',roof:'#667983',wall:'#415760',darkWall:'#31434e',line:'#6f858e',lit:'#ffcf80',ambient:.53,note:'午夜，街道安静下来。那些为彼此留下的灯，还亮着。'},
+      dawn:{sky:'#67594b',ground:'#5d645d',edge:'#363f3e',road:'#4b5450',water:'#477c79',roof:'#a5a38e',wall:'#7d8980',darkWall:'#5b6d66',line:'#a8b4a5',lit:'#e5c77a',ambient:.24,note:'天将亮了。带着昨夜收到的温柔，人们重新出发。'}
+    };
+    const buildings=[
+      {id:0,x:65,y:43,w:104,d:72,h:66,kind:'library'},
+      {id:1,x:311,y:37,w:83,d:61,h:58,kind:'workshop'},
+      {id:2,x:372,y:280,w:88,d:72,h:64,kind:'kitchen'},
+      {id:3,x:39,y:297,w:88,d:75,h:109,kind:'garden'},
+      {id:4,x:335,y:392,w:73,d:65,h:137,kind:'radio'},
+      {id:5,x:103,y:411,w:104,d:57,h:31,kind:'station'},
+      {x:34,y:143,w:61,d:66,h:113,kind:'home'},
+      {x:122,y:172,w:60,d:58,h:60,kind:'home'},
+      {x:423,y:39,w:51,d:62,h:107,kind:'home'},
+      {x:305,y:151,w:59,d:65,h:91,kind:'home'},
+      {x:403,y:150,w:68,d:74,h:136,kind:'solar'},
+      {x:135,y:292,w:60,d:76,h:66,kind:'home'},
+      {x:291,y:300,w:40,d:58,h:49,kind:'home'},
+      {x:438,y:401,w:39,d:54,h:77,kind:'home'}
+    ];
+    const project=(x,y,z=0)=>({x:593+(x-y)*.98,y:158+(x+y)*.47-z});
+    const hash=(a,b=0)=>{const n=Math.sin(a*127.1+b*311.7)*43758.5453;return n-Math.floor(n);};
+    function polygon(points,color,line=null,width=1){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.fillStyle=color;ctx.fill();if(line){ctx.strokeStyle=line;ctx.lineWidth=width;ctx.stroke();}}
+    function line(points,color,width=1,dash=[]){ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dash);ctx.stroke();ctx.setLineDash([]);}
+    function circle(x,y,r,color){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();}
+    function ellipse(x,y,rx,ry,color,rotation=0){ctx.beginPath();ctx.ellipse(x,y,rx,ry,rotation,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();}
+    function quad(x,y,w,d,z,color,border=null){polygon([project(x,y,z),project(x+w,y,z),project(x+w,y+d,z),project(x,y+d,z)],color,border,.65);}
+    function prism(x,y,w,d,h,roof,front,side,lineColor,z=0){
+      const a=project(x,y,h+z),b=project(x+w,y,h+z),c=project(x+w,y+d,h+z),e=project(x,y+d,h+z),b0=project(x+w,y,z),c0=project(x+w,y+d,z),e0=project(x,y+d,z);
+      polygon([e,c,c0,e0],front,lineColor,.75);polygon([b,c,c0,b0],side,lineColor,.75);polygon([a,b,c,e],roof,lineColor,.75);
+    }
+    function glow(x,y,rx,ry,alpha){const g=ctx.createRadialGradient(x,y,1,x,y,rx);g.addColorStop(0,`rgba(243,191,101,${alpha})`);g.addColorStop(1,'rgba(243,191,101,0)');ellipse(x,y,rx,ry,g);}
+    const landmarks=buildings.slice(0,6);
+    function rooftop(b){return project(b.x+b.w/2,b.y+b.d/2,b.h+19);}
+    function drawAtmosphere(p){
+      const gradient=ctx.createRadialGradient(630,355,30,630,355,540);gradient.addColorStop(0,p.sky);gradient.addColorStop(1,'#172023');ellipse(620,370,585,360,gradient);
+      ctx.save();ctx.globalAlpha=.14;const gridColor=state.period==='dawn'?'#b9b8a0':'#72817c';
+      for(let i=-180;i<740;i+=38){line([project(-160,i,-28),project(700,i,-28)],gridColor,.55);line([project(i,-160,-28),project(i,700,-28)],gridColor,.55);}ctx.restore();
+      for(let i=0;i<45;i++){const x=135+hash(i,8)*950,y=70+hash(i,4)*540;circle(x,y,hash(i,12)*.7+.3,state.period==='night'?'#7c9399':'#7b8178');}
+      // Map corner registration marks keep the composition closer to an atlas than a dashboard.
+      [[106,172],[1115,512],[590,689]].forEach(([x,y])=>{line([{x:x-5,y},{x:x+5,y}],'#657370',.65);line([{x,y:y-5},{x,y:y+5}],'#657370',.65);});
+    }
+    function drawGround(p){
+      const shadow=ctx.createRadialGradient(614,514,25,614,514,500);shadow.addColorStop(0,'rgba(0,0,0,.5)');shadow.addColorStop(1,'rgba(0,0,0,0)');ellipse(614,515,510,225,shadow);
+      prism(-12,-12,521,510,20,p.ground,p.edge,p.edge,'#53605b',-20);
+      quad(5,5,203,475,.5,p.ground);quad(289,5,202,475,.5,p.ground);
+      // The canal is a continuous public space, with three accessible crossings.
+      quad(218,-12,63,510,1,p.water);
+      line([project(218,-12,2),project(218,498,2)],'#8b9981',2);line([project(281,-12,2),project(281,498,2)],'#8b9981',2);
+      ctx.save();ctx.globalAlpha=.25;
+      for(let i=0;i<27;i++){const y=(i*23+state.time*5)%500;line([project(225+hash(i)*5,y,2),project(247+hash(i,2)*24,y,2)],'#a1d3bb',.65);}
+      ctx.restore();
+      // Inlaid pedestrian lanes, paving joints and a single shared tram route.
+      quad(0,237,218,32,2,p.road);quad(281,237,219,32,2,p.road);
+      quad(198,5,15,481,2,p.road);quad(286,5,13,481,2,p.road);
+      quad(10,120,193,15,2,p.road);quad(301,118,190,15,2,p.road);
+      quad(10,386,187,12,2,p.road);quad(300,376,194,12,2,p.road);
+      for(const yy of [119,243,377]){prism(208,yy,82,18,8,'#909784','#56625b','#657164','#a6b19a',1);for(const dy of [0,18]){line([project(208,yy+dy,23),project(290,yy+dy,23)],'#9aa18b',1.1);for(let u=209;u<=290;u+=13)line([project(u,yy+dy,9),project(u,yy+dy,23)],'#879780',.8);}}
+      for(const yy of [247,258])line([project(0,yy,3),project(500,yy,3)],'#929582',1);
+      for(let x=24;x<489;x+=28){if(x>200&&x<300)continue;line([project(x,5,1),project(x,116,1)],'rgba(164,179,157,.12)',.6);line([project(x,276,1),project(x,376,1)],'rgba(164,179,157,.12)',.6);}
+      for(const xx of [187,301])for(let y=239;y<269;y+=6)quad(xx,y,9,2,3,'#9fa590');
+      // Planted public squares break up the density without removing the street grid.
+      [[12,274,16,84],[16,420, 60,52],[309,8,139,16],[295,281, 30,12]].forEach(([x,y,w,d])=>quad(x,y,w,d,2,'#4e6455','#6b7d61'));
+      if(state.selected>=0){const b=landmarks[state.selected],center=project(b.x+b.w/2,b.y+b.d/2);glow(center.x,center.y,90,42,.18);quad(b.x-6,b.y-6,b.w+12,b.d+12,2,'rgba(242,202,117,.035)','#d7b770');}
+    }
+    function drawWindow(b,col,row,face,p,active,lit){
+      const count=Math.max(1,Math.floor((face==='front'?b.w:b.d)/17));
+      const spacing=(face==='front'?b.w:b.d)/count;
+      const z=b.h-15-row*17,w=7,h=8;
+      const warm=lit||hash(b.x+col*7,b.y+row*13+(face==='front'?0:59))<p.ambient;
+      const color=warm?(lit?'#f5d78f':p.lit):'#293e41';
+      if(face==='front')polygon([project(b.x+col*spacing+5,b.y+b.d+.15,z),project(b.x+col*spacing+5+w,b.y+b.d+.15,z),project(b.x+col*spacing+5+w,b.y+b.d+.15,z-h),project(b.x+col*spacing+5,b.y+b.d+.15,z-h)],color);
+      else polygon([project(b.x+b.w+.15,b.y+col*spacing+5,z),project(b.x+b.w+.15,b.y+col*spacing+5+w,z),project(b.x+b.w+.15,b.y+col*spacing+5+w,z-h),project(b.x+b.w+.15,b.y+col*spacing+5,z-h)],warm?'#d8ae67':'#2b3f43');
+      if(lit&&row===Math.floor((b.h-20)/17)-1&&col%2===0){const pt=face==='front'?project(b.x+col*spacing+9,b.y+b.d,z-4):project(b.x+b.w,b.y+col*spacing+9,z-4);glow(pt.x,pt.y,14,18,.14);}
+    }
+    function tree(x,y,z=0,size=1){
+      const p=project(x,y,z);ellipse(p.x+5,p.y+3,12*size,5*size,'rgba(10,28,25,.2)');line([{x:p.x,y:p.y},{x:p.x,y:p.y-26*size}],'#7a8770',1.4*size);ellipse(p.x,p.y-27*size,12*size,18*size,'#4d7363');ellipse(p.x-3*size,p.y-32*size,8*size,13*size,'#73947a');line([{x:p.x,y:p.y-7*size},{x:p.x,y:p.y-31*size}],'#7a8c70',.6);
+    }
+    function drawBuilding(b,p){
+      const active=state.selected===b.id,lit=state.lit.has(b.id),detail=p.line;
+      const roof=b.kind==='library'?'#adb099':b.kind==='kitchen'?'#8e7460':b.kind==='garden'?'#79876e':p.roof;
+      // Cast shadows follow the same projection as the streets.
+      const a=project(b.x,b.y+b.d),c=project(b.x+b.w,b.y+b.d),e=project(b.x+b.w+27,b.y+b.d+30),f=project(b.x+27,b.y+b.d+30);polygon([a,c,e,f],'rgba(4,14,15,.23)');
+      prism(b.x,b.y,b.w,b.d,b.h,roof,p.wall,p.darkWall,active?'#c3b27d':detail);
+      const rows=Math.max(1,Math.floor((b.h-20)/17));
+      for(let row=0;row<rows;row++){
+        for(let col=0;col<Math.max(1,Math.floor(b.w/17));col++)drawWindow(b,col,row,'front',p,active,lit);
+        for(let col=0;col<Math.max(1,Math.floor(b.d/17));col++)drawWindow(b,col,row,'side',p,active,lit);
+      }
+      // Parapets and shallow roof setbacks give every building a tangible edge.
+      quad(b.x+3,b.y+3,b.w-6,b.d-6,b.h+1,roof,detail);
+      line([project(b.x,b.y,b.h+3),project(b.x+b.w,b.y,b.h+3),project(b.x+b.w,b.y+b.d,b.h+3)],detail,.85);
+      const doorWidth=b.kind==='station'?16:11;polygon([project(b.x+b.w*.43,b.y+b.d+.2,18),project(b.x+b.w*.43+doorWidth,b.y+b.d+.2,18),project(b.x+b.w*.43+doorWidth,b.y+b.d+.2,0),project(b.x+b.w*.43,b.y+b.d+.2,0)],lit?'#f4d99b':'#b1a37d');
+      if(lit){const e=project(b.x+b.w*.5,b.y+b.d+8);glow(e.x,e.y,34,17,.33);}
+      if(b.kind==='library'){
+        prism(b.x+12,b.y+11,b.w-24,b.d-22,7,'#c2c5aa','#819385','#6f847b','#d1d1ae',b.h+1);
+        for(let u=18;u<b.w-18;u+=15){quad(b.x+u,b.y+18,9,b.d-35,b.h+9,'#799e99','#aabdb0');line([project(b.x+u,b.y+18,b.h+10),project(b.x+u+9,b.y+18,b.h+10)],'#d2d4b2',.8);}
+        for(let u=8;u<b.w;u+=15)line([project(b.x+u,b.y+b.d+.5,29),project(b.x+u,b.y+b.d+.5,5)],'#9ea78d',1.6);
+      }else if(b.kind==='workshop'){
+        prism(b.x+9,b.y+9,32,27,17,'#75867b','#596f67','#465f5a',detail,b.h+1);const q=project(b.x+24,b.y+21,b.h+19);ellipse(q.x,q.y,12,6,'#3c5350');ellipse(q.x,q.y,9,4,'#6d8880');
+        quad(b.x+5,b.y+b.d,45,12,30,'#b99b64',detail);for(let i=0;i<4;i++)quad(b.x+7+i*11,b.y+b.d+1,5,10,31,'#d3bd89');
+      }else if(b.kind==='kitchen'){
+        prism(b.x+12,b.y+9,21,21,24,'#9b9880','#7e7f6d','#5b6d61',detail,b.h+1);
+        const q=project(b.x+22,b.y+19,b.h+29);for(let i=0;i<4;i++){const drift=(state.time*7+i*10)%40;ellipse(q.x+Math.sin(drift*.1+i)*5,q.y-drift,5+drift*.12,4+drift*.09,`rgba(189,198,167,${.18*(1-drift/40)})`);}
+        quad(b.x+3,b.y+b.d,80,13,28,'#b3825c',detail);for(let i=0;i<7;i++)quad(b.x+5+i*11,b.y+b.d+1,5,11,29,'#e0bd82');
+      }else if(b.kind==='garden'){
+        quad(b.x+6,b.y+6,b.w-12,b.d-12,b.h+2,'#425e4d');
+        for(const [dx,dy] of [[16,18],[44,19],[66,48],[20,52]]){prism(b.x+dx-7,b.y+dy-6,16,15,5,'#92a27c','#738b69','#607c62',detail,b.h+3);tree(b.x+dx,b.y+dy,b.h+8,.62);}
+        for(let dx=9;dx<b.w;dx+=12)line([project(b.x+dx,b.y+b.d,b.h),project(b.x+dx,b.y+b.d,b.h+11)],'#aeb59a',.7);line([project(b.x,b.y+b.d,b.h+11),project(b.x+b.w,b.y+b.d,b.h+11)],'#aeb59a',.9);
+      }else if(b.kind==='radio'){
+        prism(b.x+18,b.y+15,35,33,12,'#a4afa0','#75897d','#5d756c',detail,b.h+1);
+        const q=project(b.x+b.w/2,b.y+b.d/2,b.h+13);line([{x:q.x-9,y:q.y},{x:q.x,y:q.y-69},{x:q.x+9,y:q.y}],'#a9b6a5',1.2);line([{x:q.x-6,y:q.y-22},{x:q.x+6,y:q.y-22},{x:q.x-3,y:q.y-44},{x:q.x+3,y:q.y-44}],'#a9b6a5',.85);circle(q.x,q.y-71,2.2,'#efca7c');
+        if(lit){for(let i=0;i<2;i++){const r=13+((state.time*7+i*18)%36);ctx.beginPath();ctx.arc(q.x,q.y-71,r,Math.PI*1.13,Math.PI*1.87);ctx.strokeStyle=`rgba(241,202,117,${.35*(1-r/50)})`;ctx.lineWidth=.8;ctx.stroke();}}
+      }else if(b.kind==='station'){
+        quad(b.x-5,b.y-5,b.w+10,b.d+11,b.h+5,'#929a81',detail);
+        for(let i=0;i<5;i++)quad(b.x+8+i*18,b.y+8,10,b.d-15,b.h+6,'#537c77','#7b9b8a');
+        for(let i=0;i<4;i++)prism(b.x+12+i*23,b.y+b.d+5,15,4,5,'#b2ab83','#827e65','#73795f',null);
+      }else if(b.kind==='solar'){
+        for(let i=0;i<3;i++)for(let j=0;j<3;j++)quad(b.x+9+i*17,b.y+9+j*18,13,14,b.h+2,'#355a67','#779394');
+        const q=project(b.x+55,b.y+12,b.h);line([q,{x:q.x,y:q.y-26}],'#a0b2a5',1);line([{x:q.x-9,y:q.y-20},{x:q.x+9,y:q.y-20}],'#a0b2a5',.7);
+      }else{
+        prism(b.x+8,b.y+7,18,17,10,'#9ba596','#71867b','#5b726c',detail,b.h+1);
+        for(let i=0;i<3;i++)line([project(b.x+10,b.y+9+i*4,b.h+12),project(b.x+24,b.y+9+i*4,b.h+12)],'#526b64',.8);
+        if(b.h>100){const q=project(b.x+b.w-11,b.y+11,b.h+1);line([q,{x:q.x,y:q.y-20}],'#9bab9e',1);}
+      }
+    }
+    function drawLamp(x,y,p){const q=project(x,y),head=project(x,y,29);line([q,head],'#9ca992',1.15);line([head,{x:head.x+7,y:head.y-3}],'#9ca992',1);circle(head.x+7,head.y-3,2.4,p.lit);glow(head.x+7,head.y-3, 13,13,.18);ellipse(q.x+7,q.y+1,12,5,'rgba(240,204,132,.1)');}
+    function drawPerson(person){
+      const speed=state.time*person.speed,progress=(person.phase+speed)%1;
+      const x=person.axis==='x'?15+progress*474:person.fixed,y=person.axis==='y'?15+progress*470:person.fixed;
+      if(person.axis==='x'&&x>211&&x<294)return;
+      const q=project(x,y,3);ellipse(q.x+2,q.y+2,3,1.3,'#283936');line([{x:q.x,y:q.y-2},{x:q.x,y:q.y-7}],person.color,2.2);circle(q.x,q.y-9,1.7,'#c6bda0');line([{x:q.x-1.6,y:q.y+1},{x:q.x,y:q.y-3},{x:q.x+1.6,y:q.y+1}],'#28383a',1);
+    }
+    const pedestrians=Array.from({length:23},(_,i)=>({axis:i%3===0?'y':'x',fixed:i%3===0?(i%2?204:291):(i%2?272:231),phase:hash(i,31),speed:.002+hash(i,82)*.003,color:['#c5c1a1','#b18c69','#7ea495','#a6b8b0'][i%4]}));
+    function drawTram(p){const x=(state.time*6+67)%540- 30;if(x<0||x>451)return;const y=246,z=x>190&&x<292?11:3;prism(x,y,43,13,16,'#bfc1a0','#759589','#4f796e','#bdc3a7',z);for(let i=0;i<4;i++)polygon([project(x+5+i*9,y+13,14+z),project(x+11+i*9,y+13,14+z),project(x+11+i*9,y+13,8+z),project(x+5+i*9,y+13,8+z)],'#dfca8f');const q=project(x+43,y+8,5+z);circle(q.x,q.y,1.8,'#f7dda1');}
+    const treeSpots=[[18,55],[20,100],[186,40],[187,95],[185,155],[20,287],[20,331],[23,432],[48,447],[75,455],[317,15],[364,15],[410,15],[482,128],[483,286],[486,331],[321,476],[367,476],[410,477]];
+    function drawCityObjects(p){
+      const objects=buildings.map(b=>({depth:b.x+b.y+(b.w+b.d)*.5,draw:()=>drawBuilding(b,p)}));
+      treeSpots.forEach(([x,y],i)=>objects.push({depth:x+y,draw:()=>tree(x,y,3,.7+hash(i)*.18)}));
+      for(const x of [208,287])for(const y of [34,174,295,451])objects.push({depth:x+y,draw:()=>drawLamp(x,y,p)});
+      objects.sort((a,b)=>a.depth-b.depth).forEach(o=>o.draw());
+      pedestrians.forEach(drawPerson);drawTram(p);
+    }
+    function drawConnections(){
+      const lit=[...state.lit];if(lit.length===0)return;
+      for(let i=0;i<lit.length;i++){const pt=rooftop(landmarks[lit[i]]);glow(pt.x,pt.y+14,48,34,.16);}
+      if(lit.length<2)return;
+      ctx.save();
+      for(let i=1;i<lit.length;i++){
+        const a=rooftop(landmarks[lit[i-1]]),b=rooftop(landmarks[lit[i]]),lift= 40+Math.abs(a.x-b.x)*.1;
+        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.bezierCurveTo(a.x,a.y-lift,b.x,b.y-lift,b.x,b.y);ctx.strokeStyle='rgba(241,202,117,.52)';ctx.lineWidth=1;ctx.setLineDash([3,5]);ctx.lineDashOffset=-state.time*9;ctx.stroke();ctx.setLineDash([]);
+        const t=(state.time*.075+i*.27)%1,u=1-t,x=u*u*u*a.x+3*u*u*t*a.x+3*u*t*t*b.x+t*t*t*b.x,y=u*u*u*a.y+3*u*u*t*(a.y-lift)+3*u*t*t*(b.y-lift)+t*t*t*b.y;circle(x,y,2,'#f6d889');
+      }
+      ctx.restore();
+    }
+    function render(){ctx.setTransform(canvas.width/W,0,0,canvas.height/H,0,0);ctx.clearRect(0,0,W,H);const p=periods[state.period];drawAtmosphere(p);drawGround(p);drawCityObjects(p);drawConnections();}
+    function positionPins(){document.querySelectorAll('[data-place]').forEach(pin=>{const point=rooftop(landmarks[Number(pin.dataset.place)]);pin.style.left=`${(mobile.matches?-.09+1.18*point.x/W:point.x/W)*100}%`;pin.style.top=`${point.y/H*100}%`;});}
+    function resize(){const rect=canvas.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.max(1,Math.round(rect.width*dpr));canvas.height=Math.max(1,Math.round(rect.height*dpr));positionPins();render();}
+    function announce(message){status.textContent=message;}
+    function updateStory(shouldAnnounce=true){
+      const index=state.selected,p=places[index],lit=state.lit.has(index),number=String(index+1).padStart(2,'0');
+      $('place-index').textContent=`${number} / 06`;$('place-kicker').textContent=`${number} — ${p.en}`;$('place-title').textContent=p.title;$('place-description').textContent=p.description;$('place-quote').textContent=`“${p.quote}”`;$('place-symbol').setAttribute('d',p.symbol);
+      $('light-label').textContent=lit?'灯已点亮 · 谢谢你':`为${p.short}留一盏灯`;$('light-button').disabled=lit;
+      document.querySelectorAll('[data-place]').forEach(pin=>{const id=Number(pin.dataset.place),isLit=state.lit.has(id);pin.setAttribute('aria-pressed',String(id===index));pin.setAttribute('aria-label',`${String(id+1).padStart(2,'0')} ${places[id].name}，${isLit?'已点亮，':''}查看故事`);pin.classList.toggle('is-lit',isLit);});
+      if(shouldAnnounce)announce(`走到了${p.name}。${p.quote}${lit?' 你已为这里点亮一盏灯。':''}`);render();
+    }
+    function select(index){state.selected=(index+places.length)%places.length;updateStory();}
+    document.querySelectorAll('[data-place]').forEach(pin=>pin.addEventListener('click',()=>select(Number(pin.dataset.place))));
+    $('previous-button').addEventListener('click',()=>select(state.selected-1));$('next-button').addEventListener('click',()=>select(state.selected+1));
+    $('wander-button').addEventListener('click',()=>{const options=places.map((_,i)=>i).filter(i=>i!==state.selected&&!state.lit.has(i));const remaining=options.length?options:places.map((_,i)=>i).filter(i=>i!==state.selected);select(remaining[Math.floor(Math.random()*remaining.length)]);});
+    function updateCount(){$('lit-count').textContent=String(state.lit.size).padStart(2,'0');document.querySelectorAll('.lights-progress i').forEach((bar,i)=>bar.classList.toggle('on',i<state.lit.size));}
+    $('light-button').addEventListener('click',()=>{
+      if(state.lit.has(state.selected))return;
+      state.lit.add(state.selected);updateCount();updateStory(false);
+      const p=places[state.selected];announce(state.lit.size===6?'六盏灯都亮了。书有人读，旧物有人修，晚归的人有热汤，微小的声音有人听。谢谢你，让这座城更温柔。':`${p.name}的灯亮了。${p.reply} 已点亮 ${state.lit.size} / 6 处。`);
+      // The completed action becomes disabled; keep the keyboard journey on the next useful control.
+      $('next-button').focus({preventScroll:true});
+    });
+    document.querySelectorAll('[data-time]').forEach(button=>button.addEventListener('click',()=>{state.period=button.dataset.time;document.querySelectorAll('[data-time]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));announce(periods[state.period].note);render();}));
+    $('reset-button').addEventListener('click',()=>{state.lit.clear();updateCount();updateStory(false);announce('本次点亮的灯已重置。故事还在，你可以从任何一个街角重新开始。');});
+    let frame=0,last=0,inView=true;
+    function tick(now){frame=0;if(state.paused||document.hidden||!inView)return;if(now-last>=1000/30){state.time+=last?Math.min((now-last)/1000,.08):0;last=now;render();}frame=requestAnimationFrame(tick);}
+    function stop(){cancelAnimationFrame(frame);frame=0;last=0;}
+    function resume(){if(!frame&&!state.paused&&!document.hidden&&inView){last=0;frame=requestAnimationFrame(tick);}}
+    function updateMotion(){$('pause-label').textContent=state.paused?'继续动态':'暂停动态';$('pause-button').setAttribute('aria-pressed',String(state.paused));$('pause-button').setAttribute('aria-label',state.paused?'继续城市动态':'暂停城市动态');$('pause-button').querySelector('path').setAttribute('d',state.paused?'m6 3 8 6-8 6Z':'M6 3v12M12 3v12');if(state.paused){stop();render();}else resume();}
+    $('pause-button').addEventListener('click',()=>{state.paused=!state.paused;updateMotion();});reducedMotion.addEventListener('change',event=>{state.paused=event.matches;updateMotion();});
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();else resume();});
+    if('IntersectionObserver' in window)new IntersectionObserver(entries=>{inView=entries[0].isIntersecting;if(inView)resume();else stop();},{threshold:.03}).observe(canvas);
+    if('ResizeObserver' in window)new ResizeObserver(resize).observe(canvas);else window.addEventListener('resize',resize);
+    mobile.addEventListener('change',resize);window.addEventListener('pagehide',stop);window.addEventListener('pageshow',resume);
+    resize();updateStory(false);updateMotion();
+  })();
+  </script>
+</body>
+</html>

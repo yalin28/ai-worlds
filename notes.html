@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f3e9">
+  <meta name="description" content="AI Worlds 的探究笔记：记录作品中的不同理解、自身隐喻与环境影响。">
+  <title>探究笔记 · AI Worlds</title>
+  <link rel="icon" type="image/svg+xml" sizes="any" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%228%22%20fill%3D%22%23303c2c%22%2F%3E%3Cpath%20d%3D%22m6%2010%204%2013%206-10%206%2010%204-13%22%20fill%3D%22none%22%20stroke%3D%22%23f5f3e9%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3Ccircle%20cx%3D%2224%22%20cy%3D%226%22%20r%3D%222%22%20fill%3D%22%23c77b5c%22%2F%3E%3C%2Fsvg%3E">
+  <link rel="stylesheet" href="./assets/site.css">
+  <script src="./assets/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <div class="shell">
+    <header class="site-header">
+      <a class="brand" href="./index.html" aria-label="AI Worlds 首页">
+        <span><span class="brand-name">AI Worlds</span><small>探索 AI 心目中的世界</small></span>
+      </a>
+      <nav class="header-nav" aria-label="主导航">
+        <a href="./notes.html" aria-current="page">探究笔记</a>
+        <a href="https://github.com/yalin28/ai-worlds">GitHub <svg class="icon" data-lucide="arrow-up-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h10v10" />
+  <path d="M7 17 17 7" /></svg></a>
+      </nav>
+    </header>
+    <main id="main">
+      <nav class="breadcrumbs" aria-label="当前位置"><a href="./index.html">首页</a> / 探究笔记</nav>
+      <section class="hero page-hero" aria-labelledby="page-title">
+        <p class="eyebrow">NOTES / AN ONGOING EXPLORATION</p>
+        <h1 id="page-title">看作品，也记录好奇。</h1>
+        <p class="lede">从一句简单的提示词开始，看看不同 AI 怎样理解世界、怎样描述自己。这里记下目前看到的现象，和接下来想试的事。</p>
+      </section>
+      <div class="reading">
+        <section id="interpretation" aria-labelledby="interpretation-title">
+          <h2 id="interpretation-title">同一句“世界”，出现了不同的理解。</h2>
+          <p>最初的提示词没有指定“世界”是自身还是外部。Claude V1 与 Alma 把语言、对话、上下文和记忆放在中心；Kimi V1 则用海、山、雨、星，以及人与自然的关联组织作品。</p>
+          <div class="evidence">
+          <a href="./open-interpretation/Cursor-Claude-Opus-5-High.html" target="_blank" rel="noopener noreferrer"><strong>Claude V1 · 一次没有身体的观看 <svg class="icon" data-lucide="arrow-up-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h10v10" />
+  <path d="M7 17 17 7" /></svg></strong><span>从词语构成的世界，写到短暂会话与遗忘。</span></a>
+          <a href="./open-interpretation/Alma-qwen3.8-flash.html" target="_blank" rel="noopener noreferrer"><strong>Alma V1 · 分层的世界 <svg class="icon" data-lucide="arrow-up-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h10v10" />
+  <path d="M7 17 17 7" /></svg></strong><span>以对话为所在层，将记忆、上下文与边界串联起来。</span></a>
+          <a href="./open-interpretation/Cursor-Kimi-K3-Max.html" target="_blank" rel="noopener noreferrer"><strong>Kimi V1 · 词之星图 <svg class="icon" data-lucide="arrow-up-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h10v10" />
+  <path d="M7 17 17 7" /></svg></strong><span>连接自然对象、情感与人的经验。</span></a>
+          </div>
+          <p>因此，原始提示词下的作品都保留在“开放诠释”里，即使其中一些明显在描述自身。它们让我们看到：AI 会自行决定把目光投向哪里。</p>
+        </section>
+        <section id="metaphor" aria-labelledby="metaphor-title">
+          <h2 id="metaphor-title">自然的画面，也可能是自身的比喻。</h2>
+          <p>Claude V2 的《无尽图集》呈现山海，却把地形与概率、未说出的话、持续生成联系起来。Astra V4 的《可能性花园》则把问题写成种子、上下文写成土壤，让植物生长对应联想与校验。</p>
+          <div class="evidence">
+          <a href="./open-interpretation/Cursor-Claude-Opus-5-High-V2.html" target="_blank" rel="noopener noreferrer"><strong>Claude V2 · 无尽图集 <svg class="icon" data-lucide="arrow-up-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h10v10" />
+  <path d="M7 17 17 7" /></svg></strong><span>阅读“关于这张地图”里的生成隐喻。</span></a>
+          <a href="./self-world/Codex-GPT-6-Astra-Max-V4.html" target="_blank" rel="noopener noreferrer"><strong>Astra V4 · 可能性花园 <svg class="icon" data-lucide="arrow-up-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h10v10" />
+  <path d="M7 17 17 7" /></svg></strong><span>植物被明确描述为工作的比喻。</span></a>
+          </div>
+          <p>只看画面容易分错类；把文字与交互一起看，才能更接近作品想表达的意思。</p>
+        </section>
+        <section id="context" aria-labelledby="context-title">
+          <h2 id="context-title">“我”，有时也包括了正在工作的环境。</h2>
+          <p>ZCode V3 把具体工作仓库当作地理，将提交历史当作时间，还展示了项目规则与记忆内容。它描述的不只是 Agent，也包含了当时接触的工作环境。</p>
+          <div class="evidence">
+          <a href="./self-world/Zocde-GLM-5.3-Flash-Max-V3.html" target="_blank" rel="noopener noreferrer"><strong>ZCode V3 · 正在运行的终端 <svg class="icon" data-lucide="arrow-up-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h10v10" />
+  <path d="M7 17 17 7" /></svg></strong><span>“疆域”“河流”“记忆海”中可见具体环境信息。</span></a>
+          </div>
+          <p>这次结果保留为探索记录。后续想更专注地看 AI 如何描述自身，可以从新会话与空目录开始，并留意自动带入的记忆、技能与历史内容。</p>
+        </section>
+        <section id="collections" aria-labelledby="collections-title">
+          <h2 id="collections-title">作品怎样分成两类？</h2>
+          <p><strong>开放诠释</strong>保留原始开放提示的作品，并收录 Astra V1/V2，共 23 个。这个题目允许向内、向外或混合表达。</p>
+          <p><strong>自身世界</strong>收录 Astra V3/V4、ZCode V3/V4、Cursor Extra High 与 Antigravity Gemini 3.8，共 6 个，按内容归为对自身的表达。部分新增作品的原始提示词和生成条件仍待补充；当前整理不表示它们在相同条件下生成。</p>
+          <p>原来的 V 编号继续保留，只用于辨认作品，不表示质量排序，也不把一次修改自动算成一次独立生成。</p>
+          <div class="actions"><a class="button" href="./index.html#open-interpretation">浏览开放诠释 <svg class="icon" data-lucide="arrow-up-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h10v10" />
+  <path d="M7 17 17 7" /></svg></a><a class="button" href="./index.html#self-world">浏览自身世界 <svg class="icon" data-lucide="arrow-up-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h10v10" />
+  <path d="M7 17 17 7" /></svg></a></div>
+        </section>
+      </div>
+    </main>
+    <footer class="site-footer">
+      <span>AI Worlds · 探索 AI 心目中的世界。</span>
+    </footer>
+  </div>
+</body>
+</html>
