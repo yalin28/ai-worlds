@@ -11,6 +11,7 @@
   <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png">
   <link rel="stylesheet" href="./assets/site.css">
   <script src="./assets/site.js" defer></script>
+  <script src="./assets/hero-universe.js" defer></script>
   <noscript>
     <style>
       .gallery-heading, .gallery-meta, .panel-heading, .panel-description, .prompt, .source-note, .world-card, .findings-section .section-heading, .finding {
@@ -35,8 +36,11 @@
   <path d="M7 17 17 7" /></svg></a>
       </nav>
     </header>
-    <main id="main">
-      <section class="hero home-hero" aria-labelledby="page-title">
+  </div>
+  <main id="main">
+      <section class="hero home-hero shell" aria-labelledby="page-title">
+        <canvas class="home-hero__rain" data-hero-rain aria-hidden="true"></canvas>
+        <div class="home-hero__layout">
         <h1 id="page-title">
           <span class="sr-only">一套提示词，不同 Agent 与模型，探索 AI 心目中的世界。</span>
           <span class="slogan-visual" aria-hidden="true" data-typewriter>
@@ -45,8 +49,15 @@
             <span class="slogan-line"><span class="slogan-measure">探索 AI 心目中的世界。</span><span class="slogan-typed"><span data-type-text>探索 AI 心目中的世界。</span><span class="hero-cursor" data-type-cursor></span></span></span>
           </span>
         </h1>
+        <div class="hero-universe" data-hero-universe>
+          <div class="hero-universe__scene" aria-hidden="true">
+            <canvas class="hero-universe__canvas"></canvas>
+          </div>
+        </div>
+        </div>
       </section>
 
+    <div class="shell home-content">
       <section class="gallery" id="worlds" aria-labelledby="worlds-title" data-world-gallery>
         <div class="section-heading gallery-heading">
           <div><p class="eyebrow">THE COLLECTION / 世界图集</p><h2 id="worlds-title">AI 世界</h2></div>
@@ -423,7 +434,7 @@
 
       <section class="section findings-section" aria-labelledby="findings-title">
         <div class="section-heading">
-          <h2 id="findings-title">探究到这里，有几个发现。</h2>
+          <h2 id="findings-title">探索中有几个发现。</h2>
           <a href="./notes.html">阅读完整笔记 <svg class="icon" data-lucide="arrow-up-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M7 7h10v10" />
   <path d="M7 17 17 7" /></svg></a>
         </div>
@@ -452,7 +463,9 @@
         </div>
       </section>
 
-    </main>
+    </div>
+  </main>
+  <div class="shell">
     <footer class="site-footer">
       <span>AI Worlds · 探索 AI 心目中的世界。</span>
     </footer>
