@@ -82,8 +82,18 @@ const playReveal = (elements) => {
     activeAnimations.add(animation);
     const finish = () => {
       activeAnimations.delete(animation);
-      settleReveal(element);
+      if (typeof animation.commitStyles === 'function') {
+        animation.commitStyles();
+      }
       animation.cancel();
+      settleReveal(element);
+      element.style.transition = 'none';
+      element.style.removeProperty('opacity');
+      element.style.removeProperty('transform');
+      element.style.removeProperty('filter');
+      requestAnimationFrame(() => {
+        element.style.removeProperty('transition');
+      });
     };
     animation.onfinish = finish;
     animation.oncancel = () => {

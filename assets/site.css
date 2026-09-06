@@ -241,7 +241,7 @@ p { margin-block: 0 16px; text-wrap: pretty; }
     transform: translateY(22px);
     pointer-events: none;
   }
-  .world-card { transition: transform 150ms ease-out, box-shadow 150ms ease-out, border-color 150ms ease-out; }
+  .world-card { transition: box-shadow 150ms ease-out, border-color 150ms ease-out; }
   .world-card__link, .button { transition: background-color 150ms ease-out; }
   .copy-button { transition: color 150ms ease-out; }
   .world-card__link .icon, .details-chevron { transition: transform 150ms cubic-bezier(0.2, 0, 0, 1); }
@@ -251,6 +251,9 @@ p { margin-block: 0 16px; text-wrap: pretty; }
   @keyframes cursor-blink { 0%, 45% { opacity: 1; } 46%, 100% { opacity: 0; } }
   .motion-suspended * { animation-play-state: paused !important; }
   .is-offscreen .hero-cursor { animation-play-state: paused; }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .world-card { transition: transform 150ms ease-out, box-shadow 150ms ease-out, border-color 150ms ease-out; }
 }
 @media (prefers-reduced-motion: no-preference) and (max-width: 36rem) {
   :is(.gallery-heading, .gallery-meta, .panel-heading, .panel-description, .prompt, .source-note, .world-card, .findings-section .section-heading, .finding):not(.is-revealed) {
