@@ -15,4 +15,4 @@
 
 下拉箭头、跳转、复制、确认与动态控制采用 [Lucide](https://lucide.dev/) 官方 SVG 路径，使用 24 × 24 画布、圆角端点与统一线宽，直接内联在导航页中。许可文本见 [LUCIDE-LICENSE.txt](./LUCIDE-LICENSE.txt)。品牌图标继续用于辨认对应 Agent 与模型。
 
-AI Worlds 的标记由经纬球体与轨道构成，保持细线、圆角端点和橄榄绿色，与品牌文字共同组成站点标志；悬停或键盘聚焦时轨道转动。
+AI Worlds 的标记采用 [Lucide `circle-slash-2`](https://lucide.dev/icons/circle-slash-2) 的圆形与直径斜线，保持细线与圆角端点，与品牌文字共同组成站点标志。Favicon 与 Apple Touch Icon 使用同一图形，画在橄榄绿色底上。

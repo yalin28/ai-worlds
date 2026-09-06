@@ -43,7 +43,8 @@ button { cursor: pointer; }
 .icon { display: inline-block; width: 18px; height: 18px; flex: 0 0 auto; vertical-align: -0.2em; }
 .site-header, .header-nav, .site-footer, .actions, .section-heading, .panel-heading { display: flex; align-items: center; flex-wrap: wrap; }
 .site-header { min-height: 92px; justify-content: space-between; gap: 16px 32px; padding-block: 18px; border-bottom: 1px solid var(--line); }
-.brand { display: inline-flex; align-items: center; min-height: 44px; text-decoration: none; }
+.brand { display: inline-flex; align-items: center; gap: 12px; min-height: 44px; text-decoration: none; }
+.brand-mark { width: 32px; height: 32px; flex: 0 0 auto; }
 .brand-name { display: block; font-family: var(--font-display); font-size: 25px; line-height: 1.15; letter-spacing: -0.035em; }
 .brand small { display: block; margin-top: 5px; color: var(--muted); font-size: 11px; letter-spacing: 0.1em; }
 .header-nav { gap: 8px 28px; font-size: 13px; }
@@ -238,7 +239,9 @@ p { margin-block: 0 16px; text-wrap: pretty; }
 @media (max-width: 36rem) {
   .shell { width: calc(100% - 36px); }
   .site-header { gap: 8px; padding-block: 16px 10px; }
+  .brand { gap: 10px; }
   .brand-name { font-size: 23px; }
+  .brand-mark { width: 28px; height: 28px; }
   .header-nav { width: 100%; justify-content: space-between; gap: 8px 20px; font-size: 12px; }
   .hero { padding-block: 32px; }
   h1 { font-size: clamp(35px, 8vw, 44px); }
